@@ -6,7 +6,7 @@
 
 use core::panic::PanicInfo;
 use CrystalOS::{println, print, println_log, print_log};
-use CrystalOS::kernel::tasks::{Task, executor::Executor, keyboard};
+use CrystalOS::kernel::tasks::{Task, executor::Executor};
 use bootloader::{BootInfo, entry_point};
 extern crate alloc;
 use alloc::{boxed::Box, vec, vec::Vec, rc::Rc, string, string::String};
@@ -48,7 +48,10 @@ fn main(boot_info: &'static BootInfo) -> ! {
 
 	executor.spawn(Task::new(shell::command_handler()));
 
-	executor.run();
+
+	loop {
+		executor.try_run();
+	}
 	
 	#[cfg(test)]
 	test_main();
