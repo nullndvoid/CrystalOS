@@ -9,7 +9,6 @@ use CrystalOS::{println, print, println_log, print_log};
 use CrystalOS::kernel::tasks::{Task, executor::Executor};
 use bootloader::{BootInfo, entry_point};
 extern crate alloc;
-use alloc::{boxed::Box, vec, vec::Vec, rc::Rc, string, string::String};
 use CrystalOS::user::bin::shell;
 
 #[cfg(not(test))]
@@ -32,7 +31,7 @@ fn main(boot_info: &'static BootInfo) -> ! {
 	use CrystalOS::kernel::allocator;
 	use CrystalOS::kernel::memory;
 	use CrystalOS::kernel::memory::BootInfoFrameAllocator;
-	use x86_64::{structures::paging::{Page, Translate}, VirtAddr};
+	use x86_64::VirtAddr;
 	
 	CrystalOS::init();
 	

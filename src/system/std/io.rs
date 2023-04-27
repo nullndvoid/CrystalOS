@@ -52,11 +52,14 @@ pub struct Element {
     frame: Vec<Vec<char>>,
     dimensions: (u8, u8)
 }
+
 /// elements can be created using their from_str() method
 /// you can then render the element to the current frame using the render() method
 /// the position of the element by passing a tuple (x,y) to render()
 /// 
-/// nothing will appear on the screen until the frame is actually
+/// nothing will appear on the screen until the frame is actually rendered by
+/// the render_frame method on the renderer
+
 impl Element {
     pub fn from_str(elemstr: String) -> Self {
         let mut element = Element { frame: Vec::<Vec<char>>::new(), dimensions: (0, 0) }; 

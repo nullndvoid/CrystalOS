@@ -1,5 +1,5 @@
 
-use alloc::{boxed::Box, string::{String, ToString}, vec::Vec};
+use alloc::{string::{String, ToString}, vec::Vec};
 use rand::{Rng, SeedableRng, rngs::SmallRng, RngCore};
 use spin::Mutex;
 use lazy_static::lazy_static;

@@ -109,7 +109,7 @@ impl Application for GameLoop {
 }
 
 fn random() -> u64 {
-    let mut r = random::Random::int(0, 125) as u64;
+    let r = random::Random::int(0, 125) as u64;
     r
 }
 

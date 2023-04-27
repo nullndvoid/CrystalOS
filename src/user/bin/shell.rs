@@ -131,7 +131,10 @@ async fn exec() -> Result<(), Error> {
             use crate::std::io;
             io::mkfs();
         }
-
+		"test_features" => {
+			use crate::user::lib::libgui;
+			libgui::libgui_core::test_elements();
+		}
         _ => {
             return Err(Error::UnknownCommand(
                 "command not yet implemented".to_string(),

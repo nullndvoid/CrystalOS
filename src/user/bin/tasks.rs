@@ -131,14 +131,14 @@ impl TaskList {
 	}
 	pub fn add(&mut self, content: String) ->  Result<(), Error> {
 		let task = Task::new(self.next(), content);
-		let id = task.taskid.clone();
+		let _id = task.taskid.clone();
 		self.tasks.push(task);
 		Ok(())
 	}
-	pub fn remove(&mut self, id: usize) -> Result<(), Error> {
+	pub fn remove(&mut self, _id: usize) -> Result<(), Error> {
 		for (i, task) in self.tasks.clone().iter().enumerate() {
 			match task.taskid {
-				id => { self.tasks.remove(i); },
+				_id => { self.tasks.remove(i); },
 				_ => { return Err(Error::CommandFailed(String::from("this task does not exist"))); },
 			}
 		};
