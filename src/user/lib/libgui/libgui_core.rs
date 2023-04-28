@@ -14,6 +14,19 @@ use alloc::{
 
 */
 
+#[derive(Copy, Clone)]
+pub struct Pos {
+    pub x: usize,
+    pub y: usize,
+}
+impl Pos {
+    pub fn new(x: usize, y: usize) -> Pos {
+        Pos { x, y }
+    }
+}
+
+
+
 /// all interface elements must implement this trait in order to be
 /// rendered on the screen
 pub trait Element {
@@ -186,23 +199,23 @@ pub fn overlap_check(oldchar: char, newchar: char) -> char {
 
 // function to return a charmap of the outline of an object
 
-pub fn gen_outline(dimensions: (usize, usize)) -> Vec<Vec<char>> {
+pub fn gen_outline(dimensions: Pos) -> Vec<Vec<char>> {
     let mut charmap = Vec::<Vec<char>>::new();
 
     let mut frstline = vec!['┌'];
     let mut midlines = vec!['│'];
     let mut lastline = vec!['└'];
 
-    frstline.append(&mut vec!['─'; dimensions.0 - 2]);
-    midlines.append(&mut vec![' '; dimensions.0 - 2]);
-    lastline.append(&mut vec!['─'; dimensions.0 - 2]);
+    frstline.append(&mut vec!['─'; dimensions.x - 2]);
+    midlines.append(&mut vec![' '; dimensions.x - 2]);
+    lastline.append(&mut vec!['─'; dimensions.x - 2]);
 
     frstline.append(&mut vec!['┐']);
     midlines.append(&mut vec!['│']);
     lastline.append(&mut vec!['┘']);
 
     charmap.push(frstline);
-    for _ in 0..dimensions.1 - 2 {
+    for _ in 0..dimensions.y - 2 {
         charmap.push(midlines.clone());
     }
     charmap.push(lastline);
@@ -222,7 +235,7 @@ pub fn test_elements() {
     //}
 
     containers.push(Container::new((5, 5), (15, 5), true));
-    containers.push(Container::new((10, 3), (50, 15), true));
+    containers.push(Container::new((10, 3), (50, 20), true));
 
     let mut bar = IndicatorBar::new((10, 6), 12);
     let mut bar2 = IndicatorBar::new((10, 7), 12);
@@ -237,9 +250,9 @@ pub fn test_elements() {
     use super::libgui_elements;
     let tbox = libgui_elements::TextBox::new(
         String::from("title"),
-        String::from("text"),
-        (10, 10),
-        (10, 8),
+        String::from("text boxes are working gg but how well will they work if they go over the end of the textbox, will it cause a crash, well ima have to keep testing to figure that out properly, this could take a while lmao, i hope it works"),
+        Pos::new(25, 10),
+        Pos::new(10, 9),
         true,
     );
 
