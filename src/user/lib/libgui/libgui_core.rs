@@ -25,19 +25,17 @@ impl Pos {
     }
 }
 
-
-
 /// all interface elements must implement this trait in order to be
 /// rendered on the screen
 pub trait Element {
     // default behaviour for all elements
 
-    fn render(&self) -> (Vec<Vec<char>>, (usize, usize)) {
+    fn render(&self) -> (Vec<Vec<char>>, Pos) {
         // recursive method for rendering the
         // specified frame to the screen
         // insert rendering code for specific frame here
         // this should also render all children of the element
-        (Vec::<Vec<char>>::new(), (0, 0))
+        (Vec::<Vec<char>>::new(), Pos::new(0, 0))
     }
 }
 
@@ -46,16 +44,16 @@ pub struct Container {
     // other containers together
     frame: Vec<Vec<char>>,
     elements: Vec<Box<dyn Element>>,
-    position: (usize, usize), // x,y
+    position: Pos, // x,y
     //
     outlined: bool,
-    dimensions: (usize, usize), // x,y
+    dimensions: Pos, // x,y
 }
 
 impl Container {
-    fn new(position: (usize, usize), dimensions: (usize, usize), outlined: bool) -> Container {
+    fn new(position: Pos, dimensions: Pos, outlined: bool) -> Container {
         Self {
-            frame: vec![vec![' '; dimensions.0 as usize]; dimensions.1 as usize],
+            frame: vec![vec![' '; dimensions.x as usize]; dimensions.y as usize],
             elements: Vec::new(),
             position,
             outlined,
@@ -68,7 +66,7 @@ impl Container {
 }
 
 impl Element for Container {
-    fn render(&self) -> (Vec<Vec<char>>, (usize, usize)) {
+    fn render(&self) -> (Vec<Vec<char>>, Pos) {
         // returns all elements as a single frame
 
         let mut charmap = Vec::<Vec<char>>::new();
@@ -78,23 +76,7 @@ impl Element for Container {
         let mut lastline: Vec<char>;
 
         if self.outlined {
-            frstline = vec!['┌'];
-            midlines = vec!['│'];
-            lastline = vec!['└'];
-
-            frstline.append(&mut vec!['─'; self.dimensions.0 - 2]);
-            midlines.append(&mut vec![' '; self.dimensions.0 - 2]);
-            lastline.append(&mut vec!['─'; self.dimensions.0 - 2]);
-
-            frstline.append(&mut vec!['┐']);
-            midlines.append(&mut vec!['│']);
-            lastline.append(&mut vec!['┘']);
-
-            charmap.push(frstline);
-            for _ in 0..self.dimensions.1 - 2 {
-                charmap.push(midlines.clone());
-            }
-            charmap.push(lastline);
+            charmap = gen_outline(self.dimensions);
         }
 
         // render child elements
@@ -110,7 +92,7 @@ impl Element for Container {
                 for (j, chr) in row.iter().enumerate() {
                     // r.0 is the rendered element
                     // r.1.0 is the x offset
-                    charmap[i + r.1 .1][j + r.1 .0] = *chr; // r.1.1 is the y offset
+                    charmap[i + r.1.y][j + r.1.x] = *chr; // r.1.1 is the y offset
                 }
             }
         }
@@ -123,31 +105,41 @@ pub struct IndicatorBar {
     length: usize,
     filled: usize,
     abs: usize,
-    position: (usize, usize),
+    position: Pos,
+    text: Option<String>,
 }
 
 impl IndicatorBar {
-    fn new(position: (usize, usize), length: usize) -> IndicatorBar {
+    fn new(position: Pos, length: usize) -> IndicatorBar {
         IndicatorBar {
             position,
             length,
             abs: 0,
             filled: 0,
+            text: None,
         }
     }
     fn set_value(&mut self, value: usize) {
         // takes a value from 1-100%
         // and turns it into a corresponding length filled
-        self.filled = value
+        self.filled = value;
+    }
+    fn set_text(&mut self, s: String) {
+        self.text = Some(s);
     }
 }
 
 impl Element for IndicatorBar {
-    fn render(&self) -> (Vec<Vec<char>>, (usize, usize)) {
+    fn render(&self) -> (Vec<Vec<char>>, Pos) {
         let numlen = (self.abs.to_string().as_str()).len();
         let relfilled = (self.filled as f64 / 100.0 * ((self.length - numlen) as f64)) as usize;
 
         let mut line = Vec::<char>::new();
+        if let Some(t) = &self.text {
+            line.append(&mut t.chars().collect());
+            line.push(':');
+            line.push(' ');
+        }
         line.append(&mut (self.abs.to_string().chars().collect()));
         line.append(&mut vec!['▓'; relfilled]);
         line.append(&mut vec!['░'; self.length - numlen - relfilled]);
@@ -172,9 +164,9 @@ pub fn render_frame(elements: Vec<Container>) {
 
         for (i, row) in f.0.iter().enumerate() {
             for (j, chr) in row.iter().enumerate() {
-                let mut current = &buffer[i + f.1 .1][j + f.1 .0];
+                let mut current = &buffer[i + f.1.y][j + f.1.x];
                 let newchar = overlap_check(*current, *chr);
-                buffer[i + f.1 .1][j + f.1 .0] = newchar;
+                buffer[i + f.1.y][j + f.1.x] = newchar;
 
                 //print!("{}", buffer[i+frame.position.1][j+frame.position.0]);
             }
@@ -226,9 +218,11 @@ pub fn gen_outline(dimensions: Pos) -> Vec<Vec<char>> {
 // testing functions
 
 pub fn test_elements() {
-    println!("e");
+    use super::libgui_elements;
 
     let mut containers = Vec::<Container>::new();
+
+    /*
 
     //for _ in 0..10 {
     //    containers.push(generate_box());
@@ -247,16 +241,32 @@ pub fn test_elements() {
     containers[1].elements.push(Box::new(bar));
     containers[1].elements.push(Box::new(bar2));
 
-    use super::libgui_elements;
     let tbox = libgui_elements::TextBox::new(
-        String::from("title"),
-        String::from("text boxes are working gg but how well will they work if they go over the end of the textbox, will it cause a crash, well ima have to keep testing to figure that out properly, this could take a while lmao, i hope it works"),
+        String::from("panic attack simps"),
+        String::from("i have finally obtained evidence of his simpiness against tari and crystal, however i cannot reveal this evidence for now, however, once the contract is over NO ONE CAN STOP ME MWHAHAHAHAHA"),
         Pos::new(25, 10),
         Pos::new(10, 9),
         true,
     );
 
     containers[1].elements.push(Box::new(tbox));
+
+    */
+
+    containers.push(Container::new(Pos::new(0, 1), Pos::new(80, 24), true));
+
+    containers[0]
+        .elements
+        .push(Box::new(libgui_elements::TextBox::new(
+            String::from("ANNOUNCEMENTS"),
+            String::from(
+                "CrystalRPG coming soon! XD
+this is gonna be the best game ever",
+            ),
+            Pos::new(25, 10),
+            Pos::new(0, 0),
+            true,
+        )));
 
     render_frame(containers);
 
@@ -271,5 +281,5 @@ fn generate_box() -> Container {
     let height = Random::int(5, 10);
     let xoffset = Random::int(5, 50);
     let yoffset = Random::int(5, 10);
-    Container::new((width, height), (xoffset, yoffset), true)
+    Container::new(Pos::new(width, height), Pos::new(xoffset, yoffset), true)
 }
