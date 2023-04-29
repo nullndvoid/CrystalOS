@@ -39,19 +39,19 @@ pub trait Element {
     }
 }
 
-pub struct Container {
+pub struct Container<'a> {
     // a simple container objects for grouping
     // other containers together
     frame: Vec<Vec<char>>,
-    elements: Vec<Box<dyn Element>>,
+    elements: Vec<Box<&'a dyn Element>>,
     position: Pos, // x,y
     //
     outlined: bool,
     dimensions: Pos, // x,y
 }
 
-impl Container {
-    fn new(position: Pos, dimensions: Pos, outlined: bool) -> Container {
+impl Container<'a> {
+    fn new(position: Pos, dimensions: Pos, outlined: bool) -> Container<'a> {
         Self {
             frame: vec![vec![' '; dimensions.x as usize]; dimensions.y as usize],
             elements: Vec::new(),
@@ -60,12 +60,9 @@ impl Container {
             dimensions,
         }
     }
-    fn place(&self, element: Vec<Vec<char>>) {
-        return; // unimplemented
-    }
 }
 
-impl Element for Container {
+impl Element for Container<'_> {
     fn render(&self) -> (Vec<Vec<char>>, Pos) {
         // returns all elements as a single frame
 
@@ -255,18 +252,18 @@ pub fn test_elements() {
 
     containers.push(Container::new(Pos::new(0, 1), Pos::new(80, 24), true));
 
-    containers[0]
-        .elements
-        .push(Box::new(libgui_elements::TextBox::new(
-            String::from("ANNOUNCEMENTS"),
-            String::from(
-                "CrystalRPG coming soon! XD
+    let tbox = libgui_elements::TextBox::new(
+        String::from("ANNOUNCEMENTS"),
+        String::from(
+            "CrystalRPG coming soon! XD
 this is gonna be the best game ever",
-            ),
-            Pos::new(25, 10),
-            Pos::new(0, 0),
-            true,
-        )));
+        ),
+        Pos::new(25, 10),
+        Pos::new(0, 0),
+        true,
+    );
+
+    containers[0].elements.push(Box::new(&tbox));
 
     render_frame(containers);
 
@@ -275,7 +272,7 @@ this is gonna be the best game ever",
 
 // function to generate a box in a random location on the screen.
 
-fn generate_box() -> Container {
+fn generate_box() -> Container<'static> {
     use crate::std::random::Random;
     let width = Random::int(5, 20);
     let height = Random::int(5, 10);
