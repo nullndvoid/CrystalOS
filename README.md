@@ -204,3 +204,13 @@ since the last update i did a few things.
 ```rust
     pub struct crate::std::io::Element
 ```
+
+## UPDATE: 29/04/23
+
+after taking a bit of a break to get my A level work done and play some games, i've finally found time to get back into
+this project
+
+over the last couple of days I've made some signifcant changes to this project.
+I have started the development of a TUI (terminal user interface) library allowing for widgets to be displayed
+on screen using ascii.
+its pretty barebones at the moment but I'm hoping to add more features as time goes on!
