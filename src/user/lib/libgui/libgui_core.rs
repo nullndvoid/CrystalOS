@@ -268,6 +268,11 @@ this is gonna be the best game ever",
             true,
         )));
 
+    let mut bar = IndicatorBar::new(Pos::new(7, 7), 12);
+    bar.set_value(70);
+    bar.set_text(String::from("ayo"));
+
+    containers[0].elements.push(Box::new(bar));
     render_frame(containers);
 
     return;

@@ -123,17 +123,21 @@ async fn exec() -> Result<(), Error> {
         }
         "random" => {
             use crate::std::random::Random;
-            let vec = Vec::from(["a", "b", "c", "d", "e", "f"]);
-            let sel = Random::selection(vec);
-            println!("{}", sel);
+            let vec = Vec::from(["is", "is not", "is absolutely"]);
+            let vec2 = Vec::from(["simp", "gigachad", "genius", "bozo", "Non simp"]);
+            let sel = *Random::selection(&vec);
+            let sel2 = *Random::selection(&vec2);
+            println!("panic attack {} a {}", sel, sel2);
         }
         "filesystem" => {
             use crate::std::io;
             io::mkfs();
         }
 		"test_features" => {
-			use crate::user::lib::libgui;
-			libgui::libgui_core::test_elements();
+            use crate::std::random::Random;
+            println!("{}", Random::int(0, 10));
+			// use crate::user::lib::libgui;
+			// libgui::libgui_core::test_elements();
 		}
         _ => {
             return Err(Error::UnknownCommand(

@@ -1,3 +1,4 @@
-fn init() -> Result<(), ()> {
+use crate::println;
+pub fn init() -> Result<(), ()> {
     Ok(())
 }
