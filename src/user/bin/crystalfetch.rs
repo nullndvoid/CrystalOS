@@ -1,15 +1,10 @@
 use async_trait::async_trait;
 use alloc::{boxed::Box, string::String, vec::Vec};
 
-use crate::{
-    std::os::OS,
-    std::io::{Color, write},
-    println,
-    std::application::{
-        Application,
-        Error,
-    },
-};
+use crate::{std::os::OS, std::io::{Color, write, clear}, println, std::application::{
+	Application,
+	Error,
+}, std};
 
 
 pub struct CrystalFetch {}
@@ -26,33 +21,30 @@ impl Application for CrystalFetch {
 		let os = OS.lock().os.clone();
 		let version = OS.lock().version.clone();
 
+		clear();
 
 		write(format_args!("
-────────────────────────────────────────────────────────
-    _____                _        _  ____   _____
-   / ____|              | |      | |/ __ \\ / ____|
-  | |     _ __ _   _ ___| |_ __ _| | |  | | (___
-  | |    | '__| | | / __| __/ _` | | |  | |\\___ \\
-  | |____| |  | |_| \\__ \\ || (_| | | |__| |____) |
-   \\_____|_|   \\__, |___/\\__\\__,_|_|\\____/|_____/
-                __/ |
-               |___/
-"), (Color::Magenta, Color::Black));
-
+    /$$$$$$$$ /$$   /$$  /$$$$$$   /$$$$$$   /$$$$$$                     /$$
+   |_____ $$ | $$  / $$ /$$__  $$ /$$__  $$ /$$__  $$                  /$$$$
+        /$$/ |  $$/ $$/| $$  \\ $$| $$  \\ $$| $$  \\__/       /$$    /$$|_  $$
+       /$$/   \\  $$$$/ | $$  | $$| $$  | $$|  $$$$$$       |  $$  /$$/  | $$
+      /$$/     >$$  $$ | $$  | $$| $$  | $$ \\____  $$       \\  $$/$$/   | $$
+     /$$/     /$$/\\  $$| $$/$$ $$| $$  | $$ /$$  \\ $$        \\  $$$/    | $$
+    /$$$$$$$$| $$  \\ $$|  $$$$$$/|  $$$$$$/|  $$$$$$/         \\  $/    /$$$$$$
+   |________/|__/  |__/ \\____ $$$ \\______/  \\______/           \\_/    |______/
+"), (Color::Cyan, Color::Black));
 		println!("
-       ╔═══════════════════════════════
-       ║
-       ║   OS      »  {}
-       ║   BUILD   »  {}
-       ║   RAM     »  idk
-       ║   Shell   »  CrystalSH
-       ║   API     »  CrystalAPI
-       ║   Pkgs    »  4
-       ║   Fetch   »  CrystalFetch
-       ║
-       ╚═══════════════════════════════
 
-────────────────────────────────────────────────────────
+
+ [   OS      »  {}
+ [   BUILD   »  {}
+ [   Shell   »  CrySH
+ [   Github  »  https://github.com/FantasyPvP/CrystalOS-Restructured
+ [   Author  »  FantasyPvP / ZXQ5
+
+
+
+
 ", os, version);
 		Ok(())
 	}

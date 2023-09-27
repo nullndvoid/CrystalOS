@@ -4,12 +4,15 @@ use alloc::string::ToString;
 use alloc::borrow::ToOwned;
 use crate::{println, print,  mknode, std};
 
-
 use async_trait::async_trait;
+use lazy_static::lazy_static;
 use crate::std::application::{
 	Application,
 	Error as ShellError
 };
+
+
+
 
 struct Parser {
     tokens: Vec<Token>,
@@ -34,9 +37,25 @@ impl Interpreter {
             Node::UnaryOperation(_) => return self.visit_unary_operation(node),
             Node::Number(_) => return self.visit_number(node),
             Node::Operator(_) => return self.visit_operator(node),
+            Node::Function(_) => return self.visit_function(node),
         }
     }
 
+    fn visit_function(&mut self, node: Node) -> Result<Value, Error> {   // function calls such as sqrt(5) within the expression are evaluated here
+        let func = if let Node::Function(x) = node.clone() {
+            x
+        } else {
+            return Err(Error::Other(String::from("value is not a function")))
+        };
+        let function_name = func.name;
+
+        let inner = self.visit(self.get_node(node.clone(), "argument")?.expect("returned none").to_owned())?;
+        if let Value::Number(x) = inner {
+            return Ok(Value::Number(super::functions::run_func(function_name, x).unwrap()));
+        } else {
+            return Err(Error::Other(String::from("function argument is not a number")))
+        }
+    }
 
     fn visit_number(&mut self, node: Node) -> Result<Value, Error> {
 
@@ -168,6 +187,13 @@ impl Interpreter {
                     None
                 }
             },
+            "argument" => {
+                if let Node::Function(x) = node {
+                    Some(x.arg)
+                } else {
+                    None
+                }
+            }
             _ => return Err(Error::Other(String::from("invalid param for get_Node")))
         };
         Ok(result)
@@ -258,6 +284,24 @@ impl Parser {
         let token = self.current.clone();
 
         match token {
+            Token::Func(x) => {
+                self.advance()?;
+                if let Token::Bracket('(') = self.current {
+                    self.advance()?;
+                } else {
+                    return Err(Error::InvalidSyntax(self.idx as usize))
+                };
+                let arg = self.expr()?;
+                if let Token::Bracket(')') = self.current {
+                    self.advance()?;
+                } else {
+                    return Err(Error::InvalidSyntax(self.idx as usize))
+                };
+
+                return Ok(Node::Function(Box::new(FunctionCall { name: x, arg })))
+            },
+
+
             Token::Operator(Operator::Add) | Token::Operator(Operator::Sub) => {
                 self.advance()?;
                 let operator = mknode!(token).expect("mknode returned none");
@@ -343,13 +387,21 @@ impl Application for Calculator {
 				}
 				match calculate_inner(inp) {
 			        Ok(_) => (),
-			        Err(_) => { println!("your input must be a valid mathematical expression contaning only numbers (including floats) and the operators: [ +, -, *, **, /, //, % ]"); return Err(ShellError::CommandFailed(String::from("failed"))) },
+			        Err(e) => {
+                        println!("your input must be a valid mathematical expression contaning only numbers (including floats) and the operators: [ +, -, *, **, /, //, % ]");
+                        println!("{:?}", e);
+                        return Err(ShellError::CommandFailed(String::from("failed")))
+                    },
 		    	};
 			}
 		} else {
 		    match calculate_inner(args.into_iter().collect()) {
 		        Ok(x) => x,
-		        Err(_) => { println!("your input must be a valid mathematical expression contaning only numbers (including floats) and the operators: [ +, -, *, **, /, //, % ]"); return Err(ShellError::CommandFailed(String::from("failed"))) },
+		        Err(e) => {
+                    println!("your input must be a valid mathematical expression contaning only numbers (including floats) and the operators: [ +, -, *, **, /, //, % ]");
+                    println!("{:?}", e);
+                    return Err(ShellError::CommandFailed(String::from("failed")))
+                },
 		    };
 			Ok(())
 		}
@@ -422,6 +474,7 @@ fn tokenise(equation: &str) -> Result<Vec<Token>, Error> {
             'a'..='z' => {
                 is_var = true;
                 current_string.push(character);
+                continue;
             }
             _ => {
                 if is_var {
@@ -522,6 +575,7 @@ enum Error {
 enum Node {
     Number(f64),
     Operator(Operator),
+    Function(Box<FunctionCall>),
     BinaryOperation(Box<BinaryOperation>),
     UnaryOperation(Box<UnaryOperation>)
 }
@@ -540,6 +594,11 @@ struct UnaryOperation {
     other: Node,
 }
 
+#[derive(Debug, Clone, PartialEq)]
+struct FunctionCall {
+    name: String,
+    arg: Node,
+}
 
 
 
@@ -565,6 +624,14 @@ impl fmt::Display for UnaryOperation {
     }
 }
 
+impl fmt::Display for FunctionCall {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write! (
+            f, "{}({})", self.name, self.arg
+        )
+    }
+}
+
 impl fmt::Display for Node {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
@@ -578,6 +645,7 @@ impl fmt::Display for Node {
                 let inner = *x.clone();
                 write!(f, "{}", inner)
             }
+            Node::Function(x) => write!(f, "{}", x),
         }
     }
 }

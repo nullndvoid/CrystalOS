@@ -11,7 +11,7 @@ use crate::{
     },
 };
 
-const GIGACHAD: &'static str = "fantasypvp";
+const GIGACHAD: [&'static str; 3] = ["fantasypvp", "zxq5", "ZXQ5"];
 
 pub struct GigachadDetector {}
 
@@ -31,18 +31,18 @@ impl Application for GigachadDetector {
 
 impl GigachadDetector {
     pub fn detect_gigachad_by_username(&self, username: &str) {
-        if username == GIGACHAD {
+        if GIGACHAD.contains(&username) {
             println!("{} is a gigachad B'YES", username);
             println!("
-     /$$$$$$$$ /$$   /$$  /$$$$$$  /$$$$$$$
-    |_____ $$ | $$  / $$ /$$__  $$| $$____/
-         /$$/ |  $$/ $$/| $$  \\ $$| $$
-        /$$/   \\  $$$$/ | $$  | $$| $$$$$$$
-       /$$/     >$$  $$ | $$  | $$|_____  $$
-      /$$/     /$$/\\  $$| $$/$$ $$ /$$  \\ $$
-     /$$$$$$$$| $$  \\ $$|  $$$$$$/|  $$$$$$/
-    |________/|__/  |__/ \\____ $$$ \\______/
-                              \\__/
+    /$$ /$$$$$$$$ /$$   /$$  /$$$$$$  /$$$$$$$       /$$ /$$  /$$
+   /$$/|_____ $$ | $$  / $$ /$$__  $$| $$____/      /$$/|  $$|  $$
+  /$$/      /$$/ |  $$/ $$/| $$  \\ $$| $$          /$$/  \\  $$\\  $$
+ /$$/      /$$/   \\  $$$$/ | $$  | $$| $$$$$$$    /$$/    \\  $$\\  $$
+|  $$     /$$/     >$$  $$ | $$  | $$|_____  $$  /$$/      /$$/ /$$/
+ \\  $$   /$$/     /$$/\\  $$| $$/$$ $$ /$$  \\ $$ /$$/      /$$/ /$$/
+  \\  $$ /$$$$$$$$| $$  \\ $$|  $$$$$$/|  $$$$$$//$$/      /$$/ /$$/
+   \\__/|________/|__/  |__/ \\____ $$$ \\______/|__/      |__/ |__/
+                                 \\__/
     ")
         } else {
             println!("{} is not a gigachad", username);
