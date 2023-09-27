@@ -7,3 +7,4 @@ pub mod render;
 pub mod serial;
 pub mod tasks;
 pub mod sysinit;
+pub mod authenticator;

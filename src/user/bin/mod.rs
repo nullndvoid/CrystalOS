@@ -5,3 +5,4 @@ pub mod rickroll;
 pub mod shell;
 //pub mod shellrewrite;
 pub mod tasks;
+mod gigachad_detector;

@@ -71,6 +71,9 @@ pub struct Renderer {
     pub sandbox: bool,
 }
 
+
+
+
 lazy_static! {
     pub static ref RENDERER: Mutex<Renderer> = Mutex::new(Renderer {
         col_pos: 0,

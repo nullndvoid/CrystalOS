@@ -412,10 +412,24 @@ fn calculate_inner(mut equation: String) -> Result<f64, Error> {
 fn tokenise(equation: &str) -> Result<Vec<Token>, Error> {
     let mut tokens = Vec::new();
     let mut current_num = "".to_string();
-    let current_string: String = "".to_string();
+    let mut current_string: String = "".to_string();
+
+    let mut is_var = false;
 
     'mainloop: for (x, character) in equation.chars().enumerate() {
 
+        match character {
+            'a'..='z' => {
+                is_var = true;
+                current_string.push(character);
+            }
+            _ => {
+                if is_var {
+                    tokens.push(Token::Func(current_string.clone()));
+                }
+                is_var = false;
+            }
+        }
 
         match character {
             '0'..='9' => current_num.push(character),
@@ -478,6 +492,7 @@ enum Token {
     Operator(Operator),
     Bracket(char),
     Null,
+    Func(String),
 }
 
 

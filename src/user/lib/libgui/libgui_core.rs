@@ -50,7 +50,7 @@ pub struct Container<'a> {
     dimensions: Pos, // x,y
 }
 
-impl Container<'a> {
+impl<'a> Container<'a> {
     fn new(position: Pos, dimensions: Pos, outlined: bool) -> Container<'a> {
         Self {
             frame: vec![vec![' '; dimensions.x as usize]; dimensions.y as usize],
@@ -212,68 +212,68 @@ pub fn gen_outline(dimensions: Pos) -> Vec<Vec<char>> {
     return charmap;
 }
 
-// testing functions
-
-pub fn test_elements() {
-    use super::libgui_elements;
-
-    let mut containers = Vec::<Container>::new();
-
-    /*
-
-    //for _ in 0..10 {
-    //    containers.push(generate_box());
-    //}
-
-    containers.push(Container::new((5, 5), (15, 5), true));
-    containers.push(Container::new((10, 3), (50, 20), true));
-
-    let mut bar = IndicatorBar::new((10, 6), 12);
-    let mut bar2 = IndicatorBar::new((10, 7), 12);
-
-    bar.set_value(43);
-    bar.abs = 101;
-    bar2.set_value(14);
-    bar2.abs = 15;
-    containers[1].elements.push(Box::new(bar));
-    containers[1].elements.push(Box::new(bar2));
-
-    let tbox = libgui_elements::TextBox::new(
-        String::from("panic attack simps"),
-        String::from("i have finally obtained evidence of his simpiness against tari and crystal, however i cannot reveal this evidence for now, however, once the contract is over NO ONE CAN STOP ME MWHAHAHAHAHA"),
-        Pos::new(25, 10),
-        Pos::new(10, 9),
-        true,
-    );
-
-    containers[1].elements.push(Box::new(tbox));
-
-    */
-
-    containers.push(Container::new(Pos::new(0, 1), Pos::new(80, 24), true));
-
-    let tbox = libgui_elements::TextBox::new(
-        String::from("ANNOUNCEMENTS"),
-        String::from(
-            "CrystalRPG coming soon! XD
-this is gonna be the best game ever",
-        ),
-        Pos::new(25, 10),
-        Pos::new(0, 0),
-        true,
-    );
-
-    containers[0].elements.push(Box::new(&tbox));
-
-    let mut bar = IndicatorBar::new(Pos::new(7, 7), 12);
-    bar.set_value(70);
-    bar.set_text(String::from("ayo"));
-
-    containers[0].elements.push(Box::new(bar));
-    render_frame(containers);
-
-    return;
-}
+// // testing functions
+//
+// pub fn test_elements() {
+//     use super::libgui_elements;
+//
+//     let mut containers = Vec::<Container>::new();
+//
+//     /*
+//
+//     //for _ in 0..10 {
+//     //    containers.push(generate_box());
+//     //}
+//
+//     containers.push(Container::new((5, 5), (15, 5), true));
+//     containers.push(Container::new((10, 3), (50, 20), true));
+//
+//     let mut bar = IndicatorBar::new((10, 6), 12);
+//     let mut bar2 = IndicatorBar::new((10, 7), 12);
+//
+//     bar.set_value(43);
+//     bar.abs = 101;
+//     bar2.set_value(14);
+//     bar2.abs = 15;
+//     containers[1].elements.push(Box::new(bar));
+//     containers[1].elements.push(Box::new(bar2));
+//
+//     let tbox = libgui_elements::TextBox::new(
+//         String::from("panic attack simps"),
+//         String::from("i have finally obtained evidence of his simpiness against tari and crystal, however i cannot reveal this evidence for now, however, once the contract is over NO ONE CAN STOP ME MWHAHAHAHAHA"),
+//         Pos::new(25, 10),
+//         Pos::new(10, 9),
+//         true,
+//     );
+//
+//     containers[1].elements.push(Box::new(tbox));
+//
+//     */
+//
+//     containers.push(Container::new(Pos::new(0, 1), Pos::new(80, 24), true));
+//
+//     let tbox = libgui_elements::TextBox::new(
+//         String::from("ANNOUNCEMENTS"),
+//         String::from(
+//             "CrystalRPG coming soon! XD
+// this is gonna be the best game ever",
+//         ),
+//         Pos::new(25, 10),
+//         Pos::new(0, 0),
+//         true,
+//     );
+//
+//     containers[0].elements.push(Box::new(&tbox));
+//
+//     let mut bar = IndicatorBar::new(Pos::new(7, 7), 12);
+//     bar.set_value(70);
+//     bar.set_text(String::from("ayo"));
+//
+//     containers[0].elements.push(Box::new(bar));
+//     render_frame(containers);
+//
+//     return;
+// }
 
 // function to generate a box in a random location on the screen.
 

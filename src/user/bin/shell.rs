@@ -14,6 +14,7 @@ use crate::{
     std::application::{Application, Error},
     user::bin::*,
 };
+use crate::user::bin::gigachad_detector::GigachadDetector;
 
 lazy_static! {
     pub static ref CMD: Mutex<CommandHandler> = Mutex::new(CommandHandler::new());
@@ -121,13 +122,9 @@ async fn exec() -> Result<(), Error> {
         "switch" => {
             crate::std::io::switch_mode();
         }
-        "random" => {
-            use crate::std::random::Random;
-            let vec = Vec::from(["is", "is not", "is absolutely"]);
-            let vec2 = Vec::from(["simp", "gigachad", "genius", "bozo", "Non simp"]);
-            let sel = *Random::selection(&vec);
-            let sel2 = *Random::selection(&vec2);
-            println!("panic attack {} a {}", sel, sel2);
+        "gigachad?" => {
+            let mut gigachad_detector = GigachadDetector::new();
+            gigachad_detector.run(args).await?;
         }
         "filesystem" => {
             use crate::std::io;
