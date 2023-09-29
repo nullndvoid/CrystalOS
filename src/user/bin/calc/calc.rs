@@ -51,7 +51,7 @@ impl Interpreter {
 
         let inner = self.visit(self.get_node(node.clone(), "argument")?.expect("returned none").to_owned())?;
         if let Value::Number(x) = inner {
-            return Ok(Value::Number(super::functions::run_func(function_name, x).unwrap()));
+            return Ok(Value::Number(super::functions::run_func(function_name, x).map_err(|x| Error::Other(x.to_string()))?));
         } else {
             return Err(Error::Other(String::from("function argument is not a number")))
         }
@@ -416,44 +416,25 @@ fn calculate_inner(mut equation: String) -> Result<f64, Error> {
 	let mut neweq = equation.clone();
 	neweq.pop();
 
-
     let tokens = tokenise(&equation)?;
-
     let mut parser = Parser::new(tokens)?;
     let ast = parser.parse()?;
-
-
     let mut interpreter = Interpreter::new()?;
     let result = interpreter.visit(ast)?;
+	let return_res = if let Value::Number(x) = result {
+        x
+	} else { panic!("the value returned was not a float! THIS IS A BUG") };
 
-	let return_res = {
-		if let Value::Number(x) = result {
-			x
-		} else {
-			panic!("did not return a float!");
-		}
-	};
-	println!("\n\n
-   _____                _        _
-  / ____|              | |      | |
- | |     _ __ _   _ ___| |_ __ _| |
- | |    | '__| | | / __| __/ _` | |
- | |____| |  | |_| \\__ \\ || (_| | |
-  \\_____|_|   \\__, |___/\\__\\__,_|_|
-        _____  __/ |
-       / ____||___/ |
-      | |     __ _| | ___
-      | |    / _` | |/ __|
-      | |___| (_| | | (__
-       \\_____\\__,_|_|\\___|
+	println!("
 
-    ┌────────────────────────────────────────────┐
-    │                                            │
-    │    Expression -> [ {} ]
-    │                                            │
-    │    Calculated Solution -> [ {} ]
-    │                                            │
-    └────────────────────────────────────────────┘
+    [ EXPRESSION ]
+
+    {}
+
+    [ RESULT ]
+
+    {}
+
     ", neweq, return_res);
 
     Ok(return_res)
@@ -481,6 +462,7 @@ fn tokenise(equation: &str) -> Result<Vec<Token>, Error> {
                     tokens.push(Token::Func(current_string.clone()));
                 }
                 is_var = false;
+                current_string = "".to_string();
             }
         }
 

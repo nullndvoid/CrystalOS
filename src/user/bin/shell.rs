@@ -14,6 +14,7 @@ use crate::{
     std::application::{Application, Error},
     user::bin::*,
 };
+use crate::std::io::{Color, write};
 use crate::user::bin::gigachad_detector::GigachadDetector;
 
 lazy_static! {
@@ -54,7 +55,9 @@ pub async fn eventloop() {
     }
 }
 
-fn handle_error(e: Error) {}
+fn handle_error(e: Error) {
+    println!("there was an error! exiting program!");
+}
 
 async fn exec() -> Result<(), Error> {
     let mut current = CMD.lock().current.clone();
@@ -189,11 +192,8 @@ impl CommandHandler {
     // TODO: coloured prompt
 
     pub fn prompt(&self) {
-        print!("\n [ Crystal ] >> ");
+        write(format_args!("\n Crystal> "), (Color::Cyan, Color::Black));
     }
-
-    // this function is run every time the enter key is pressed in the command line mode.
-    // it detects the command that is being run and then executes it, passing the arguments to it.
 }
 
 struct CmdHistory {
