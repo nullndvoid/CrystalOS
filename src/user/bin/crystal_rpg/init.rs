@@ -31,7 +31,7 @@ impl Application for GameLoop {
     }
     async fn run(&mut self, _args: Vec<String>) -> Result<(), Error> {
 
-        let mut username: String = io::stdin().await;
+        let mut username: String = io::Stdin::readline().await;
         username = username.trim().to_string();
 
         let mut player = Player::new(username);
@@ -101,7 +101,7 @@ impl Application for GameLoop {
 
 
         loop {
-            println!("{}", io::stdchar().await)
+            println!("{}", io::Stdin::keystroke().await)
         }
 
         Ok(())

@@ -11,40 +11,55 @@ pub use crate::{print, println, serial_print, serial_println};
 use lazy_static::lazy_static;
 use spin::Mutex;
 
-pub async fn stdin() -> String {
-    let string = KEYBOARD.lock().get_string().await;
-    string
-}
+pub struct Stdin {}
+impl Stdin {
+    pub async fn readline() -> String {
+        let string = KEYBOARD.lock().get_string().await;
+        string
+    }
 
-pub async fn stdchar() -> char {
-    let chr = KEYBOARD.lock().get_keystroke().await;
-    chr
-}
-
-pub fn text_mode() {
-    RENDERER.lock().text_mode().unwrap();
-}
-
-pub fn sandbox_mode() {
-    RENDERER.lock().sandbox_mode().unwrap();
-}
-
-pub fn switch_mode() {
-    if RENDERER.lock().sandbox == true {
-        RENDERER.lock().text_mode().unwrap();
-    } else {
-        RENDERER.lock().sandbox_mode().unwrap();
+    pub async fn keystroke() -> char {
+        let chr = KEYBOARD.lock().get_keystroke().await;
+        chr
     }
 }
 
-pub fn clear() {
-    RENDERER.lock().clear();
+pub struct Screen {}
+impl Screen {
+    pub fn terminal_mode() {
+        RENDERER.lock().text_mode().unwrap();
+    }
+    pub fn application_mode() {
+        RENDERER.lock().sandbox_mode().unwrap();
+    }
+    pub fn switch() {
+        if RENDERER.lock().sandbox == true {
+            RENDERER.lock().text_mode().unwrap();
+        } else {
+            RENDERER.lock().sandbox_mode().unwrap();
+        }
+    }
+    pub fn clear() {
+        RENDERER.lock().clear();
+    }
 }
 
 
 
 
 
+
+
+
+
+/// TODO: get a working implementation for CLI apps
+/// elements can be created using their from_str() method
+/// you can then render the element to the current frame using the render() method
+/// the position of the element by passing a tuple (x,y) to render()
+/// 
+/// nothing will appear on the screen until the frame is actually rendered by
+/// the render_frame method on the renderer
+///
 pub type Frame = [ [ char; BUFFER_WIDTH ]; BUFFER_HEIGHT];
 
 #[derive(Clone)]
@@ -52,13 +67,6 @@ pub struct Element {
     frame: Vec<Vec<char>>,
     dimensions: (u8, u8)
 }
-
-/// elements can be created using their from_str() method
-/// you can then render the element to the current frame using the render() method
-/// the position of the element by passing a tuple (x,y) to render()
-/// 
-/// nothing will appear on the screen until the frame is actually rendered by
-/// the render_frame method on the renderer
 
 impl Element {
     pub fn from_str(elemstr: String) -> Self {
@@ -143,8 +151,6 @@ impl core::fmt::Display for FrameGen {
 
 
 
-
-
 #[macro_export]
 macro_rules! println_log {
 	() => ($crate::print_log!("/n"));
@@ -155,7 +161,6 @@ macro_rules! println_log {
 macro_rules! print_log {
 	($($arg:tt)*) => ($crate::std::io::_log(format_args!($($arg)*)));
 }
-
 
 #[macro_export]
 macro_rules! println {
@@ -169,7 +174,6 @@ macro_rules! print {
 }
 
 pub use crate::kernel::render::Color;
-
 
 #[doc(hidden)]
 pub fn _print(args: core::fmt::Arguments) {
@@ -202,9 +206,6 @@ pub fn _log(args: core::fmt::Arguments) {
 pub fn write(args: core::fmt::Arguments, cols: (Color, Color)) {
     crate::kernel::render::write(args, cols);
 }
-
-
-
 
 pub fn mkfs() {
     use crate::kernel::fs;

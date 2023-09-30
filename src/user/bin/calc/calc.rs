@@ -380,7 +380,7 @@ impl Application for Calculator {
 		if args.len() == 0 {
 			loop {
 				print!("enter equation > ");
-				let inp = std::io::stdin().await;
+				let inp = std::io::Stdin::readline().await;
 				println!("{}", inp);
 				if inp == String::from("exit\n") {
 					return Ok(());

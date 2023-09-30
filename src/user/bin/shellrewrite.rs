@@ -13,7 +13,7 @@ use alloc::{
 use crate::{
     kernel::tasks::{executor::Executor, Task},
     std::application::{Application, Error},
-    std::io::{print, println, stdin},
+    std::io::{print, println, Stdin, Screen},
     user::bin::*,
 };
 
@@ -30,32 +30,39 @@ use super::*;
 //  - chained execution ( multiple commands linked together) eg: '5 + 5 | echo' which calculates
 //    the result of 5 + 5 and then sends the result to an echo command which prints it to console
 
-/// initialises a global tasks struct, this can be accessed from anywhere in the program;
-lazy_static! {
-    pub static ref TASKS: Mutex<Vec<Task>> = Mutex::new(Vec::new());
-}
 
 /// starts the shell
 /// this function should be directly called by main.rs or by an init system
-pub fn init_sh(args: Option<Vec<String>>) -> Result<(), String> {
+
+fn new_function() {
+
+}
+
+
+pub fn userspace() -> Result<(), String> {
     let mut executor = Executor::new();
 
-    loop {
-        executor.spawn(Task::new(next()));
-
-        let tasks = TASKS.lock();
-        while tasks.len() > 0 {
-            let next = tasks[0].clone();
-            tasks.remove(0);
-            executor.spawn(next);
-        }
-        drop(tasks);
-
-        executor.try_run();
-    }
-
+    //
+    // executor.spawn(Task::new(new_function()));
+    // loop {
+    //     executor.try_run()
+    // }
     Ok(())
 }
+
+// struct Shell {}
+//
+// impl Application for Shell {
+//     fn new() -> Shell {
+//         Shell {}
+//     }
+//     async fn run(&mut self, _: Vec<String>) -> Result<(), Error> {
+//         Ok(())
+//     }
+// }
+
+
+
 
 fn parse_args(command: String) -> Result<(String, Vec<String>), String> {
     let mut args: Vec<String> = Vec::new();
@@ -83,19 +90,3 @@ fn parse_args(command: String) -> Result<(String, Vec<String>), String> {
 //    Ok(Vec::<String::new()>)
 //}
 
-async fn next() {
-    let command: String = stdin();
-    let parsed = match parse_args(command) {
-        Ok(x) => x,
-        Err(e) => {
-            println!("Error Parsing Command: Invalid Syntax")
-        }
-    };
-    // tokens will eventually be parsed here
-
-    /*
-    - PARSER
-    - this will allow the use of more complex commands later down the line
-    */
-    TASKS.lock().push(Task::new(parsed));
-}

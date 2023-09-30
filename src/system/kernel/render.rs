@@ -81,7 +81,7 @@ lazy_static! {
         buffer: unsafe { &mut *(0xb8000 as *mut Buffer) },
         userspace: BufferSwap {
             chars: [[ScreenChar {
-                character: 179u8,
+                character: 178u8,
                 colour: ColorCode::new(Color::White, Color::Black),
             }; BUFFER_WIDTH]; BUFFER_HEIGHT]
         },

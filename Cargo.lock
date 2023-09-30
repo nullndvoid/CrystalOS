@@ -11,6 +11,7 @@ dependencies = [
  "bootloader",
  "cmos-rtc",
  "conquer-once",
+ "crossbeam-channel",
  "crossbeam-queue",
  "futures-util",
  "hashbrown",
@@ -130,6 +131,15 @@ name = "conquer-util"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e763eef8846b13b380f37dfecda401770b0ca4e56e95170237bd7c25c7db3582"
+
+[[package]]
+name = "crossbeam-channel"
+version = "0.5.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a33c2bf77f2df06183c3aa30d1e96c0695a313d4f9c453cc3762a6db39f99200"
+dependencies = [
+ "cfg-if 1.0.0",
+]
 
 [[package]]
 name = "crossbeam-queue"

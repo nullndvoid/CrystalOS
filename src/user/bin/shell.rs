@@ -14,7 +14,7 @@ use crate::{
     std::application::{Application, Error},
     user::bin::*,
 };
-use crate::std::io::{Color, write};
+use crate::std::io::{Color, write, Screen};
 use crate::user::bin::gigachad_detector::GigachadDetector;
 
 lazy_static! {
@@ -41,7 +41,7 @@ pub async fn eventloop() {
     CMD.lock().prompt();
 
     loop {
-        let string = crate::std::io::stdin().await;
+        let string = crate::std::io::Stdin::readline().await;
         CMD.lock().current.push_str(&string);
         match exec().await {
             Ok(_) => {
@@ -112,9 +112,9 @@ async fn exec() -> Result<(), Error> {
         }
 
         "clear" => {
-            interrupts::without_interrupts(|| {
-                crate::std::io::clear();
-            });
+            Screen::clear();
+            // not sure why this code was here but leaving it in case weird bugs happen so i remember to add it back if so
+            //interrupts::without_interrupts(|| {});
         }
 
         "print" => {
@@ -123,7 +123,7 @@ async fn exec() -> Result<(), Error> {
             println!("{}", x);
         }
         "switch" => {
-            crate::std::io::switch_mode();
+            Screen::switch();
         }
         "gigachad?" => {
             let mut gigachad_detector = GigachadDetector::new();

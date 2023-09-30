@@ -20,26 +20,6 @@ static WAKER: AtomicWaker = AtomicWaker::new();
 static SCANCODE_QUEUE: OnceCell<ArrayQueue<u8>> = OnceCell::uninit();
 
 
-/*
-pub async fn print_keypresses() {
-	let mut scancodes = ScanCodeStream::new();
-	let mut keyboard = Keyboard::new(layouts::Uk105Key, ScancodeSet1, HandleControl::Ignore);
-	while let Some(scancode) = scancodes.next().await {
-		if let Ok(Some(key_event)) = keyboard.add_byte(scancode) {
-			if let Some(key) = keyboard.process_keyevent(key_event) {
-				match key {
-					DecodedKey::Unicode(character) => {
-						let mut cmd = CMD.lock();
-						cmd.input(character).await;
-					}
-					DecodedKey::RawKey(key) => print!("{:?}", key),
-				}
-			}
-		}
-	}
-}
-*/
-
 lazy_static! {
 	pub static ref KEYBOARD: Mutex<KeyboardHandler> = Mutex::new(KeyboardHandler::new());
 }
