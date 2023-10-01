@@ -1,8 +1,7 @@
 use crate::{
-    kernel::render::{RENDERER, BUFFER_WIDTH, BUFFER_HEIGHT, ColorCode},
+    kernel::render2::{RENDERER, BUFFER_WIDTH, BUFFER_HEIGHT, ColorCode},
     kernel::tasks::keyboard::KEYBOARD,
 };
-
 
 use alloc::{boxed::Box, string::{String, ToString}, vec::Vec};
 
@@ -27,16 +26,16 @@ impl Stdin {
 pub struct Screen {}
 impl Screen {
     pub fn terminal_mode() {
-        RENDERER.lock().text_mode().unwrap();
+        RENDERER.lock().terminal_mode().unwrap();
     }
     pub fn application_mode() {
-        RENDERER.lock().sandbox_mode().unwrap();
+        RENDERER.lock().application_mode().unwrap();
     }
     pub fn switch() {
-        if RENDERER.lock().sandbox == true {
-            RENDERER.lock().text_mode().unwrap();
+        if RENDERER.lock().mode_is_app() == true {
+            RENDERER.lock().terminal_mode().unwrap();
         } else {
-            RENDERER.lock().sandbox_mode().unwrap();
+            RENDERER.lock().application_mode().unwrap();
         }
     }
     pub fn clear() {
@@ -173,7 +172,7 @@ macro_rules! print {
 	($($arg:tt)*) => ($crate::std::io::_print(format_args!($($arg)*)));
 }
 
-pub use crate::kernel::render::Color;
+
 
 #[doc(hidden)]
 pub fn _print(args: core::fmt::Arguments) {
@@ -181,12 +180,12 @@ pub fn _print(args: core::fmt::Arguments) {
 	use x86_64::instructions::interrupts;
 
 	interrupts::without_interrupts(|| {
-		let mut writer = RENDERER.lock();
-		writer.col_code = ColorCode::new(Color::White, Color::Black);
-		writer.write_fmt(args).unwrap();
-		
+        let mut writer = RENDERER.lock();
+        writer.write_fmt(args).unwrap();
 		//WRITER.lock().write_fmt(args).unwrap();
-	});
+        //writer.col_code = crate::kernel::render2::ColorCode::new(Color::White, Color::Black);
+
+    });
 }
 
 #[doc(hidden)]
@@ -196,15 +195,16 @@ pub fn _log(args: core::fmt::Arguments) {
 
 	interrupts::without_interrupts(|| {
 		let mut writer = RENDERER.lock();
-		writer.col_code = ColorCode::new(Color::Yellow, Color::Black);
 		writer.write_fmt(args).unwrap();
-		
-		//WRITER.lock().write_fmt(args).unwrap();
+        //writer.col_code = crate::kernel::render2::ColorCode::new(Color::Yellow, Color::Black);
+        //WRITER.lock().write_fmt(args).unwrap();
 	});
 }
 
+pub use crate::kernel::render2::Color;
+
 pub fn write(args: core::fmt::Arguments, cols: (Color, Color)) {
-    crate::kernel::render::write(args, cols);
+    crate::kernel::render2::write(args, cols);
 }
 
 pub fn mkfs() {

@@ -13,7 +13,7 @@ use futures_util::task::AtomicWaker;
 use futures_util::stream::StreamExt;
 use pc_keyboard::{layouts, DecodedKey, HandleControl, Keyboard, ScancodeSet1};
 use crate::print;
-use crate::kernel::render::RENDERER;
+use crate::kernel::render2::RENDERER;
 use alloc::{string::String};
 
 static WAKER: AtomicWaker = AtomicWaker::new();
