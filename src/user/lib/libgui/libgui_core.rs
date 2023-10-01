@@ -1,4 +1,4 @@
-use crate::kernel::render2::{BUFFER_HEIGHT, BUFFER_WIDTH, RENDERER};
+use crate::kernel::render::{BUFFER_HEIGHT, BUFFER_WIDTH, RENDERER};
 use crate::std::io::Frame;
 use crate::{print, println};
 use alloc::{

@@ -1,11 +1,12 @@
 use crate::{
-    kernel::render2::{RENDERER, BUFFER_WIDTH, BUFFER_HEIGHT, ColorCode},
+    kernel::render::{RENDERER, BUFFER_WIDTH, BUFFER_HEIGHT, ColorCode},
     kernel::tasks::keyboard::KEYBOARD,
 };
 
 use alloc::{boxed::Box, string::{String, ToString}, vec::Vec};
 
 pub use crate::{print, println, serial_print, serial_println};
+pub use crate::kernel::render::Color;
 
 use lazy_static::lazy_static;
 use spin::Mutex;
@@ -201,10 +202,10 @@ pub fn _log(args: core::fmt::Arguments) {
 	});
 }
 
-pub use crate::kernel::render2::Color;
+
 
 pub fn write(args: core::fmt::Arguments, cols: (Color, Color)) {
-    crate::kernel::render2::write(args, cols);
+    crate::kernel::render::write(args, cols);
 }
 
 pub fn mkfs() {

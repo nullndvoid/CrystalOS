@@ -8,4 +8,4 @@ pub mod serial;
 pub mod tasks;
 pub mod sysinit;
 pub mod authenticator;
-pub mod render2;
+pub mod render;
