@@ -1,9 +1,9 @@
 use crate::{
-    kernel::render::{RENDERER, BUFFER_WIDTH, BUFFER_HEIGHT, ColorCode},
+    kernel::render::{RENDERER, self},
     kernel::tasks::keyboard::KEYBOARD,
 };
 
-use alloc::{boxed::Box, string::{String, ToString}, vec::Vec};
+use alloc::string::String;
 
 pub use crate::{print, println, serial_print, serial_println};
 pub use crate::kernel::render::Color;
@@ -45,112 +45,6 @@ impl Screen {
 }
 
 
-
-
-
-
-
-
-
-/// TODO: get a working implementation for CLI apps
-/// elements can be created using their from_str() method
-/// you can then render the element to the current frame using the render() method
-/// the position of the element by passing a tuple (x,y) to render()
-/// 
-/// nothing will appear on the screen until the frame is actually rendered by
-/// the render_frame method on the renderer
-///
-pub type Frame = [ [ char; BUFFER_WIDTH ]; BUFFER_HEIGHT];
-
-#[derive(Clone)]
-pub struct Element {
-    frame: Vec<Vec<char>>,
-    dimensions: (u8, u8)
-}
-
-impl Element {
-    pub fn from_str(elemstr: String) -> Self {
-        let mut element = Element { frame: Vec::<Vec<char>>::new(), dimensions: (0, 0) }; 
-
-        for line in elemstr.split("\n") {
-            let mut ln = Vec::<char>::new();
-            for col in line.chars() {
-                ln.push(col)
-            };
-            element.frame.push(ln);
-        }
-
-        for row in element.clone().frame {
-            let n = row.len();
-            if n > element.dimensions.0 as usize {
-                element.dimensions.0 = n as u8;
-            }
-        }
-        element
-    }
-
-    pub fn render(&mut self,  pos: (u8, u8)) { // x,y
-        for (i, row) in self.frame.iter().enumerate() {
-            for (j, col) in row.iter().enumerate() {
-                println!("{} {} {}", i, j, col);
-                FRAMEGEN.lock().frame[i + pos.1 as usize][j + pos.0 as usize] = *col;
-            };
-        }
-    }
-}
-
-
-lazy_static! {
-    pub static ref FRAMEGEN: Mutex<FrameGen> = Mutex::new(FrameGen::new() );
-}
-
-
-#[derive(Clone, Copy)]
-pub struct FrameGen {
-    frame: Frame,
-}
-
-
-impl FrameGen {
-    pub fn render_frame(&self) {
-        RENDERER.lock().render_frame(self.frame)
-    }
-
-    fn new() -> Self {
-        let mut frame: [[char; BUFFER_WIDTH]; BUFFER_HEIGHT] = [[' '; BUFFER_WIDTH]; BUFFER_HEIGHT];
-        for i in 0..BUFFER_WIDTH {
-            frame[0][i] = "┌──────────────────────────────────────────────────────────────────────────────┐".chars().collect::<Vec<char>>()[i];
-            frame[BUFFER_HEIGHT -1][i] = "└──────────────────────────────────────────────────────────────────────────────┘".chars().collect::<Vec<char>>()[i];
-        }
-        
-        for j in 1..BUFFER_HEIGHT -1 {
-            for i in 0..BUFFER_WIDTH {
-                frame[j][i] = "│                                                                              │".chars().collect::<Vec<char>>()[i];               
-            }
-        }
-
-        Self { frame: Frame::from(frame) }
-    }
-
-    pub fn get_frame(&self) -> &[ [ char; BUFFER_WIDTH ]; BUFFER_HEIGHT] {
-        &self.frame
-    }
-
-}
-
-
-impl core::fmt::Display for FrameGen {
-    fn fmt(&self, _: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        println!(" ");
-        for row in &self.frame {
-            println!("{}", row.iter().collect::<String>());
-        };
-        Ok(())
-    }
-}
-
-
-
 #[macro_export]
 macro_rules! println_log {
 	() => ($crate::print_log!("/n"));
@@ -173,43 +67,26 @@ macro_rules! print {
 	($($arg:tt)*) => ($crate::std::io::_print(format_args!($($arg)*)));
 }
 
-
+#[macro_export]
+macro_rules! printerr {
+    ($($arg:tt)*) => ($crate::std::io::_printerr(format_args!($($arg)*)));
+}
 
 #[doc(hidden)]
 pub fn _print(args: core::fmt::Arguments) {
-	use core::fmt::Write;
-	use x86_64::instructions::interrupts;
+	render::write(args, (Color::White, Color::Black));
+}
 
-	interrupts::without_interrupts(|| {
-        let mut writer = RENDERER.lock();
-        writer.write_fmt(args).unwrap();
-		//WRITER.lock().write_fmt(args).unwrap();
-        //writer.col_code = crate::kernel::render2::ColorCode::new(Color::White, Color::Black);
-
-    });
+#[doc(hidden)]
+pub fn _printerr(args: core::fmt::Arguments) {
+    render::write(args, (Color::Yellow, Color::Black));
 }
 
 #[doc(hidden)]
 pub fn _log(args: core::fmt::Arguments) {
-	use core::fmt::Write;
-	use x86_64::instructions::interrupts;
-
-	interrupts::without_interrupts(|| {
-		let mut writer = RENDERER.lock();
-		writer.write_fmt(args).unwrap();
-        //writer.col_code = crate::kernel::render2::ColorCode::new(Color::Yellow, Color::Black);
-        //WRITER.lock().write_fmt(args).unwrap();
-	});
+    render::write(args, (Color::White, Color::Black));
 }
 
-
-
-pub fn write(args: core::fmt::Arguments, cols: (Color, Color)) {
-    crate::kernel::render::write(args, cols);
-}
-
-pub fn mkfs() {
-    use crate::kernel::fs;
-    fs::mkfs();
-    println!("{:?}", *(fs::FILESYSTEM.lock()));
+pub fn write(args: core::fmt::Arguments, color: (Color, Color)) {
+    render::write(args, color);
 }

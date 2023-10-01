@@ -3,6 +3,7 @@ pub mod random;
 pub mod application;
 pub mod tasks;
 pub mod os;
+pub mod frame;
 
 
 // this is where the standard library for the operating system will be defined

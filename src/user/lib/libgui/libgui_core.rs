@@ -1,5 +1,5 @@
-use crate::kernel::render::{BUFFER_HEIGHT, BUFFER_WIDTH, RENDERER};
-use crate::std::io::Frame;
+use crate::kernel::render::{BUFFER_HEIGHT, BUFFER_WIDTH, RENDERER, ScreenChar};
+use crate::system::std::frame::Frame;
 use crate::{print, println};
 use alloc::{
     boxed::Box,
@@ -154,7 +154,7 @@ impl Element for IndicatorBar {
 // rendered.
 
 pub fn render_frame(elements: Vec<Container>) {
-    let mut buffer: Frame = [[' '; BUFFER_WIDTH]; BUFFER_HEIGHT];
+    let mut buffer: Frame = [[ScreenChar::null(); BUFFER_WIDTH]; BUFFER_HEIGHT];
 
     for frame in elements.iter() {
         let f = frame.render();
@@ -162,8 +162,8 @@ pub fn render_frame(elements: Vec<Container>) {
         for (i, row) in f.0.iter().enumerate() {
             for (j, chr) in row.iter().enumerate() {
                 let mut current = &buffer[i + f.1.y][j + f.1.x];
-                let newchar = overlap_check(*current, *chr);
-                buffer[i + f.1.y][j + f.1.x] = newchar;
+                let newchar = overlap_check(current.character as char, *chr);
+                buffer[i + f.1.y][j + f.1.x] = ScreenChar::white(newchar as u8);
 
                 //print!("{}", buffer[i+frame.position.1][j+frame.position.0]);
             }

@@ -30,6 +30,7 @@ hashbrown = "0.13.2"
 cmos-rtc = "0.1.2"
 libm = "0.2.7"
 log = "0.4.20"
+uchan = { version = "0.1.4", default-features = false }
 
 [dependencies.lazy_static]
 version = "1.0"

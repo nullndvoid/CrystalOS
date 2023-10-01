@@ -25,6 +25,7 @@ dependencies = [
  "rgb",
  "spin",
  "uart_16550",
+ "uchan",
  "volatile 0.2.7",
  "x86_64",
 ]
@@ -95,6 +96,12 @@ name = "bytemuck"
 version = "1.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "374d28ec25809ee0e23827c2ab573d729e293f281dfe393500e7ad618baa61c6"
+
+[[package]]
+name = "cache-padded"
+version = "1.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "981520c98f422fcc584dc1a95c334e6953900b9106bc47a9839b81790009eb21"
 
 [[package]]
 name = "cfg-if"
@@ -344,6 +351,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "sptr"
+version = "0.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3b9b39299b249ad65f3b7e96443bad61c02ca5cd3589f46cb6d610a0fd6c0d6a"
+
+[[package]]
 name = "syn"
 version = "2.0.37"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -363,6 +376,16 @@ dependencies = [
  "bitflags 1.3.2",
  "rustversion",
  "x86_64",
+]
+
+[[package]]
+name = "uchan"
+version = "0.1.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5045a07b95977d6b1e0a6aa8d0d68a84017e2b8ae01d6bfcafcaa1c0a65e19dc"
+dependencies = [
+ "cache-padded",
+ "sptr",
 ]
 
 [[package]]

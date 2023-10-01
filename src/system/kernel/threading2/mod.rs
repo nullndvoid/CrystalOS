@@ -1,4 +1,4 @@
-/*
+
 
 pub mod thread_switch;
 
@@ -12,4 +12,4 @@ pub struct Thread {
 	stack_pointer: Option<VirtAddr>,
 	stack_bounds:  Option<StackBounds>,
 }
-*/
+

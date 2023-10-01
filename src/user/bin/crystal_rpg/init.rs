@@ -1,24 +1,24 @@
 use async_trait::async_trait;
-use rand::prelude::*;
-
 use super::{
-    engine::{eventcheck, Choice, Event},
-    entity::{Entity, Enemy, EntityObject},
+    engine::{Choice, Event, eventcheck},
+    entity::{Enemy, Entity, EntityObject},
     player::Player,
 };
 
-use alloc::{boxed::Box, string::{String, ToString}, vec::Vec, format, borrow::ToOwned};
+use alloc::{borrow::ToOwned, format, string::{String, ToString}, vec::Vec, boxed::Box};
 
-use crate::{ 
-    std::application::{
-	    Application,
-	    Error,
-    },
+use crate::{
     std::{
-        io::{self, println, serial_println, FRAMEGEN, Element},
-        random, 
+        io::{self, println, serial_println},
+        frame::FRAMEGEN,
+        random,
+    },
+    std::application::{
+        Application,
+        Error,
     },
 };
+use crate::system::std::frame::Element;
 
 
 pub struct GameLoop;
@@ -91,7 +91,7 @@ impl Application for GameLoop {
             for row in fr {
                 let mut r = String::new();
                 for col in row {
-                    r.push(col);
+                    r.push(col.character as char);
                 }
                 string.push_str(&r);
                 string.push('\n')

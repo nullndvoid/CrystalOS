@@ -42,22 +42,28 @@ impl ColorCode {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(C)]
-struct ScreenChar {
-    character: u8,
-    colour: ColorCode,
+pub struct ScreenChar {
+    pub character: u8,
+    pub colour: ColorCode,
 }
 
 impl ScreenChar {
-    fn null() -> ScreenChar {
+    pub fn null() -> ScreenChar {
         ScreenChar {
             character: 0u8,
             colour: ColorCode::new(Color::White, Color::Black),
         }
     }
-    fn white(character: u8) -> ScreenChar {
+    pub fn white(character: u8) -> ScreenChar {
         ScreenChar {
             character,
             colour: ColorCode::new(Color::White, Color::Black),
+        }
+    }
+    pub fn new(character: u8, colour: ColorCode) -> ScreenChar {
+        ScreenChar {
+            character,
+            colour,
         }
     }
 }
@@ -92,19 +98,26 @@ lazy_static! {
 
 impl Renderer {
     // EXTERNAL API : for use by standard library and other parts of the kernel
-    pub fn render_frame(&mut self, frame: [[char; BUFFER_WIDTH]; BUFFER_HEIGHT]) { // renders the given frame to the app buffer
+    pub fn render_frame(&mut self, frame: [[ScreenChar; BUFFER_WIDTH]; BUFFER_HEIGHT]) { // renders the given frame to the app buffer
         let mut processed_frame: [[ScreenChar; BUFFER_WIDTH]; BUFFER_HEIGHT] = [[ScreenChar::null(); BUFFER_WIDTH]; BUFFER_HEIGHT];
 
         for (i, row) in frame.iter().enumerate() {
             for (j, col) in row.iter().enumerate() {
-                processed_frame[i][j] = match self.special_char(*col) {
-                    Some(c) => ScreenChar::white(c as u8),
-                    None => ScreenChar::white(*col as u8)
+                processed_frame[i][j] = match self.special_char(col.character as char) {
+                    Some(c) => ScreenChar::new(c as u8, col.colour),
+                    None => *col,
                 };
             }
         }
 
         self.app_buffer = processed_frame;
+        self.internal_render();
+    }
+
+    pub fn terminal_mode_force(&mut self) { // THIS SHOULD ONLY BE USED WHEN THE KERNEL PANICS
+                                            // TODO: find a way to make this function kernel only
+        self.application_mode = false;
+        self.internal_render();
     }
 
     pub fn application_mode(&mut self) -> Result<(), ()> {
@@ -132,11 +145,13 @@ impl Renderer {
     }
 
     pub fn write_char(&mut self, ch: u8, col: Option<ColorCode>) { // default colour if no colour is selected for character
+        if self.application_mode { return; };
         self.write_byte(ch, col);
         self.internal_render();
     }
 
     pub fn write_string(&mut self, string: &str, col: Option<ColorCode>) {
+        if self.application_mode { return; };
         for ch in string.chars() {
             match self.special_char(ch) {
                 Some(c) => self.write_byte(c, col),
@@ -150,6 +165,7 @@ impl Renderer {
     }
 
     pub fn backspace(&mut self) -> Result<(), ()> {
+        if self.application_mode { return Ok(()); };
 
         loop {
             if self.internal_backspace()? {
@@ -163,6 +179,7 @@ impl Renderer {
 
     pub fn clear(&mut self) { // clears the screen and all scroll-back
         if self.application_mode { return; };
+
         self.term_buffer = vec![[ScreenChar::null(); BUFFER_WIDTH]; BUFFER_HEIGHT];
         self.internal_render();
     }

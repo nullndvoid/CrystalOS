@@ -5,7 +5,7 @@
 #![reexport_test_harness_main = "test_main"]
 
 use core::panic::PanicInfo;
-use CrystalOS::{println, print, println_log, print_log};
+use CrystalOS::{println, print, println_log, print_log, kernel, printerr};
 use CrystalOS::kernel::tasks::{Task, executor::Executor};
 use bootloader::{BootInfo, entry_point};
 extern crate alloc;
@@ -14,7 +14,8 @@ use CrystalOS::user::bin::shell;
 #[cfg(not(test))]
 #[panic_handler]
 fn panic(_info: &PanicInfo) -> ! {
-	println!("{}", _info);
+	kernel::render::RENDERER.lock().terminal_mode_force();
+	printerr!("{}", _info);
 	CrystalOS::hlt();
 }
 

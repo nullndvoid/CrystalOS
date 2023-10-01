@@ -14,6 +14,7 @@ pub trait Application {
 pub enum Error {
 	UnknownCommand(String),
 	CommandFailed(String),
+	ApplicationError(String),
 	EmptyCommand,
 }
 

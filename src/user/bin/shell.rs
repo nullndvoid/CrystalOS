@@ -125,13 +125,13 @@ async fn exec() -> Result<(), Error> {
         "switch" => {
             Screen::switch();
         }
+        "snake" => {
+            let mut game = snake::Game::new();
+            game.run(Vec::new()).await;
+        }
         "gigachad?" => {
             let mut gigachad_detector = GigachadDetector::new();
             gigachad_detector.run(args).await?;
-        }
-        "filesystem" => {
-            use crate::std::io;
-            io::mkfs();
         }
 		"test_features" => {
             use crate::std::random::Random;

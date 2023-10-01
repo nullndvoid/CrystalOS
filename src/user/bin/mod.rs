@@ -7,3 +7,4 @@ pub mod shell;
 pub mod tasks;
 mod gigachad_detector;
 mod shellrewrite;
+mod snake;
