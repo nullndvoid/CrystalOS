@@ -8,3 +8,4 @@ pub mod tasks;
 mod gigachad_detector;
 //mod shellrewrite;
 mod snake;
+mod grapher;

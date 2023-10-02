@@ -8,6 +8,7 @@ use alloc::{
     string::{String, ToString},
     vec::Vec,
 };
+use vga::writers::{GraphicsWriter, PrimitiveDrawing};
 
 use crate::{
     print, println,
@@ -16,6 +17,7 @@ use crate::{
 };
 use crate::std::io::{Color, write, Screen};
 use crate::user::bin::gigachad_detector::GigachadDetector;
+use crate::user::bin::grapher::Grapher;
 
 lazy_static! {
     pub static ref CMD: Mutex<CommandHandler> = Mutex::new(CommandHandler::new());
@@ -96,6 +98,19 @@ async fn exec() -> Result<(), Error> {
         "play" => {
             let mut gameloop = crystal_rpg::init::GameLoop::new();
             gameloop.run(args).await?;
+        }
+        "VGA" => {
+            use vga::colors::Color16;
+            use vga::writers::{GraphicsWriter, Graphics640x480x16};
+
+            let mode = Graphics640x480x16::new();
+            mode.set_mode();
+            mode.clear_screen(Color16::Black);
+            mode.draw_line((80, 60), (80, 420), Color16::Cyan);
+        }
+        "graph" => {
+            let mut grapher = Grapher::new();
+            grapher.run(args).await?;
         }
 
         // direct OS functions (not applications)

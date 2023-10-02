@@ -403,15 +403,18 @@ impl Application for Calculator {
                     return Err(ShellError::CommandFailed(String::from("failed")))
                 },
 		    };
+
 			Ok(())
 		}
 
 	}
 }
 
+pub fn calc_outer(mut equation: String) -> Result<f64, String> {
+    calculate_inner2(equation).map_err(|_| String::from("failed to calculate"))
+}
 
 fn calculate_inner(mut equation: String) -> Result<f64, Error> {
-
 	equation.push('\n');
 	let mut neweq = equation.clone();
 	neweq.pop();
@@ -436,6 +439,23 @@ fn calculate_inner(mut equation: String) -> Result<f64, Error> {
     {}
 
     ", neweq, return_res);
+
+    Ok(return_res)
+}
+fn calculate_inner2(mut equation: String) -> Result<f64, Error> {
+
+    equation.push('\n');
+    let mut neweq = equation.clone();
+    neweq.pop();
+
+    let tokens = tokenise(&equation)?;
+    let mut parser = Parser::new(tokens)?;
+    let ast = parser.parse()?;
+    let mut interpreter = Interpreter::new()?;
+    let result = interpreter.visit(ast)?;
+    let return_res = if let Value::Number(x) = result {
+        x
+    } else { panic!("the value returned was not a float! THIS IS A BUG") };
 
     Ok(return_res)
 }
