@@ -31,6 +31,7 @@ cmos-rtc = "0.1.2"
 libm = "0.2.7"
 log = "0.4.20"
 uchan = { version = "0.1.4", default-features = false }
+embedded-time = "0.12.1"
 
 [dependencies.lazy_static]
 version = "1.0"

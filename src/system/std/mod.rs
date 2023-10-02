@@ -4,6 +4,7 @@ pub mod application;
 pub mod tasks;
 pub mod os;
 pub mod frame;
+pub mod time;
 
 
 // this is where the standard library for the operating system will be defined

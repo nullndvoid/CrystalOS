@@ -133,6 +133,10 @@ async fn exec() -> Result<(), Error> {
             let mut gigachad_detector = GigachadDetector::new();
             gigachad_detector.run(args).await?;
         }
+        "time" => {
+            use crate::std::time::timer;
+            timer();
+        }
 		"test_features" => {
             use crate::std::random::Random;
             println!("{}", Random::int(0, 10));

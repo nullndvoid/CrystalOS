@@ -1,7 +1,8 @@
 use alloc::string::String;
 use alloc::{format, vec, vec::Vec, boxed::Box};
 use async_trait::async_trait;
-use crate::std::io::{Color, Screen};
+use crate::std::io::{Color, Screen, Stdin};
+use crate::std::time;
 use crate::kernel::tasks::keyboard::KEYBOARD;
 use crossbeam_queue::SegQueue;
 use crate::kernel::render::{ColorCode, ScreenChar};
@@ -19,6 +20,7 @@ pub struct Game {
     snake: SegQueue<Point>,
     head: Point,
     poi: Point,
+    mv: char,
     score: u8
 }
 
@@ -29,22 +31,34 @@ impl Application for Game {
             snake: SegQueue::new(),
             head: Point { x: 5, y: 5 },
             poi: Point { x: 0, y: 0 },
+            mv: ' ',
             score: 0
         }
     }
 
     async fn run(&mut self, _: Vec<String>) -> Result<(), Error> {
         Screen::application_mode();
+        let clone = self.clone_snake();
+        self.render(clone).map_err(|_| Error::ApplicationError(String::from("failed to render game screen")))?;
 
-        (0..=2).for_each(|x| {
+
+        (5..=7).for_each(|x| {
             self.snake.push(Point { x, y: 5 });
         });
-        self.head = Point { x: 2, y: 5 };
+        self.head = Point { x: 7, y: 5 };
         self.new_poi();
 
         'gameloop: loop {
-            let chr = KEYBOARD.lock().get_keystroke().await;
-            match chr {
+
+            time::wait(20);
+
+            // if let Some(c) = Stdin::try_keystroke() {
+            //     self.mv = c;
+            // }
+
+            self.mv = Stdin::keystroke().await;
+
+            match self.mv {
                 'w' => self.head.y -= 1,
                 'a' => self.head.x -= 1,
                 's' => self.head.y += 1,
@@ -52,6 +66,7 @@ impl Application for Game {
                 'x' => break,
                 _ => continue,
             }
+
             self.snake.push(Point { x: self.head.x, y: self.head.y }); // new head added
 
             if self.head == self.poi {

@@ -70,6 +70,29 @@ impl KeyboardHandler {
 		}
 	}
 
+	pub fn try_keystroke(&mut self) -> Option<char> {
+		if let Some(scancode) = self.scancodes.try_next() {
+			if let Ok(Some(key_event)) = self.keyboard.add_byte(scancode) {
+				if let Some(key) = self.keyboard.process_keyevent(key_event) {
+					match key {
+						DecodedKey::Unicode(character) => {
+							if character == b'\x08' as char { // checks if the character is a backspace
+								interrupts::without_interrupts(|| {
+									RENDERER.lock().backspace(); // runs the backspace function of the vga buffer to remove the last character
+								});
+								return None;
+							} else {
+								return Some(character);
+							}
+						},
+						DecodedKey::RawKey(key) => { print!("{:?}", key) },
+					}
+				}
+			}
+		};
+		None
+	}
+
 
 	pub async fn get_string(&mut self) -> String {
 		let mut val = String::new();
@@ -115,6 +138,15 @@ impl ScanCodeStream {
 		SCANCODE_QUEUE.try_init_once(|| ArrayQueue::new(100))
 			.expect("ScanCodeStream::new has already been called once");
 		ScanCodeStream { _private: () }
+	}
+
+	pub fn try_next(&mut self) -> Option<u8> {
+		let queue = SCANCODE_QUEUE.try_get().expect("not initialised");
+		if let Ok(c) = queue.pop() {
+			return Some(c);
+		} else {
+			return None;
+		}
 	}
 }
 

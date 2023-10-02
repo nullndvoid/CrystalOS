@@ -22,6 +22,11 @@ impl Stdin {
         let chr = KEYBOARD.lock().get_keystroke().await;
         chr
     }
+
+    pub fn try_keystroke() -> Option<char> {
+        let chr = KEYBOARD.lock().try_keystroke();
+        chr
+    }
 }
 
 pub struct Screen {}
