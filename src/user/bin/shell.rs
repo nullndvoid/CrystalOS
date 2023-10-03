@@ -58,7 +58,12 @@ pub async fn eventloop() {
 }
 
 fn handle_error(e: Error) {
-    println!("there was an error! exiting program!");
+    if let Error::ApplicationError(s) = e {
+        println!("there was an error! exiting program!: {}", s);
+    } else {
+        println!("there was an error! exiting program!");
+
+    }
 }
 
 async fn exec() -> Result<(), Error> {
