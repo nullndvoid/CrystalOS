@@ -39,6 +39,8 @@ impl Application for Grapher {
         let mut equation: String = args.into_iter().collect();
         use super::calc;
 
+        let cal = calc::Calculator::new();
+
         for x in -4000..4000 {
             let x = x as f64 / 100.0;
 
@@ -46,7 +48,7 @@ impl Application for Grapher {
                 if c == 'x' { format!("({})", x) } else { c.to_string() }
             }).collect::<String>();
 
-            let fx = calc::calc_outer(new_eq).map_err(|_| Error::ApplicationError(String::from("failed to calculate")));
+            let fx = cal.calculate(new_eq).map_err(|_| Error::ApplicationError(String::from("failed to calculate")));
 
             if let Ok(y) = fx {
                 self.render_point(PointF64 {
@@ -54,7 +56,6 @@ impl Application for Grapher {
                     y,
                 })
             }
-
         };
 
         Screen::application_mode();

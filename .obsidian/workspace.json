@@ -13,7 +13,7 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "docs/crystal-api.md",
+                "file": "docs/standard library docs/random.rs.md",
                 "mode": "source",
                 "source": false
               }
@@ -85,7 +85,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "docs/crystal-api.md",
+                "file": "docs/standard library docs/random.rs.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -102,7 +102,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "docs/crystal-api.md",
+                "file": "docs/standard library docs/random.rs.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -125,7 +125,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "docs/crystal-api.md"
+                "file": "docs/standard library docs/random.rs.md"
               }
             }
           }
@@ -148,19 +148,23 @@
   },
   "active": "66a91bbf10023e7b",
   "lastOpenFiles": [
-    "target/x86_64-CrystalOS/debug/bootimage-CrystalOS.bin.temp-stream-669ebd",
-    "target/x86_64-CrystalOS/debug/bootimage-CrystalOS.bin.temp-stream-9e0e9c",
-    "target/x86_64-CrystalOS/debug/bootimage-CrystalOS.bin.temp-stream-d5e1e2",
-    "target/x86_64-CrystalOS/debug/incremental/CrystalOS-2s2eto1gmy107/s-gpa8tfuu7j-zjn7o7-au49h4b9abxljhlinnweh4wh/zypku2ljqkwe2t9.o",
-    "target/x86_64-CrystalOS/debug/incremental/CrystalOS-2s2eto1gmy107/s-gpa8tfuu7j-zjn7o7-au49h4b9abxljhlinnweh4wh/x6aoth2ydi59hrm.o",
-    "target/x86_64-CrystalOS/debug/incremental/CrystalOS-2s2eto1gmy107/s-gpa8tfuu7j-zjn7o7-au49h4b9abxljhlinnweh4wh/work-products.bin",
-    "target/x86_64-CrystalOS/debug/incremental/CrystalOS-2s2eto1gmy107/s-gpa8tfuu7j-zjn7o7-au49h4b9abxljhlinnweh4wh/wl6c5klbro0lehu.o",
-    "target/x86_64-CrystalOS/debug/incremental/CrystalOS-2s2eto1gmy107/s-gpa8tfuu7j-zjn7o7-au49h4b9abxljhlinnweh4wh/vrj0gel9n5vxmd1.o",
-    "target/x86_64-CrystalOS/debug/incremental/CrystalOS-2s2eto1gmy107/s-gpa8tfuu7j-zjn7o7-au49h4b9abxljhlinnweh4wh/uoqvrm3l2w095ln.o",
-    "target/x86_64-CrystalOS/debug/incremental/CrystalOS-2s2eto1gmy107/s-gpa8tfuu7j-zjn7o7-au49h4b9abxljhlinnweh4wh/uhkf8uzx25q6zkn.o",
-    "target/x86_64-CrystalOS/debug/incremental/CrystalOS-2s2eto1gmy107/s-gpa8tfuu7j-zjn7o7-au49h4b9abxljhlinnweh4wh/query-cache.bin",
+    "src/system/std/random.rs~",
+    "target/x86_64-CrystalOS/debug/incremental/CrystalOS-3u2m7vf43mho9/s-gpbbzwrvu5-1u8ini4-working/dep-graph.part.bin",
+    "target/x86_64-CrystalOS/debug/incremental/CrystalOS-3u2m7vf43mho9/s-gpbbzwrvu5-1u8ini4-working/zul1rjeojuld5ix.o",
+    "target/x86_64-CrystalOS/debug/incremental/CrystalOS-3u2m7vf43mho9/s-gpbbzwrvu5-1u8ini4-working/zfnrqaw0f711j75.o",
+    "target/x86_64-CrystalOS/debug/incremental/CrystalOS-3u2m7vf43mho9/s-gpbbzwrvu5-1u8ini4-working/zbpiidqfbcoo2ic.o",
+    "target/x86_64-CrystalOS/debug/incremental/CrystalOS-3u2m7vf43mho9/s-gpbbzwrvu5-1u8ini4-working/ybbue6yegr9wklq.o",
+    "target/x86_64-CrystalOS/debug/incremental/CrystalOS-3u2m7vf43mho9/s-gpbbzwrvu5-1u8ini4-working/y5gexnutwichxn7.o",
+    "target/x86_64-CrystalOS/debug/incremental/CrystalOS-3u2m7vf43mho9/s-gpbbzwrvu5-1u8ini4-working/xt0etcnzycl3z0h.o",
+    "target/x86_64-CrystalOS/debug/incremental/CrystalOS-3u2m7vf43mho9/s-gpbbzwrvu5-1u8ini4-working/xaip1tz6tun888.o",
+    "target/x86_64-CrystalOS/debug/incremental/CrystalOS-3u2m7vf43mho9/s-gpbbzwrvu5-1u8ini4-working/wv8eny5rk6dji78.o",
+    "target/x86_64-CrystalOS/debug/incremental/CrystalOS-3u2m7vf43mho9/s-gpbbzwrvu5-1u8ini4-working/work-products.bin",
+    "docs/standard library docs/application.rs.md",
+    "docs/standard library docs/random.rs.md",
+    "docs/standard library docs/io.rs.md",
     "docs/main.md",
-    "README.md",
-    "docs/crystal-api.md"
+    "docs/crystal-api.md",
+    "docs/Untitled.md",
+    "README.md"
   ]
 }

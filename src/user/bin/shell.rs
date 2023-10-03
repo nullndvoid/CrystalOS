@@ -3,11 +3,7 @@ use lazy_static::lazy_static;
 use spin::Mutex;
 use x86_64::instructions::interrupts;
 
-use alloc::{
-    boxed::Box,
-    string::{String, ToString},
-    vec::Vec,
-};
+use alloc::{boxed::Box, string::{String, ToString}, vec, vec::Vec};
 use vga::writers::{GraphicsWriter, PrimitiveDrawing};
 
 use crate::{
@@ -16,6 +12,7 @@ use crate::{
     user::bin::*,
 };
 use crate::std::io::{Color, write, Screen};
+use crate::std::random::Random;
 use crate::user::bin::gigachad_detector::GigachadDetector;
 use crate::user::bin::grapher::Grapher;
 
@@ -117,6 +114,14 @@ async fn exec() -> Result<(), Error> {
             let mut grapher = Grapher::new();
             grapher.run(args).await?;
         }
+        "snake" => {
+            let mut game = snake::Game::new();
+            game.run(Vec::new()).await;
+        }
+        "gigachad?" => {
+            let mut gigachad_detector = GigachadDetector::new();
+            gigachad_detector.run(args).await?;
+        }
 
         // direct OS functions (not applications)
         "echo" => {
@@ -130,7 +135,6 @@ async fn exec() -> Result<(), Error> {
                     .collect::<String>()
             )
         }
-
         "clear" => {
             Screen::clear();
             // not sure why this code was here but leaving it in case weird bugs happen so i remember to add it back if so
@@ -144,14 +148,6 @@ async fn exec() -> Result<(), Error> {
         }
         "switch" => {
             Screen::switch();
-        }
-        "snake" => {
-            let mut game = snake::Game::new();
-            game.run(Vec::new()).await;
-        }
-        "gigachad?" => {
-            let mut gigachad_detector = GigachadDetector::new();
-            gigachad_detector.run(args).await?;
         }
         "time" => {
             use crate::std::time::timer;

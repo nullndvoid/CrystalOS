@@ -385,7 +385,7 @@ impl Application for Calculator {
 				if inp == String::from("exit\n") {
 					return Ok(());
 				}
-				match calculate_inner(inp) {
+				match self.calculate_and_format(inp) {
 			        Ok(_) => (),
 			        Err(e) => {
                         println!("your input must be a valid mathematical expression contaning only numbers (including floats) and the operators: [ +, -, *, **, /, //, % ]");
@@ -395,7 +395,7 @@ impl Application for Calculator {
 		    	};
 			}
 		} else {
-		    match calculate_inner(args.into_iter().collect()) {
+		    match self.calculate_and_format(args.into_iter().collect()) {
 		        Ok(x) => x,
 		        Err(e) => {
                     println!("your input must be a valid mathematical expression contaning only numbers (including floats) and the operators: [ +, -, *, **, /, //, % ]");
@@ -410,57 +410,38 @@ impl Application for Calculator {
 	}
 }
 
-pub fn calc_outer(mut equation: String) -> Result<f64, String> {
-    calculate_inner2(equation).map_err(|_| String::from("failed to calculate"))
-}
+impl Calculator {
+    pub fn calculate(&self, equation: String) -> Result<f64, String> {
+        self.calculate_inner(equation).map_err(|_| String::from("failed to calculate"))
+    }
 
-fn calculate_inner(mut equation: String) -> Result<f64, Error> {
-	equation.push('\n');
-	let mut neweq = equation.clone();
-	neweq.pop();
-
-    let tokens = tokenise(&equation)?;
-    let mut parser = Parser::new(tokens)?;
-    let ast = parser.parse()?;
-    let mut interpreter = Interpreter::new()?;
-    let result = interpreter.visit(ast)?;
-	let return_res = if let Value::Number(x) = result {
-        x
-	} else { panic!("the value returned was not a float! THIS IS A BUG") };
-
-	println!("
-
-    [ EXPRESSION ]
-
+    pub fn calculate_and_format(&self, equation: String) -> Result<f64, String> {
+        let res = self.calculate_inner(equation.clone()).map_err(|_| String::from("failed to calculate"))?;
+        println!("
+  Calculating...
     {}
+  Result:
+    {}", equation, res);
+        Ok(res)
+    }
 
-    [ RESULT ]
+    fn calculate_inner(&self, mut equation: String) -> Result<f64, Error> {
+        equation.push('\n');
+        let mut neweq = equation.clone();
+        neweq.pop();
 
-    {}
+        let tokens = tokenise(&equation)?;
+        let mut parser = Parser::new(tokens)?;
+        let ast = parser.parse()?;
+        let mut interpreter = Interpreter::new()?;
+        let result = interpreter.visit(ast)?;
+        let return_res = if let Value::Number(x) = result {
+            x
+        } else { panic!("the value returned was not a float! THIS IS A BUG") };
 
-    ", neweq, return_res);
-
-    Ok(return_res)
+        Ok(return_res)
+    }
 }
-fn calculate_inner2(mut equation: String) -> Result<f64, Error> {
-
-    equation.push('\n');
-    let mut neweq = equation.clone();
-    neweq.pop();
-
-    let tokens = tokenise(&equation)?;
-    let mut parser = Parser::new(tokens)?;
-    let ast = parser.parse()?;
-    let mut interpreter = Interpreter::new()?;
-    let result = interpreter.visit(ast)?;
-    let return_res = if let Value::Number(x) = result {
-        x
-    } else { panic!("the value returned was not a float! THIS IS A BUG") };
-
-    Ok(return_res)
-}
-
-
 
 fn tokenise(equation: &str) -> Result<Vec<Token>, Error> {
     let mut tokens = Vec::new();

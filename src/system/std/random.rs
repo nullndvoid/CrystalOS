@@ -1,5 +1,5 @@
-
 use alloc::{string::{String, ToString}, vec::Vec};
+use core::ops::Index;
 use rand::{Rng, SeedableRng, rngs::SmallRng, RngCore};
 use spin::Mutex;
 use lazy_static::lazy_static;
@@ -30,8 +30,9 @@ impl Random {
         }
 
     }
-    pub fn selection<T: Clone>(ls: &Vec<T>) -> &T {
-        let range = Random::int(0, ls.len() - 1);
+
+    pub fn selection<T>(ls: &Vec<T>) -> &T {
+        let range = Random::int(0, ls.iter().len() - 1);
         &ls[range as usize]
     }
 }
