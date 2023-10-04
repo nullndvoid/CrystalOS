@@ -50,13 +50,13 @@ impl Application for Game {
 
         'gameloop: loop {
 
-            time::wait(20);
+            time::wait(0.2);
 
-            // if let Some(c) = Stdin::try_keystroke() {
-            //     self.mv = c;
-            // }
+            if let Some(c) = Stdin::try_keystroke() {
+                self.mv = c;
+            }
 
-            self.mv = Stdin::keystroke().await;
+            //self.mv = Stdin::keystroke().await;
 
             match self.mv {
                 'w' => self.head.y -= 1,

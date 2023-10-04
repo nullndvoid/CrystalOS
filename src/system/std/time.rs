@@ -4,7 +4,7 @@ use cmos_rtc::{ReadRTC, Time};
 use crate::println;
 use super::super::kernel::interrupts::GLOBALTIMER;
 use x86_64::instructions::interrupts;
-pub fn wait(seconds: i64) {
+pub fn wait(seconds: f64) {
     let mut start = 0;
     interrupts::without_interrupts(||{
         start = GLOBALTIMER.lock().val;
@@ -15,7 +15,7 @@ pub fn wait(seconds: i64) {
         interrupts::without_interrupts(||{
             new = GLOBALTIMER.lock().val;
         });
-        if new + seconds > start {
+        if new as f64 > start as f64 + seconds * 16.0 {
             return
         }
     };

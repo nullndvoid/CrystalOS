@@ -143,9 +143,9 @@ impl ScanCodeStream {
 	pub fn try_next(&mut self) -> Option<u8> {
 		let queue = SCANCODE_QUEUE.try_get().expect("not initialised");
 		if let Ok(c) = queue.pop() {
-			return Some(c);
+			Some(c)
 		} else {
-			return None;
+			None
 		}
 	}
 }

@@ -6,12 +6,8 @@ use x86_64::instructions::interrupts;
 use alloc::{boxed::Box, string::{String, ToString}, vec, vec::Vec};
 use vga::writers::{GraphicsWriter, PrimitiveDrawing};
 
-use crate::{
-    print, println,
-    std::application::{Application, Error},
-    user::bin::*,
-};
-use crate::std::io::{Color, write, Screen};
+use crate::{print, println, std, std::application::{Application, Error}, user::bin::*};
+use crate::std::io::{Color, write, Screen, Stdin};
 use crate::std::random::Random;
 use crate::user::bin::gigachad_detector::GigachadDetector;
 use crate::user::bin::grapher::Grapher;
@@ -121,6 +117,19 @@ async fn exec() -> Result<(), Error> {
         "gigachad?" => {
             let mut gigachad_detector = GigachadDetector::new();
             gigachad_detector.run(args).await?;
+        }
+
+        "wait" => {
+            use std::time::wait;
+
+            for _ in 0..20 {
+                wait(0.5);
+                let key = Stdin::try_keystroke();
+                println!("waited {}", match key {
+                    Some(c) => c,
+                    None => '_',
+                });
+            }
         }
 
         // direct OS functions (not applications)

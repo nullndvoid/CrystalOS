@@ -4,6 +4,7 @@ use crate::{
 };
 
 use alloc::string::String;
+use alloc::vec::Vec;
 
 pub use crate::{print, println, serial_print, serial_println};
 pub use crate::kernel::render::Color;

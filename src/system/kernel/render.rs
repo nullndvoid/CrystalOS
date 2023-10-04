@@ -184,7 +184,7 @@ impl Renderer {
         self.internal_render();
     }
 
-    pub fn with_colour(&mut self, cols: ColorCode) {
+    pub fn set_colour(&mut self, cols: ColorCode) {
         self.temp_colour = Some(cols);
     }
     pub fn reset_colour(&mut self) {
@@ -334,7 +334,7 @@ pub fn write(args: fmt::Arguments, cols: (Color, Color)) {
     interrupts::without_interrupts(|| {
         let mut writer = RENDERER.lock();
 
-        writer.with_colour(colour_code);
+        writer.set_colour(colour_code);
         writer.write_fmt(args).unwrap();
         writer.reset_colour();
     })
