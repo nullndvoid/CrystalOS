@@ -1,6 +1,5 @@
 use alloc::string::String;
 use alloc::{format, vec, vec::Vec, boxed::Box};
-use core::arch::x86_64::_mm_test_all_ones;
 use async_trait::async_trait;
 use crate::std::io::{Color, Screen, Stdin};
 use crate::std::time;
@@ -32,7 +31,6 @@ enum Direction {
     Right,
 }
 
-#[derive(Clone, Debug, PartialEq)]
 enum Status {
     Scored,
     Lost,
@@ -41,19 +39,24 @@ enum Status {
 }
 
 pub struct Game {
-    snakes: Vec<Snake>,
-    pois: Vec<Point>,
+    snake: SegQueue<Point>,
+    head: Point,
+    poi: Point,
+    mv: char,
     score: u8,
     hardmode: bool,
 }
 
 
+snake.rs
 #[async_trait]
 impl Application for Game {
     fn new() -> Self {
         Self {
-            snakes: Vec::new(),
-            pois: Vec::new(),
+            snake: SegQueue::new(),
+            head: Point { x: 5, y: 5 },
+            poi: Point { x: 0, y: 0 },
+            mv: ' ',
             score: 0,
             hardmode: false,
         }
@@ -61,19 +64,20 @@ impl Application for Game {
 
     async fn run(&mut self, _: Vec<String>) -> Result<(), Error> {
         Screen::application_mode();
+        let clone = self.clone_snake();
 
         // render the initial state of the screen.
-        self.render().map_err(|_| Error::ApplicationError(String::from("failed to render game screen")))?;
+        self.render(clone).map_err(|_| Error::ApplicationError(String::from("failed to render game screen")))?;
 
-        // make the first poi
-        for i in 0..5 {
-            self.new_poi();
-        }
 
-        // run the game
+        (5..=7).for_each(|x| {
+            self.snake.push(Point { x, y: 5 });
+        });
+        self.head = Point { x: 7, y: 5 };
+        self.new_poi();
+
         self.gameloop().await?;
 
-        // return to the terminal
         Screen::terminal_mode();
         Ok(())
     }
@@ -82,66 +86,76 @@ impl Application for Game {
 impl Game {
 
     async fn gameloop(&mut self) -> Result<(), Error> { // main gameloop
-        let mut all_points: Vec<Point>;
-
         'gameloop: loop {
 
             time::wait(0.1);
 
-            let res = self.snakes.iter_mut().map(|s| s.next(&self.pois, &self.snakes)).collect::<Vec<Status>>();
-            if res.contains(&Status::Lost) {
-                self.render_end_screen().map_err(|_| Error::ApplicationError(String::from("failed to render end screen")))?;
+            if let Some(c) = Stdin::try_keystroke() {
+                self.mv = c;
+            }
 
-                loop {
-                    match Stdin::keystroke().await {
+            //self.mv = Stdin::keystroke().await;
+
+            match self.mv {
+                'w' => self.head.y -= 1,
+                'a' => self.head.x -= 1,
+                's' => self.head.y += 1,
+                'd' => self.head.x += 1,
+                'x' => break,
+                _ => continue,
+            }
+
+            self.snake.push(Point { x: self.head.x, y: self.head.y }); // new head added
+
+            if self.head == self.poi {
+                self.new_poi();
+                self.score += 1
+            } else {
+                self.snake.pop().unwrap(); // tail removed if score does not increase
+            }
+
+            if self.lose_condition() {
+                self.render_end_screen().map_err(|_| Error::ApplicationError(String::from("failed to render game over screen")))?;
+                while let chr = KEYBOARD.lock().get_keystroke().await {
+                    match chr {
                         'x' => break 'gameloop,
                         _ => continue,
                     }
                 }
-            } else if res.contains(&Status::Exited) {
-                break 'gameloop;
-            } else if res.contains(&Status::Scored) {
-                self.score += 1;
             }
 
-
-
-
-
-
-
-
-
+            let clone = self.clone_snake();
+            self.render(clone).map_err(|_| Error::ApplicationError(String::from("failed to render game screen")))?;
         };
         Ok(())
     }
 
     fn new_poi(&mut self) {
-        self.pois.push(Point { x: Random::int(3, 76) as i8, y: Random::int(3, 21) as i8 });
+        self.poi = Point { x: Random::int(3, 76) as i8, y: Random::int(3, 21) as i8 }
     }
 
-    fn replace_poi(&mut self, poi: &Point) {
-        self.pois.remove(self.pois.iter().position(|p| p == poi).unwrap());
-        self.new_poi();
+    fn render(&mut self, snake: Vec<Point>) -> Result<(), ()> {
+        let mut frame = vec![vec![ScreenChar::null(); 80]; 25];
+        snake.into_iter().for_each(|p| {
+            frame[p.y as usize][p.x as usize] = ScreenChar::new('@' as u8, ColorCode::new(Color::Cyan, Color::Black));
+        });
+
+        frame[self.poi.y as usize][self.poi.x as usize] = ScreenChar::new('o' as u8, ColorCode::new(Color::Red, Color::Black));
+        let literal = format!("snake go brr score:  {}", self.score);
+        let msg = Game::centre_text(80, literal);
+        frame[1] = msg.chars().map(|c| ScreenChar::new(c as u8, ColorCode::new(Color::LightGreen, Color::Black))).collect();
+
+        let mut elem = ColouredElement::generate(frame, (80, 25));
+        elem.render((0,0))
     }
 
-    fn render(&mut self) -> Result<(), ()> {
-        // let mut frame = vec![vec![ScreenChar::null(); 80]; 25];
-        // snake.into_iter().for_each(|p| {
-        //     frame[p.y as usize][p.x as usize] = ScreenChar::new('@' as u8, ColorCode::new(Color::Cyan, Color::Black));
-        // });
-        //
-        // frame[self.poi.y as usize][self.poi.x as usize] = ScreenChar::new('o' as u8, ColorCode::new(Color::Red, Color::Black));
-        // let literal = format!("snake go brr score:  {}", self.score);
-        // let msg = Game::centre_text(80, literal);
-        // frame[1] = msg.chars().map(|c| ScreenChar::new(c as u8, ColorCode::new(Color::LightGreen, Color::Black))).collect();
-        //
-        // let mut elem = ColouredElement::generate(frame, (80, 25));
-        // elem.render((0,0))
+    fn lose_condition(&mut self) -> bool {
+        let cloned = self.clone_snake();
+        let snake_overlaps = (1..cloned.len()).any(|i| cloned[i..].contains(&cloned[i - 1])); // checks if any part of the snake overlaps itself
+        let out_of_bounds = cloned.iter().filter(|p| p.x < 0 || p.y < 0 || p.x > 79 || p.y > 24).count() > 0; // checks if the snake goes out of bounds
 
-        Ok(())
+        snake_overlaps || out_of_bounds
     }
-
 
     fn centre_text(dims: usize, text: String) -> String { // centres text in a string of whitespace of a given length
         let max_pad = dims / 2;
@@ -162,6 +176,18 @@ impl Game {
 
         let mut elem = ColouredElement::generate(frame, (80, 25));
         elem.render((0,0))
+    }
+
+    fn clone_snake(&mut self) -> Vec<Point> {
+        let mut cloned= Vec::new();
+        let mut snake = SegQueue::new();
+        while !self.snake.is_empty() {
+            let item = self.snake.pop().unwrap();
+            cloned.push(item.clone());
+            snake.push(item);
+        }
+        self.snake = snake;
+        cloned
     }
 }
 
@@ -202,7 +228,7 @@ impl Snake {
         }
     }
 
-    fn next(&mut self, points_of_interest: &Vec<Point>, tails: &Vec<Snake>) -> Status {  // returns (lose_condition, scored)
+    fn next(&mut self, points_of_interest: &Vec<Point>, tails: &Vec<Point>) -> Status {  // returns (lose_condition, scored)
 
         // uses pathing algorithm if ai else keyboard input if human
         if self.ai_controlled {
@@ -230,30 +256,23 @@ impl Snake {
         }
 
         if self.lose_condition(tails) {
-            if !self.ai_controlled {
-                return Status::Lost;
-            }
+            return Status::Lost;
         }
 
         if points_of_interest.contains(&self.head) {
-            if !self.ai_controlled {
-                Status::Scored
-            }
+            Status::Scored
         } else {
             self.tail.remove(0);
+            Status::None
         }
-
-        Status::None
     }
 
     fn decide_dir(&mut self) -> Direction {
         unimplemented!() // implement a basic pathfinding or random movement algorithm
     }
 
-    fn lose_condition(&mut self, tails: &Vec<Snake>) -> bool { // where tails includes the tail of every other snake
+    fn lose_condition(&mut self, tails: &Vec<Point>) -> bool { // where tails includes the tail of every other snake
         let p = self.head.clone();
-
-        let tails: Vec<Point> = tails.iter().map(|t| t.tail.flatten()).collect();
 
         let snake_overlaps = tails.contains(&self.head); // checks if any part of the snake overlaps itself
         let out_of_bounds = p.x < 0 || p.y < 0 || p.x > 79 || p.y > 24; // checks if the snake goes out of bounds

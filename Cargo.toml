@@ -11,7 +11,7 @@ test-args = ["-device", "isa-debug-exit,iobase=0xf4,iosize=0x04", "-serial", "st
 test-success-exit-code = 33
 test-timeout = 30
 
-run-args = ["-device", "isa-debug-exit,iobase=0xf4,iosize=0x04", "-serial", "stdio"]
+run-args = ["-device", "isa-debug-exit,iobase=0xf4,iosize=0x04", "-serial", "stdio", "-accel", "kvm"]
 
 [dependencies]
 bootloader= { version = "0.9.23", features = ["map_physical_memory"] }
