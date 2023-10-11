@@ -6,7 +6,7 @@ use x86_64::instructions::interrupts;
 use alloc::{boxed::Box, string::{String, ToString}, vec, vec::Vec};
 use vga::writers::{GraphicsWriter, PrimitiveDrawing};
 
-use crate::{print, println, std, std::application::{Application, Error}, user::bin::*};
+use crate::{print, printerr, println, std, std::application::{Application, Error}, user::bin::*};
 use crate::std::io::{Color, write, Screen, Stdin};
 use crate::std::random::Random;
 use crate::user::bin::gigachad_detector::GigachadDetector;
@@ -51,11 +51,19 @@ pub async fn eventloop() {
 }
 
 fn handle_error(e: Error) {
-    if let Error::ApplicationError(s) = e {
-        println!("there was an error! exiting program!: {}", s);
-    } else {
-        println!("there was an error! exiting program!");
-
+    match e {
+        Error::EmptyCommand => {
+            printerr!("empty command");
+        },
+        Error::UnknownCommand(cmd_str) => {
+            printerr!("unknown command: '{}'", cmd_str);
+        },
+        Error::ApplicationError(e) => {
+            printerr!("application returned error:\n{}", e);
+        },
+        Error::CommandFailed(e) => {
+            printerr!("command failed:\n{}", e);
+        },
     }
 }
 
@@ -112,8 +120,17 @@ async fn exec() -> Result<(), Error> {
         }
         "snake" => {
             let mut game = snake::Game::new();
-            game.run(Vec::new()).await;
+            game.run(args).await?;
         }
+        "gameoflife" => {
+            let mut game = gameoflife::GameOfLife::new();
+            game.run(Vec::new()).await?;
+        }
+        "tetris" => {
+            let mut game = tetris::TetrisEngine::new();
+            game.run(Vec::new()).await?;
+        }
+
         "gigachad?" => {
             let mut gigachad_detector = GigachadDetector::new();
             gigachad_detector.run(args).await?;
@@ -122,13 +139,12 @@ async fn exec() -> Result<(), Error> {
         "wait" => {
             use std::time::wait;
 
-            for _ in 0..20 {
-                wait(0.5);
-                let key = Stdin::try_keystroke();
-                println!("waited {}", match key {
-                    Some(c) => c,
-                    None => '_',
-                });
+            if args.len() != 1 {
+                return Err(Error::CommandFailed("exactly one argument must be provided".to_string()))
+            }
+            if let Ok(time) = args[0].parse::<u64>() {
+                wait(time as f64);
+                println!("waited for {}s", time);
             }
         }
 
@@ -149,12 +165,6 @@ async fn exec() -> Result<(), Error> {
             // not sure why this code was here but leaving it in case weird bugs happen so i remember to add it back if so
             //interrupts::without_interrupts(|| {});
         }
-
-        "print" => {
-            use crate::std::os::OS;
-            let x: String = OS.lock().version.clone();
-            println!("{}", x);
-        }
         "switch" => {
             Screen::switch();
         }
@@ -170,7 +180,7 @@ async fn exec() -> Result<(), Error> {
 		}
         _ => {
             return Err(Error::UnknownCommand(
-                "command not yet implemented".to_string(),
+                cmd
             ))
         }
     };

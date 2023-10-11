@@ -9,3 +9,5 @@ mod gigachad_detector;
 //mod shellrewrite;
 mod snake;
 mod grapher;
+mod gameoflife;
+mod tetris;
