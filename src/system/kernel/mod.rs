@@ -1,5 +1,4 @@
 pub mod allocator;
-pub mod fs;
 pub mod gdt;
 pub mod interrupts;
 pub mod memory;
@@ -8,3 +7,4 @@ pub mod tasks;
 pub mod sysinit;
 pub mod authenticator;
 pub mod render;
+mod fs;
