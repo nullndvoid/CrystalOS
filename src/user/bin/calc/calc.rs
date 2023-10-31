@@ -126,11 +126,7 @@ impl Interpreter {
             },
             Operator::Exp => {
                 return Ok(Value::Number({
-                	let mut val = 1.0;
-                	for _ in 0..(right as i64) {
-                		val *= left
-                	};
-                	val
+                	super::functions::exp(left, right)
                 }))
             }
         }

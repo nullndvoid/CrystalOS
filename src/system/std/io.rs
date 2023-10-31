@@ -8,6 +8,7 @@ use alloc::vec::Vec;
 
 pub use crate::{print, println, serial_print, serial_println};
 pub use crate::kernel::render::Color;
+use crate::kernel::serial::serial_reply;
 
 use lazy_static::lazy_static;
 use spin::Mutex;
@@ -27,6 +28,14 @@ impl Stdin {
     pub fn try_keystroke() -> Option<char> {
         let chr = KEYBOARD.lock().try_keystroke();
         chr
+    }
+}
+
+pub struct Serial {}
+
+impl Serial {
+    pub fn reply_char(c: char) -> char {
+        serial_reply(c)
     }
 }
 

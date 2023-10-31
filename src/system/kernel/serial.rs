@@ -24,6 +24,19 @@ pub fn _print(args: core::fmt::Arguments) {
 	})
 
 }
+pub fn serial_reply(chr: char) -> char {
+	use core::fmt::Write;
+	use x86_64::instructions::interrupts;
+
+	let mut chr_return: char = 'X';
+
+	interrupts::without_interrupts(|| {
+		SERIAL1.lock().send(chr as u8);
+		chr_return = SERIAL1.lock().receive() as char ;
+	});
+
+	chr_return
+}
 
 #[macro_export]
 macro_rules! serial_print {

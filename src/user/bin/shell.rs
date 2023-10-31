@@ -7,7 +7,7 @@ use alloc::{boxed::Box, string::{String, ToString}, vec, vec::Vec};
 use vga::writers::{GraphicsWriter, PrimitiveDrawing};
 
 use crate::{print, printerr, println, std, std::application::{Application, Error}, user::bin::*};
-use crate::std::io::{Color, write, Screen, Stdin};
+use crate::std::io::{Color, write, Screen, Stdin, Serial};
 use crate::std::random::Random;
 use crate::user::bin::gigachad_detector::GigachadDetector;
 use crate::user::bin::grapher::Grapher;
@@ -121,6 +121,10 @@ async fn exec() -> Result<(), Error> {
         "snake" => {
             let mut game = snake::Game::new();
             game.run(args).await?;
+        }
+        "serial" => {
+            let c = Serial::reply_char('e');
+            println!("{}", c);
         }
         "gameoflife" => {
             let mut game = gameoflife::GameOfLife::new();

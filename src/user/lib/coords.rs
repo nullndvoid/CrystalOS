@@ -62,7 +62,7 @@ impl Position {
     }
 
 
-    pub fn rotated_around(&self, angle: Direction, p: Position) -> Position { // rotates by an angle around a point
+    pub fn rotated_aroundte(&self, angle: Direction, p: Position) -> Position { // rotates by an angle around a point
 
         // gets coords relative to point to rotate around
         let mut p_offset = self.get_offset(&p);
