@@ -25,8 +25,6 @@ fn panic(info: &PanicInfo) -> ! {
     CrystalOS::test_panic_handler(info)
 }
 
-// some comment
-
 entry_point!(main);
 
 fn main(boot_info: &'static BootInfo) -> ! {
