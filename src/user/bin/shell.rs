@@ -7,10 +7,14 @@ use alloc::{boxed::Box, string::{String, ToString}, vec, vec::Vec};
 use vga::writers::{GraphicsWriter, PrimitiveDrawing};
 
 use crate::{print, printerr, println, std, std::application::{Application, Error}, user::bin::*};
+use crate::kernel::render::ScreenChar;
+use crate::std::frame::ColouredElement;
 use crate::std::io::{Color, write, Screen, Stdin, Serial};
 use crate::std::random::Random;
 use crate::user::bin::gigachad_detector::GigachadDetector;
 use crate::user::bin::grapher::Grapher;
+use crate::user::lib::gui_v2;
+use crate::user::lib::gui_v2::widgets::GuiComponent;
 
 lazy_static! {
     pub static ref CMD: Mutex<CommandHandler> = Mutex::new(CommandHandler::new());
@@ -177,10 +181,24 @@ async fn exec() -> Result<(), Error> {
             timer();
         }
 		"test_features" => {
-            use crate::std::random::Random;
-            println!("{}", Random::int(0, 10));
-			// use crate::user::lib::libgui;
-			// libgui::libgui_core::test_elements();
+
+            std::io::Screen::application_mode();
+
+            let mut container = gui_v2::widgets::Container::new(
+                gui_v2::widgets::Position::new(2, 2),
+                gui_v2::widgets::Dimensions::new(10, 10),
+                true,
+            );
+            let res = container.render().unwrap().render();
+
+            let mut elem = ColouredElement {
+                frame: res as Vec<Vec<ScreenChar>>,
+                dimensions: (container.dimensions.x as u8, container.dimensions.y as u8),
+            };
+
+            elem.render((2, 2)).unwrap();
+
+
 		}
         _ => {
             return Err(Error::UnknownCommand(

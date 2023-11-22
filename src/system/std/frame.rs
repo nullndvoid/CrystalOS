@@ -59,8 +59,8 @@ impl Element {
 
 #[derive(Clone)]
 pub struct ColouredElement {
-    frame: Vec<Vec<ScreenChar>>,
-    dimensions: (u8, u8)
+    pub frame: Vec<Vec<ScreenChar>>,
+    pub dimensions: (u8, u8)
 }
 
 impl ColouredElement {

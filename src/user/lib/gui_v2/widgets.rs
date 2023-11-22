@@ -1,6 +1,8 @@
+use alloc::boxed::Box;
 use alloc::string::String;
 use alloc::vec;
 use alloc::vec::Vec;
+use core::slice::from_mut;
 use crate::kernel::render::ScreenChar;
 use crate::printerr;
 use crate::user::lib::gui_v2::widgets::XorY::Both;
@@ -11,13 +13,20 @@ pub struct Position {
 	pub y: usize,
 }
 
-#[derive(Copy, Clone)]
+impl Position {
+	pub fn new(x: usize, y: usize) -> Position {
+		Position { x, y }
+	}
+}
+
+#[derive(Copy, Clone, PartialEq, Debug)]
 pub enum XorY {
 	X,
 	Y,
 	Both,
 	None,
 }
+
 
 impl XorY {
 	pub fn setx(&mut self) {
@@ -37,6 +46,7 @@ impl XorY {
 }
 
 
+#[derive(Debug)]
 pub enum GuiError {
 	OutOfBounds(XorY)
 }
@@ -44,7 +54,7 @@ pub enum GuiError {
 pub type Dimensions = Position;
 pub type ColouredChar = ScreenChar;
 
-#[derive(Copy, Clone)]
+#[derive(Clone)]
 pub struct Frame {
 	position: Position,
 	dimensions: Dimensions,
@@ -52,12 +62,12 @@ pub struct Frame {
 }
 
 impl Frame {
-	pub fn new(position: Position, dimensions: Dimensions) -> Frame {
-		Frame {
+	pub fn new(position: Position, dimensions: Dimensions) -> Result<Frame, GuiError> {
+		Ok(Frame {
 			position,
 			dimensions,
 			frame: vec![vec![ScreenChar::null(); dimensions.x]; dimensions.y],
-		}
+		})
 	}
 	pub fn render(&self) -> Vec<Vec<ColouredChar>> {
 		self.frame.clone()
@@ -100,7 +110,7 @@ impl Frame {
 			if should_panic {
 				panic!(
 					"Element is to large to be rendered {} {}",
-					.dimensions().y + element.position().y,
+					element.dimensions().y + element.position().y,
 					self.dimensions.y
 				)
 			} else {
@@ -119,35 +129,69 @@ impl Frame {
 
 
 pub trait GuiComponent {
-	fn render(&self) -> Frame;
+	fn render(&self) -> Result<Frame, GuiError>;
 }
 
 
 pub struct Container {
 	pub frame: Vec<Vec<ColouredChar>>,
-	pub elements: Vec<dyn GuiComponent>,
+	pub elements: Vec<Box<dyn GuiComponent>>,
 	pub position: Position,
 	pub dimensions: Dimensions,
+	pub outlined: bool,
 }
+
+impl Container {
+
+	pub fn new(position: Position, dimensions: Dimensions, outlined: bool) -> Container {
+		Container {
+			frame: vec![vec![ScreenChar::null(); dimensions.x]; dimensions.y],
+			elements: Vec::new(),
+			position,
+			dimensions,
+			outlined,
+		}
+	}
+
+	fn render_outline(&self, frame: &mut Frame) {
+		// draws the sides of the container
+		for i in 0..frame.dimensions.x {
+			frame.set_pos(Position::new(i, 0), ColouredChar::white('│' as u8));
+			frame.set_pos(Position::new(i, frame.dimensions.y - 1), ColouredChar::white('│' as u8));
+		}
+
+		// draws the top and bottom of the container
+		for i in 0..frame.dimensions.y {
+			frame.set_pos(Position::new(0, i), ColouredChar::white('─' as u8));
+			frame.set_pos(Position::new(frame.dimensions.x - 1, i), ColouredChar::white('─' as u8));
+		}
+
+		// draws the corners of the container
+		frame.set_pos(Position::new(0, 0), ColouredChar::white('┌' as u8));
+		frame.set_pos(Position::new(self.dimensions.x - 1, 0), ColouredChar::white('┐' as u8));
+		frame.set_pos(Position::new(0, self.dimensions.y - 1), ColouredChar::white('└' as u8));
+		frame.set_pos(Position::new(self.dimensions.x - 1, self.dimensions.y - 1), ColouredChar::white('┘' as u8));
+	}
+}
+
 
 impl GuiComponent for Container {
 	fn render(&self) -> Result<Frame, GuiError> {
+		let mut result = Frame::new(self.position, self.dimensions)?;
 
-		let mut frame = Frame::new(self.position, self.dimensions);
-
-		for element in &self.elements {
-			match frame.render_bounds_check(element, true) { // TODO: this needs to be set to false for production
-				Ok(()) => {
-					let r = (*element).render();
-					frame.render_element(&r);
-				}
-				Err(e) => {
-					return Err(GuiError::OutOfBounds(e));
-				}
+		for widget in &self.elements {
+			let frame = widget.render()?;
+			match result.render_bounds_check(&frame, true) { // TODO: this needs to be set to false for production
+				Ok(()) => result.render_element(&frame),
+				Err(e) => return Err(GuiError::OutOfBounds(e)),
 			}
 		}
-		
-		Ok(frame)
+
+		if self.outlined {
+			self.render_outline(&mut result);
+		}
+
+		Ok(result)
 	}
 }
 
