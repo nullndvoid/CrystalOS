@@ -6,7 +6,7 @@ use x86_64::instructions::interrupts;
 use alloc::{boxed::Box, string::{String, ToString}, vec, vec::Vec};
 use vga::writers::{GraphicsWriter, PrimitiveDrawing};
 
-use crate::{print, printerr, println, std, std::application::{Application, Error}, user::bin::*};
+use crate::{print, printerr, println, serial_println, std, std::application::{Application, Error}, user::bin::*};
 use crate::kernel::render::ScreenChar;
 use crate::std::frame::ColouredElement;
 use crate::std::io::{Color, write, Screen, Stdin, Serial};
@@ -186,6 +186,8 @@ async fn exec() -> Result<(), Error> {
         }
 		"test_features" => {
             std::io::Screen::application_mode();
+
+            serial_println!("OK");
 
             let textbox = CgTextBox::new(
                 String::from("i'd just like to interject for a moment"),
