@@ -13,8 +13,12 @@ use crate::std::io::{Color, write, Screen, Stdin, Serial};
 use crate::std::random::Random;
 use crate::user::bin::gigachad_detector::GigachadDetector;
 use crate::user::bin::grapher::Grapher;
-use crate::user::lib::gui_v2;
-use crate::user::lib::gui_v2::widgets::GuiComponent;
+use crate::user::lib::libgui;
+use crate::user::lib::libgui::{
+    cg_core::{Frame, Position, Dimensions, CgComponent},
+    cg_widgets::{CgTextBox, CgContainer},
+};
+use crate::user::lib::libgui::cg_widgets::CgLabel;
 
 lazy_static! {
     pub static ref CMD: Mutex<CommandHandler> = Mutex::new(CommandHandler::new());
@@ -181,23 +185,55 @@ async fn exec() -> Result<(), Error> {
             timer();
         }
 		"test_features" => {
-
             std::io::Screen::application_mode();
 
-            let mut container = gui_v2::widgets::Container::new(
-                gui_v2::widgets::Position::new(2, 2),
-                gui_v2::widgets::Dimensions::new(10, 10),
+            let textbox = CgTextBox::new(
+                String::from("i'd just like to interject for a moment"),
+                String::from("I'd just like to interject for a moment. What you're refering to as Linux, is in fact, GNU/Linux, or as I've recently taken to calling it, GNU plus Linux. Linux is not an operating system unto itself, but rather another free component of a fully functioning GNU system made useful by the GNU corelibs, shell utilities and vital system components comprising a full OS as defined by POSIX. Many computer users run a modified version of the GNU system every day, without realizing it. Through a peculiar turn of events, the version of GNU which is widely used today is often called Linux, and many of its users are not aware that it is basically the GNU system, developed by the GNU Project. There really is a Linux, and these people are using it, but it is just a part of the system they use. Linux is the kernel: the program in the system that allocates the machine's resources to the other programs that you run. The kernel is an essential part of an operating system, but useless by itself; it can only function in the context of a complete operating system. Linux is normally used in combination with the GNU operating system: the whole system is basically GNU with Linux added, or GNU/Linux. All the so-called Linux distributions are really distributions of GNU/Linux!"),
+                Position::new(2, 2),
+                Dimensions::new(40, 12),
                 true,
             );
-            let res = container.render().unwrap().render();
 
-            let mut elem = ColouredElement {
-                frame: res as Vec<Vec<ScreenChar>>,
-                dimensions: (container.dimensions.x as u8, container.dimensions.y as u8),
+            let textbox2 = CgTextBox::new(
+                String::from("i'd just like to interject for a moment"),
+                String::from("I'd just like to interject for a moment. What you're refering to as Linux, is in fact, GNU/Linux, or as I've recently taken to calling it, GNU plus Linux. Linux is not an operating system unto itself, but rather another free component of a fully functioning GNU system made useful by the GNU corelibs, shell utilities and vital system components comprising a full OS as defined by POSIX. Many computer users run a modified version of the GNU system every day, without realizing it. Through a peculiar turn of events, the version of GNU which is widely used today is often called Linux, and many of its users are not aware that it is basically the GNU system, developed by the GNU Project. There really is a Linux, and these people are using it, but it is just a part of the system they use. Linux is the kernel: the program in the system that allocates the machine's resources to the other programs that you run. The kernel is an essential part of an operating system, but useless by itself; it can only function in the context of a complete operating system. Linux is normally used in combination with the GNU operating system: the whole system is basically GNU with Linux added, or GNU/Linux. All the so-called Linux distributions are really distributions of GNU/Linux!"),
+                Position::new(10, 5),
+                Dimensions::new(40, 12),
+                true,
+            );
+
+
+            let mut label = CgLabel::new(
+                String::from("i'd just like to interject for a moment"),
+                Position::new(5, 16),
+                15,
+            );
+
+            let mut container = CgContainer::new(
+                Position::new(2, 2),
+                Dimensions::new(65, 20),
+                true,
+            );
+
+            container.elements.push(Box::new(textbox));
+            container.elements.push(Box::new(textbox2));
+            container.elements.push(Box::new(label));
+
+            let res = if let Ok(frame) = container.render() {
+                frame
+            } else {
+                return Err(Error::CommandFailed("failed to render frame".to_string()))
             };
 
-            elem.render((2, 2)).unwrap();
+            let mut elem = ColouredElement::generate(
+                res.render_screen_char(),
+                (res.dimensions().x as u8, res.dimensions().y as u8),
+            );
 
+            elem.render((0, 0)).unwrap();
+
+            //std::io::Screen::terminal_mode();
 
 		}
         _ => {

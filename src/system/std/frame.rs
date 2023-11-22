@@ -12,7 +12,10 @@ use spin::Mutex;
 ///
 /// nothing will appear on the screen until the frame is actually rendered by
 /// the render_frame method on the renderer
-///
+
+pub use crate::system::kernel::render::special_char;
+
+
 pub type Frame = [ [ ScreenChar; BUFFER_WIDTH ]; BUFFER_HEIGHT];
 
 #[derive(Clone)]

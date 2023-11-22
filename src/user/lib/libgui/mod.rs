@@ -1,2 +1,3 @@
-pub mod libgui_core;
-pub mod libgui_elements;
+pub mod cg_core;
+pub(crate) mod cg_widgets;
+

@@ -6,6 +6,7 @@ use volatile::Volatile;
 use alloc::borrow::ToOwned;
 use alloc::vec;
 use alloc::vec::Vec;
+use crate::serial_println;
 use crate::std::io::Screen;
 
 #[allow(dead_code)]
@@ -54,13 +55,19 @@ impl ScreenChar {
             colour: ColorCode::new(Color::White, Color::Black),
         }
     }
-    pub fn white(character: u8) -> ScreenChar {
+    pub fn white(mut character: u8) -> ScreenChar {
+        if let Some(c) = special_char(character as char) {
+            character = c;
+        }
         ScreenChar {
             character,
             colour: ColorCode::new(Color::White, Color::Black),
         }
     }
-    pub fn new(character: u8, colour: ColorCode) -> ScreenChar {
+    pub fn new(mut character: u8, colour: ColorCode) -> ScreenChar {
+        if let Some(c) = special_char(character as char) {
+           character = c
+        }
         ScreenChar {
             character,
             colour,
@@ -101,9 +108,10 @@ impl Renderer {
     pub fn render_frame(&mut self, frame: [[ScreenChar; BUFFER_WIDTH]; BUFFER_HEIGHT]) { // renders the given frame to the app buffer
         let mut processed_frame: [[ScreenChar; BUFFER_WIDTH]; BUFFER_HEIGHT] = [[ScreenChar::null(); BUFFER_WIDTH]; BUFFER_HEIGHT];
 
+
         for (i, row) in frame.iter().enumerate() {
             for (j, col) in row.iter().enumerate() {
-                processed_frame[i][j] = match self.special_char(col.character as char) {
+                processed_frame[i][j] = match special_char(col.character as char) {
                     Some(c) => ScreenChar::new(c as u8, col.colour),
                     None => *col,
                 };
@@ -153,7 +161,7 @@ impl Renderer {
     pub fn write_string(&mut self, string: &str, col: Option<ColorCode>) {
         if self.application_mode { return; };
         for ch in string.chars() {
-            match self.special_char(ch) {
+            match special_char(ch) {
                 Some(c) => self.write_byte(c, col),
                 None => match ch as u8 {
                     0x20..=0xff | b'\n' => self.write_byte(ch as u8, col),
@@ -288,35 +296,42 @@ impl Renderer {
         }
         self.set_cursor_position(BUFFER_HEIGHT - 1, self.col_pos);
     }
-
-    fn special_char(&self, ch: char) -> Option<u8> {
-        let res: u8 = match ch {
-            '│' => 179,
-            '─' => 196,
-            '┴' => 193,
-            '┤' => 180,
-            '═' => 205,
-            '║' => 186,
-            '╗' => 187,
-            '╝' => 188,
-            '╚' => 200,
-            '╔' => 201,
-            '»' => 175,
-            '┐' => 191,
-            '└' => 192,
-            '┘' => 217,
-            '┌' => 218,
-            '┼' => 197,
-            '░' => 176,
-            '▓' => 178,
-            '«' => 174,
-            _ => {
-                return None;
-            }
-        };
-        Some(res)
-    }
 }
+
+pub fn special_char(ch: char) -> Option<u8> {
+    let res: u8 = match ch {
+        '│' => 179,
+        '─' => 196,
+        '┴' => 193,
+        '┤' => 180,
+        '═' => 205,
+        '║' => 186,
+        '╗' => 187,
+        '╝' => 188,
+        '╚' => 200,
+        '╔' => 201,
+        '»' => 175,
+        '┐' => 191,
+        '└' => 192,
+        '┘' => 217,
+        '┌' => 218,
+        '┼' => 197,
+        '░' => 176,
+        '▓' => 178,
+        '«' => 174,
+        _ => {
+            return None;
+        }
+    };
+    Some(res)
+}
+
+
+
+
+
+
+
 
 impl fmt::Write for Renderer {
     fn write_str(&mut self, string: &str) -> fmt::Result {
