@@ -58,7 +58,7 @@ impl Application for Grapher {
             }
         };
 
-        Screen::application_mode();
+        Screen::Application.set_mode().map_err(|_| Error::ApplicationError(String::from("failed to set application mode")))?;
         self.display();
 
         loop {
@@ -68,7 +68,7 @@ impl Application for Grapher {
             }
         }
 
-        Screen::terminal_mode();
+        Screen::Terminal.set_mode().map_err(|_| Error::ApplicationError(String::from("failed to set terminal mode")))?;
         Ok(())
     }
 }
@@ -91,7 +91,7 @@ impl Grapher {
 
         // serial_println!("{} {}", 24-offset_y as usize, offset_x as usize);
 
-        self.frame.write_pos(Position::new(offset_x as usize, 24-offset_y as usize), ColouredChar::new('*'));
+        self.frame.write(Position::new(offset_x as usize, 24-offset_y as usize), ColouredChar::new('*'));
     }
 
 

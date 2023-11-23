@@ -28,7 +28,7 @@ impl Application for TetrisEngine {
     }
     async fn run(&mut self, args: Vec<String>) -> Result<(), Error> {
         // setup:
-        Screen::application_mode();
+        Screen::Application.set_mode();
 
         let piece_type = PieceType::OPiece;
         let mut piece = TetrisPiece::new(piece_type);
@@ -38,7 +38,7 @@ impl Application for TetrisEngine {
         serial_println!("{:?}", piece.get_positions());
 
 
-        Screen::terminal_mode();
+        Screen::Terminal.set_mode();
         Ok(())
     }
 }

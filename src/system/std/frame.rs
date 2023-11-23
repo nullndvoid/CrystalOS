@@ -137,7 +137,7 @@ impl Frame {
     pub fn dimensions(&self) -> Dimensions {
         self.dimensions
     }
-    pub fn write_pos(&mut self, position: Position, char: ColouredChar) {
+    pub fn write(&mut self, position: Position, char: ColouredChar) {
         self.frame[position.y][position.x] = char
     }
     pub fn render_element(&mut self, other: &Frame) {

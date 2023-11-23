@@ -1,6 +1,6 @@
 use crate::{
     kernel::render::{RENDERER, self},
-    kernel::tasks::keyboard::KEYBOARD,
+    kernel::tasks::keyboard::{KEYBOARD, KeyStroke},
 };
 
 use alloc::string::String;
@@ -12,19 +12,24 @@ use crate::kernel::serial::serial_reply;
 
 use lazy_static::lazy_static;
 use spin::Mutex;
+use crate::kernel::render::Renderer;
+use crate::std::frame::RenderError;
 
 pub struct Stdin {}
 impl Stdin {
+    /// waits for the user to type in a string and press enter | blocking
     pub async fn readline() -> String {
         let string = KEYBOARD.lock().get_string().await;
         string
     }
 
+    /// waits for a keystroke | blocking
     pub async fn keystroke() -> char {
         let chr = KEYBOARD.lock().get_keystroke().await;
         chr
     }
 
+    /// gets the next keystroke if any is present | non blocking
     pub fn try_keystroke() -> Option<char> {
         let chr = KEYBOARD.lock().try_keystroke();
         chr
@@ -39,15 +44,30 @@ impl Serial {
     }
 }
 
-pub struct Screen {}
+/// enum with a terminal and application mode
+pub enum Screen {
+    Terminal,
+    Application,
+}
 impl Screen {
-    pub fn terminal_mode() {
-        RENDERER.lock().terminal_mode().unwrap();
+    /// mode can be set for the kernel using this method
+    pub fn set_mode(&self) -> Result<(), RenderError> {
+        match self {
+            Screen::Terminal => RENDERER.lock().terminal_mode(),
+            Screen::Application => RENDERER.lock().application_mode(),
+        }
     }
-    pub fn application_mode() {
-        RENDERER.lock().application_mode().unwrap();
+
+    /// returns the current display mode
+    pub fn get_mode() -> Screen {
+        match RENDERER.lock().mode_is_app() {
+            true => Screen::Application,
+            false => Screen::Terminal,
+        }
     }
-    pub fn switch() {
+
+    /// switches between modes
+    pub fn switch(&self) {
         if RENDERER.lock().mode_is_app() == true {
             RENDERER.lock().terminal_mode().unwrap();
         } else {

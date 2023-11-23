@@ -1,5 +1,7 @@
 use alloc::{boxed::Box, format, string::String, vec, vec::Vec};
 use alloc::fmt::format;
+use alloc::string::ToString;
+use core::cmp::{max, min};
 use crate::kernel::render::{ColorCode, RenderError};
 use crate::serial_println;
 use super::cg_core::{
@@ -9,15 +11,15 @@ use crate::std::frame::{ColouredChar, Dimensions, Position, Frame};
 use crate::std::io::Color;
 
 
-pub struct CgContainer {
-    pub elements: Vec<Box<dyn CgComponent>>,
+pub struct CgContainer<'a> {
+    pub elements: Vec<Box<&'a dyn CgComponent>>,
     pub position: Position,
     pub dimensions: Dimensions,
     pub outlined: bool,
 }
 
-impl CgContainer {
-    pub fn new(position: Position, dimensions: Dimensions, outlined: bool) -> CgContainer {
+impl<'a> CgContainer<'a> {
+    pub fn new(position: Position, dimensions: Dimensions, outlined: bool) -> CgContainer<'a> {
         CgContainer {
             elements: Vec::new(),
             position,
@@ -27,29 +29,29 @@ impl CgContainer {
     }
 }
 
-impl CgOutline for CgContainer {
+impl CgOutline for CgContainer<'_> {
     fn render_outline(&self, frame: &mut Frame) {
         // draws the sides of the container
         for i in 0..frame.dimensions.x {
-            frame.write_pos(Position::new(i, 0), ColouredChar::new('─'));
-            frame.write_pos(Position::new(i, frame.dimensions.y - 1), ColouredChar::new('─'));
+            frame.write(Position::new(i, 0), ColouredChar::new('─'));
+            frame.write(Position::new(i, frame.dimensions.y - 1), ColouredChar::new('─'));
         }
 
         // draws the top and bottom of the container
         for i in 0..frame.dimensions.y {
-            frame.write_pos(Position::new(0, i), ColouredChar::new('│'));
-            frame.write_pos(Position::new(frame.dimensions.x - 1, i), ColouredChar::new('│'));
+            frame.write(Position::new(0, i), ColouredChar::new('│'));
+            frame.write(Position::new(frame.dimensions.x - 1, i), ColouredChar::new('│'));
         }
 
         // draws the corners of the container
-        frame.write_pos(Position::new(0, 0), ColouredChar::new('┌'));
-        frame.write_pos(Position::new(self.dimensions.x - 1, 0), ColouredChar::new('┐'));
-        frame.write_pos(Position::new(0, self.dimensions.y - 1), ColouredChar::new('└'));
-        frame.write_pos(Position::new(self.dimensions.x - 1, self.dimensions.y - 1), ColouredChar::new('┘'));
+        frame.write(Position::new(0, 0), ColouredChar::new('┌'));
+        frame.write(Position::new(self.dimensions.x - 1, 0), ColouredChar::new('┐'));
+        frame.write(Position::new(0, self.dimensions.y - 1), ColouredChar::new('└'));
+        frame.write(Position::new(self.dimensions.x - 1, self.dimensions.y - 1), ColouredChar::new('┘'));
     }
 }
 
-impl CgComponent for CgContainer {
+impl CgComponent for CgContainer<'_> {
     fn render(&self) -> Result<Frame, RenderError> {
         let mut result = Frame::new(self.position, self.dimensions)?;
 
@@ -88,12 +90,12 @@ impl CgTextBox {
         let title = self.title.chars();
         for (i, c) in title.enumerate() {
             if i + 2 == self.dimensions.x - 3 { // we dont want to write at the top of the text box
-                frame.write_pos(Position::new(i + 1, 0), ColouredChar::new('.'));
+                frame.write(Position::new(i + 1, 0), ColouredChar::new('.'));
             } else if i + 2 >= self.dimensions.x - 2 {
-                frame.write_pos(Position::new(i + 1, 0), ColouredChar::new('.'));
+                frame.write(Position::new(i + 1, 0), ColouredChar::new('.'));
                 break;
             }
-            frame.write_pos(Position::new(i + 2, 0), ColouredChar::new(c));
+            frame.write(Position::new(i + 2, 0), ColouredChar::new(c));
         }
     }
     pub fn wrap_words(&mut self, wrap: bool) {
@@ -134,13 +136,13 @@ impl CgComponent for CgTextBox {
                 if y == self.dimensions.y - 1 {
                     if c != ' ' {
                         (2..5).for_each(|z| {
-                            result.write_pos(Position::new(self.dimensions.x - z, self.dimensions.y - 1), ColouredChar::new('.'));
+                            result.write(Position::new(self.dimensions.x - z, self.dimensions.y - 1), ColouredChar::new('.'));
                         })
                     }
                     break;
                 }
 
-                result.write_pos(Position::new(x, y), ColouredChar::new(c));
+                result.write(Position::new(x, y), ColouredChar::new(c));
                 x += 1;
             };
         }
@@ -155,21 +157,21 @@ impl CgOutline for CgTextBox {
     fn render_outline(&self, frame: &mut Frame) {
         // draws the sides of the container
         for i in 0..frame.dimensions.x {
-            frame.write_pos(Position::new(i, 0), ColouredChar::new('─'));
-            frame.write_pos(Position::new(i, frame.dimensions.y - 1), ColouredChar::new('─'));
+            frame.write(Position::new(i, 0), ColouredChar::new('─'));
+            frame.write(Position::new(i, frame.dimensions.y - 1), ColouredChar::new('─'));
         }
 
         // draws the top and bottom of the container
         for i in 0..frame.dimensions.y {
-            frame.write_pos(Position::new(0, i), ColouredChar::new('│'));
-            frame.write_pos(Position::new(frame.dimensions.x - 1, i), ColouredChar::new('│'));
+            frame.write(Position::new(0, i), ColouredChar::new('│'));
+            frame.write(Position::new(frame.dimensions.x - 1, i), ColouredChar::new('│'));
         }
 
         // draws the corners of the container
-        frame.write_pos(Position::new(0, 0), ColouredChar::new('┌'));
-        frame.write_pos(Position::new(self.dimensions.x - 1, 0), ColouredChar::new('┐'));
-        frame.write_pos(Position::new(0, self.dimensions.y - 1), ColouredChar::new('└'));
-        frame.write_pos(Position::new(self.dimensions.x - 1, self.dimensions.y - 1), ColouredChar::new('┘'));
+        frame.write(Position::new(0, 0), ColouredChar::new('┌'));
+        frame.write(Position::new(self.dimensions.x - 1, 0), ColouredChar::new('┐'));
+        frame.write(Position::new(0, self.dimensions.y - 1), ColouredChar::new('└'));
+        frame.write(Position::new(self.dimensions.x - 1, self.dimensions.y - 1), ColouredChar::new('┘'));
     }
 }
 
@@ -200,11 +202,8 @@ impl CgComponent for CgLabel {
         let shortened_string = self.content.chars().take(self.dimensions.x).collect::<String>();
 
         for (i, c) in shortened_string.chars().enumerate() {
-            result.write_pos(Position::new(i, 0), ColouredChar::new(c));
+            result.write(Position::new(i, 0), ColouredChar::new(c));
         };
-
-        serial_println!("{:?}", result);
-
         Ok(result)
     }
 }
@@ -224,7 +223,6 @@ impl CgIndicatorWidget {
             max_width
         }
     }
-
     pub fn set_colour(&mut self, colour: ColorCode) {
         self.colour = colour;
     }
@@ -234,6 +232,12 @@ impl CgIndicatorWidget {
     fn len(&self) -> usize {
         self.max_width
     }
+    fn text(&self) -> &str {
+        &self.content
+    }
+    fn set_text(&mut self, content: String) {
+        self.content = content;
+    }
 }
 
 impl CgComponent for CgIndicatorWidget {
@@ -241,11 +245,11 @@ impl CgComponent for CgIndicatorWidget {
         if !self.visible {
             return Ok(Frame::new(Position::new(0, 0), Dimensions::new(0, 0))?);
         }
-        let mut result = Frame::new(Position::new(0, 0), Dimensions::new(self.max_width, 1))?;
+        let mut result = Frame::new(Position::new(0, 0), Dimensions::new(min(self.max_width, self.content.len()), 1))?;
 
         let shortened_string = self.content.chars().take(self.max_width).collect::<String>();
         for (i, c) in shortened_string.chars().enumerate() {
-            result.write_pos(Position::new(i, 0), ColouredChar::coloured(c, self.colour));
+            result.write(Position::new(i, 0), ColouredChar::coloured(c, self.colour));
         };
 
         Ok(result)
@@ -253,7 +257,7 @@ impl CgComponent for CgIndicatorWidget {
 }
 
 pub struct CgIndicatorBar {
-    pub(crate) fields: Vec<CgIndicatorWidget>,
+    pub fields: Vec<CgIndicatorWidget>,
     position: Position,
     dimensions: Dimensions,
 }
@@ -293,9 +297,60 @@ impl CgComponent for CgIndicatorBar {
     }
 }
 
+pub struct CgStatusBar {
+    position: Position,
+    dimensions: Dimensions,
 
+    window_title: CgIndicatorWidget,
+    screen_mode: CgIndicatorWidget,
+}
 
+impl CgComponent for CgStatusBar {
+    fn render(&self) -> Result<Frame, RenderError> {
+        let mut frame = Frame::new(self.position, self.dimensions)?;
 
+        (0..80).for_each(|x| frame[0][x] = ColouredChar::coloured(' ', ColorCode::new(Color::Black, Color::DarkGray)));
+
+        // render window title centred
+        let mut window_title = self.window_title.render()?;
+        let width = window_title.dimensions().x;
+        window_title.set_position(Position::new((self.dimensions.x - width) / 2, 0));
+
+        // render screen mode right
+        let mut screen_mode = self.screen_mode.render()?;
+        let width = screen_mode.dimensions().x;
+        screen_mode.set_position(Position::new(self.dimensions.x - width, 0));
+
+        frame.render_element(&window_title);
+        frame.render_element(&screen_mode);
+
+        serial_println!("{:?}", frame);
+
+        Ok(frame)
+    }
+}
+
+impl CgStatusBar {
+    pub fn new(position: Position, dimensions: Dimensions) -> CgStatusBar {
+        let mut widget = CgStatusBar {
+            position,
+            dimensions,
+            window_title: CgIndicatorWidget::new("feature test".to_string(), 20),
+            screen_mode: CgIndicatorWidget::new("Application".to_string(), 20),
+        };
+        widget.window_title.set_colour(ColorCode::new(Color::Cyan, Color::DarkGray));
+        widget.screen_mode.set_colour(ColorCode::new(Color::Yellow, Color::DarkGray));
+        widget
+    }
+
+    pub fn set_window_title(&mut self, title: String) {
+        self.window_title.set_text(title);
+    }
+
+    pub fn set_screen_mode(&mut self, mode: String) {
+        self.screen_mode.set_text(mode);
+    }
+}
 
 
 

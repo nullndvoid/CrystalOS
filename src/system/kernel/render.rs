@@ -38,7 +38,7 @@ pub struct ColorCode(u8);
 
 impl ColorCode {
     pub fn new(foreground: Color, background: Color) -> ColorCode {
-        ColorCode((background as u8) << 5 | (foreground as u8))
+        ColorCode((background as u8) << 4 | (foreground as u8))
     }
 }
 
@@ -207,11 +207,23 @@ impl Renderer {
         self.temp_colour = None;
     }
 
+    pub fn cursor_position(&mut self, x: u8, y: u8) -> Result<(), RenderError> {
+        // check that x and y are within bounds
+        if x >= 80 || x < 0 || y >= 25 || y < 0 {
+            return Err(RenderError::OutOfBounds(
+                x >= 80 || x < 0,
+                y >= 25 || y < 0
+            ))
+        }
+        self.internal_set_cursor_position(x, y);
+        Ok(())
+    }
+
     // INTERNAL API ONLY
 
-    fn set_cursor_position(&mut self, row: usize, col: usize) {
+    fn internal_set_cursor_position(&mut self, x: u8, y: u8) {
         use x86_64::instructions::port::Port;
-        let cursor_position: u16 = (row as u16) * 80 + (col as u16);
+        let cursor_position: u16 = (y as u16) * 80 + (x as u16);
 
         unsafe {// Write the high byte of the cursor position to register 14
             let mut control_port = Port::<u8>::new(0x3D4);
@@ -302,7 +314,7 @@ impl Renderer {
                 }
             }
         }
-        self.set_cursor_position(BUFFER_HEIGHT - 1, self.col_pos);
+        self.internal_set_cursor_position(self.col_pos as u8, BUFFER_HEIGHT as u8 - 1);
     }
 }
 

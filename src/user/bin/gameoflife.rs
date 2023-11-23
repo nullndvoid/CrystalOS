@@ -27,7 +27,7 @@ impl Application for GameOfLife {
     }
     async fn run(&mut self, args: Vec<String>) -> Result<(), Error> {
         // setup:
-        Screen::application_mode();
+        Screen::Application.set_mode();
 
         let xoffset = 38;
         let yoffset = 5;
@@ -58,7 +58,7 @@ impl Application for GameOfLife {
 
         self.mainloop()?;
 
-        Screen::terminal_mode();
+        Screen::Terminal.set_mode();
         Ok(())
     }
 }

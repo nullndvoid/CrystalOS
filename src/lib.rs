@@ -8,6 +8,7 @@
 #![feature(abi_x86_interrupt)]
 #![feature(alloc_error_handler)]
 #![feature(async_fn_in_trait)]
+#![feature(async_closure)]
 #![feature(global_asm)]
 
 use core::panic::PanicInfo;

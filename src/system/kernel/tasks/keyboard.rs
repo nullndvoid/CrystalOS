@@ -11,10 +11,12 @@ use core::{pin::Pin, task::{Poll, Context}};
 use futures_util::stream::Stream;
 use futures_util::task::AtomicWaker;
 use futures_util::stream::StreamExt;
-use pc_keyboard::{layouts, DecodedKey, HandleControl, Keyboard, ScancodeSet1};
+use pc_keyboard::{layouts, DecodedKey, HandleControl, Keyboard, ScancodeSet1, KeyCode};
 use crate::print;
 use crate::kernel::render::RENDERER;
 use alloc::{string::String};
+use core::ascii::Char;
+use crate::kernel::tasks::keyboard::CharOrKeystroke::Char;
 
 static WAKER: AtomicWaker = AtomicWaker::new();
 static SCANCODE_QUEUE: OnceCell<ArrayQueue<u8>> = OnceCell::uninit();
@@ -29,6 +31,42 @@ pub struct KeyboardHandler {
 	keyboard: Keyboard<layouts::Uk105Key, ScancodeSet1>,
 }
 
+enum CharOrKeystroke {
+	Char(char),
+	Keystroke(KeyCode),
+}
+
+pub enum KeyStroke {
+	Char(char),
+	Ctrl,
+	RCtrl,
+	Alt,
+	RAlt,
+	Shift,
+	RShift,
+	Meta,
+	RMeta,
+	None,
+}
+
+impl KeyStroke {
+	pub fn from_keycode(key: KeyCode) -> KeyStroke {
+		match key {
+			KeyCode::ControlLeft => KeyStroke::Ctrl,
+			KeyCode::ControlRight => KeyStroke::RCtrl,
+			KeyCode::AltLeft => KeyStroke::Alt,
+			KeyCode::AltRight => KeyStroke::RAlt,
+			KeyCode::ShiftLeft => KeyStroke::Shift,
+			KeyCode::ShiftRight => KeyStroke::RShift,
+			KeyCode::WindowsLeft => KeyStroke::Meta,
+			KeyCode::WindowsRight => KeyStroke::RMeta,
+			_ => KeyStroke::None,
+		}
+	}
+}
+
+
+
 impl KeyboardHandler {
 	pub fn new() -> KeyboardHandler {
 		KeyboardHandler {
@@ -37,7 +75,7 @@ impl KeyboardHandler {
 		}
 	}
 
-	pub async fn get_keystroke_inner(&mut self) -> Option<char> {
+	pub async fn get_keystroke_inner(&mut self) -> Option<KeyStroke> {
 		loop {
 			if let Some(scancode) = self.scancodes.next().await {
 				if let Ok(Some(key_event)) = self.keyboard.add_byte(scancode) {
@@ -50,10 +88,15 @@ impl KeyboardHandler {
 									});
 									return None;
 								} else {
-									return Some(character);
+									return Some(KeyStroke::Char(character));
 								}
 							},
-							DecodedKey::RawKey(key) => { print!("{:?}", key) },
+							DecodedKey::RawKey(key) => {
+								print!("{:?}", key)
+								match key {
+									KeyCode::NOn
+								}
+							},
 						}
 					}
 				}
@@ -61,16 +104,22 @@ impl KeyboardHandler {
 		}
 	}
 
-	pub async fn get_keystroke(&mut self) -> char {
+	pub async fn get_keystroke(&mut self) -> KeyStroke {
 		loop {
 			match self.get_keystroke_inner().await {
-				Some(c) => return c,
+				Some(c) => match c {
+					CharOrKeystroke::Char(c) => return KeyStroke::Char(c),
+					CharOrKeystroke::Keystroke(c) => match KeyStroke::from_keycode(c) {
+						KeyStroke::None => (),
+						key => return key
+					}
+				},
 				None => ()
 			}
 		}
 	}
 
-	pub fn try_keystroke(&mut self) -> Option<char> {
+	pub fn try_keystroke(&mut self) -> Option<KeyStroke> {
 		if let Some(scancode) = self.scancodes.try_next() {
 			if let Ok(Some(key_event)) = self.keyboard.add_byte(scancode) {
 				if let Some(key) = self.keyboard.process_keyevent(key_event) {
@@ -82,10 +131,16 @@ impl KeyboardHandler {
 								});
 								return None;
 							} else {
-								return Some(character);
+								return Some(KeyStroke::Char(character));
 							}
 						},
-						DecodedKey::RawKey(key) => { print!("{:?}", key) },
+						DecodedKey::RawKey(key) => {
+							print!("{:?}", key);
+							match KeyStroke::from_keycode(key) {
+								KeyStroke::None => (),
+								key => return Some(key)
+							}
+						},
 					}
 				}
 			}
@@ -101,15 +156,19 @@ impl KeyboardHandler {
 				Some(c) => { c },
 				None => { val.pop(); continue; },
 			};
-			print!("{}", character);
-			let (character, execute): (char, bool) = match character {
-				'\n' => (character, true),
-				_ => (character, false),
-			};
-			val.push(character);
-			if execute {
-				return val;
+
+			if let CharOrKeystroke::Char(c) = character {
+				print!("{}", character);
+				let (c, execute): (char, bool) = match c {
+					'\n' => (c, true),
+					_ => (c, false),
+				};
+				val.push(c);
+				if execute {
+					return val;
+				}
 			}
+
 		}
 
 	}

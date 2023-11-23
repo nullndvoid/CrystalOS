@@ -1,3 +1,4 @@
 pub mod cg_core;
-pub(crate) mod cg_widgets;
+pub mod cg_widgets;
+pub mod cg_inputs;
 

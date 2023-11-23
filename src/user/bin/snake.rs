@@ -83,13 +83,13 @@ impl Application for Game {
         self.prepare();
 
         // switch OS to application mode
-        Screen::application_mode();
+        Screen::Application.set_mode();
         // render the initial state of the screen.
         self.render().map_err(|_| Error::ApplicationError(String::from("failed to render game screen")))?;
         // run the game
         self.gameloop().await?;
         // return to the terminal
-        Screen::terminal_mode();
+        Screen::Terminal.set_mode();
         Ok(())
     }
 }
