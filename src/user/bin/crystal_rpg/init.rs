@@ -10,7 +10,6 @@ use alloc::{borrow::ToOwned, format, string::{String, ToString}, vec::Vec, boxed
 use crate::{
     std::{
         io::{self, println, serial_println},
-        frame::FRAMEGEN,
         random,
     },
     std::application::{
@@ -18,8 +17,6 @@ use crate::{
         Error,
     },
 };
-use crate::system::std::frame::Element;
-
 
 pub struct GameLoop;
 
@@ -61,7 +58,7 @@ impl Application for GameLoop {
             println!("[{}\n[{}", player, enemy);
         }
  
-        FRAMEGEN.lock().render_frame();
+        // FRAMEGEN.lock().render_frame();
 
        
         let string = String::from(format!(
@@ -70,34 +67,34 @@ impl Application for GameLoop {
 │   {} / {}                     
 └────────────────────────────┘"
         , player.username, player.health_points, player.max_health_points));
-        let mut healthbar = Element::from_str(string);
-        healthbar.render((1, 1));
-
-        let new2 = String::from("[an element]");
-        let mut new = Element::from_str(new2);
-
-
-        new.render((10, 10));
-        new.render((10, 15));
-        new.render((5, 20));
-        new.render((34, 16));
-
-
-        FRAMEGEN.lock().render_frame();
-
-        let fr = FRAMEGEN.lock().get_frame().to_owned();
-        serial_println!("{}", {
-            let mut string = String::new();
-            for row in fr {
-                let mut r = String::new();
-                for col in row {
-                    r.push(col.character as char);
-                }
-                string.push_str(&r);
-                string.push('\n')
-            };
-            string
-        });
+        // let mut healthbar = Element::from_str(string);
+        // healthbar.render((1, 1));
+        //
+        // let new2 = String::from("[an element]");
+        // let mut new = Element::from_str(new2);
+        //
+        //
+        // new.render((10, 10));
+        // new.render((10, 15));
+        // new.render((5, 20));
+        // new.render((34, 16));
+        //
+        //
+        // FRAMEGEN.lock().render_frame();
+        //
+        // let fr = FRAMEGEN.lock().get_frame().to_owned();
+        // serial_println!("{}", {
+        //     let mut string = String::new();
+        //     for row in fr {
+        //         let mut r = String::new();
+        //         for col in row {
+        //             r.push(col.character as char);
+        //         }
+        //         string.push_str(&r);
+        //         string.push('\n')
+        //     };
+        //     string
+        // });
 
 
         loop {

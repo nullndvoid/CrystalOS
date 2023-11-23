@@ -8,7 +8,6 @@ use crate::{serial_print, serial_println};
 use crate::std::application::{Application, Error};
 use crate::std::io::Screen;
 use crate::user::lib::coords::{Direction, Position, PositionReal};
-use crate::user::lib::libgui_old_archive::libgui_core::Pos;
 
 
 pub(crate) struct TetrisEngine {

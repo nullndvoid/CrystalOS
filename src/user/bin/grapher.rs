@@ -3,10 +3,10 @@ use alloc::{format, vec};
 use alloc::vec::Vec;
 use alloc::boxed::Box;
 use async_trait::async_trait;
-use crate::println;
+use crate::{println, serial_println};
 use crate::shell::command_handler;
 use crate::std::application::{Application, Error};
-use crate::std::frame::Element;
+use crate::std::frame::{self, Frame, Position, Dimensions, ColouredChar};
 use crate::std::io::{Screen, Stdin};
 
 const OFFSET_X: i64 = 40;
@@ -14,7 +14,7 @@ const OFFSET_Y: i64 = 12;
 
 pub struct Grapher {
     points: Vec<PointF64>,
-    frame: Vec<Vec<char>>,
+    frame: Frame,
 }
 
 struct PointF64 {
@@ -32,7 +32,7 @@ impl Application for Grapher {
     fn new() -> Self {
         Self {
             points: Vec::new(),
-            frame:  vec![vec![' '; 80]; 25],
+            frame: Frame::new(Position::new(0, 0), Dimensions::new(80, 25)).unwrap()
         }
     }
     async fn run(&mut self, args: Vec<String>) -> Result<(), Error> {
@@ -89,12 +89,13 @@ impl Grapher {
         let offset_x = point.x + OFFSET_X;
         let offset_y = point.y + OFFSET_Y;
 
-        self.frame[24-offset_y as usize][offset_x as usize] = '*';
+        // serial_println!("{} {}", 24-offset_y as usize, offset_x as usize);
+
+        self.frame.write_pos(Position::new(offset_x as usize, 24-offset_y as usize), ColouredChar::new('*'));
     }
 
 
     fn display(&mut self) {
-        let mut elem = Element::generate(self.frame.clone(), (80, 25));
-        elem.render((0, 0));
+        self.frame.render_to_screen().unwrap();
     }
 }

@@ -6,6 +6,7 @@ use volatile::Volatile;
 use alloc::borrow::ToOwned;
 use alloc::vec;
 use alloc::vec::Vec;
+use crate::kernel::render::RenderError::InvalidRenderMode;
 use crate::serial_println;
 use crate::std::io::Screen;
 
@@ -46,6 +47,14 @@ impl ColorCode {
 pub struct ScreenChar {
     pub character: u8,
     pub colour: ColorCode,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum RenderError {
+    OutOfBounds(bool, bool), // (bool, bool) refers to x and y respectively
+    InvalidCharacter,
+    InvalidColour,
+    InvalidRenderMode,
 }
 
 impl ScreenChar {
@@ -108,7 +117,6 @@ impl Renderer {
     pub fn render_frame(&mut self, frame: [[ScreenChar; BUFFER_WIDTH]; BUFFER_HEIGHT]) { // renders the given frame to the app buffer
         let mut processed_frame: [[ScreenChar; BUFFER_WIDTH]; BUFFER_HEIGHT] = [[ScreenChar::null(); BUFFER_WIDTH]; BUFFER_HEIGHT];
 
-
         for (i, row) in frame.iter().enumerate() {
             for (j, col) in row.iter().enumerate() {
                 processed_frame[i][j] = match special_char(col.character as char) {
@@ -128,9 +136,9 @@ impl Renderer {
         self.internal_render();
     }
 
-    pub fn application_mode(&mut self) -> Result<(), ()> {
+    pub fn application_mode(&mut self) -> Result<(), RenderError> {
         if self.application_mode {
-            return Err(());
+            return Err(InvalidRenderMode);
         } else {
             self.application_mode = true;
             self.internal_render();
@@ -138,9 +146,9 @@ impl Renderer {
         }
     }
 
-    pub fn terminal_mode(&mut self) -> Result<(), ()> {
+    pub fn terminal_mode(&mut self) -> Result<(), RenderError> {
         if !self.application_mode {
-            return Err(());
+            return Err(InvalidRenderMode);
         } else {
             self.application_mode = false;
             self.internal_render();
@@ -172,7 +180,7 @@ impl Renderer {
         self.internal_render();
     }
 
-    pub fn backspace(&mut self) -> Result<(), ()> {
+    pub fn backspace(&mut self) -> Result<(), RenderError> {
         if self.application_mode { return Ok(()); };
 
         loop {
@@ -218,7 +226,7 @@ impl Renderer {
         }
     }
 
-    fn internal_backspace(&mut self) -> Result<bool, ()> {
+    fn internal_backspace(&mut self) -> Result<bool, RenderError> {
         let mut should_break = false;
 
         if self.col_pos == 0 {
@@ -325,12 +333,6 @@ pub fn special_char(ch: char) -> Option<u8> {
     };
     Some(res)
 }
-
-
-
-
-
-
 
 
 impl fmt::Write for Renderer {

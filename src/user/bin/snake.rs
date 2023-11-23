@@ -12,8 +12,9 @@ use lazy_static::lazy_static;
 use crate::kernel::render::{ColorCode, ScreenChar};
 use crate::{println, serial_println};
 use crate::std::application::{Application, Error};
+use crate::std::frame::{ColouredChar, Dimensions, Frame, RenderError};
 use crate::std::random::Random;
-use crate::system::std::frame::ColouredElement;
+use crate::system::std::frame;
 use super::super::lib::coords::{Line, Position, Direction};
 
 #[derive(PartialEq)]
@@ -171,35 +172,34 @@ impl Game {
         self.new_poi();
     }
 
-    fn render(&mut self) -> Result<(), ()> {
-        let mut frame = vec![vec![ScreenChar::null(); 80]; 25];
+    fn render(&mut self) -> Result<(), RenderError> {
+
+        let mut frame = Frame::new(frame::Position::new(0, 0), Dimensions::new(80, 25))?;
         let mut curr_colour = ColorCode::new(Color::LightBlue, Color::Black);
 
         for s in self.snakes.clone() {
-            curr_colour = if s.ai_controlled {
-                ColorCode::new(Color::Cyan, Color::Black)
-            } else {
-                ColorCode::new(Color::LightGreen, Color::Black)
+            curr_colour = match s.ai_controlled {
+                true => ColorCode::new(Color::Cyan, Color::Black),
+                false => ColorCode::new(Color::LightGreen, Color::Black),
             };
             for point in s.tail.iter() {
-                frame[24 - point.y as usize][point.x as usize] = ScreenChar::new('@' as u8, curr_colour);
+                frame[24 - point.y as usize][point.x as usize] = ColouredChar::coloured('@', curr_colour);
             }
         }
 
         self.pois.iter().for_each(|poi| {
-            frame[24 - poi.y as usize][poi.x as usize] = ScreenChar::new('o' as u8, ColorCode::new(Color::Red, Color::Black));
+            frame[24 - poi.y as usize][poi.x as usize] = ColouredChar::coloured('o', ColorCode::new(Color::Red, Color::Black));
         });
 
         let literal = format!("snake go brr score:  {}", self.score);
         let msg = Game::centre_text(80, literal);
         msg.chars().enumerate().for_each(|(i, c)| {
             if c != ' ' {
-                frame[1][i] = ScreenChar::new(c as u8, ColorCode::new(Color::LightGreen, Color::Black))
+                frame[1][i] = ColouredChar::coloured(c, ColorCode::new(Color::LightGreen, Color::Black))
             }
         });
 
-        let mut elem = ColouredElement::generate(frame, (80, 25));
-        elem.render((0,0));
+        frame.render_to_screen()?;
 
         Ok(())
     }
@@ -214,15 +214,15 @@ impl Game {
         msg
     }
 
-    fn render_end_screen(&mut self) -> Result<(), ()> {
-        let mut frame = vec![vec![ScreenChar::null(); 80]; 25];
+    fn render_end_screen(&mut self) -> Result<(), RenderError> {
+        let mut frame = Frame::new(frame::Position::new(0, 0), Dimensions::new(80, 25))?;
 
-        frame[10] = Game::centre_text(80, String::from("u lost")).chars().map(|c| ScreenChar::new(c as u8, ColorCode::new(Color::Red, Color::Black))).collect();
-        frame[12] = Game::centre_text(80, String::from(format!("ur score was {}", self.score))).chars().map(|c| ScreenChar::new(c as u8, ColorCode::new(Color::LightGreen, Color::Black))).collect();
-        frame[14] = Game::centre_text(80, String::from("L bozo")).chars().map(|c| ScreenChar::new(c as u8, ColorCode::new(Color::Red, Color::Black))).collect();
+        frame[10] = Game::centre_text(80, String::from("u lost")).chars().map(|c| ColouredChar::coloured(c, ColorCode::new(Color::Red, Color::Black))).collect();
+        frame[12] = Game::centre_text(80, String::from(format!("ur score was {}", self.score))).chars().map(|c| ColouredChar::coloured(c, ColorCode::new(Color::LightGreen, Color::Black))).collect();
+        frame[14] = Game::centre_text(80, String::from("L bozo")).chars().map(|c| ColouredChar::coloured(c, ColorCode::new(Color::Red, Color::Black))).collect();
 
-        let mut elem = ColouredElement::generate(frame, (80, 25));
-        elem.render((0,0))
+        frame.render_to_screen()?;
+        Ok(())
     }
 }
 
