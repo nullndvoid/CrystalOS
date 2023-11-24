@@ -76,7 +76,7 @@ impl CgComponent for CgContainer<'_> {
 #[derive(Debug, Clone)]
 pub struct CgTextBox {
     title: String,
-    content: String,
+    pub content: String,
     pub position: Position,
     pub dimensions: Dimensions,
     outlined: bool,
@@ -85,7 +85,7 @@ pub struct CgTextBox {
 
 impl CgTextBox {
     pub fn new(title: String, content: String, position: Position, dimensions: Dimensions, outlined: bool) -> CgTextBox {
-        CgTextBox { title, content, position, dimensions, outlined, wrap_words: false }
+        CgTextBox { title, content, position, dimensions, outlined, wrap_words: true }
     }
 
     fn render_title(&self, frame: &mut Frame) {

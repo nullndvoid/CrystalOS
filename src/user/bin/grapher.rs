@@ -43,7 +43,7 @@ impl Application for Grapher {
     async fn run(&mut self, args: Vec<String>) -> Result<(), Error> {
         Screen::Application.set_mode().map_err(|_| Error::ApplicationError(String::from("failed to set application mode")))?;
 
-        self.frame.frame = vec![vec![ColouredChar::coloured(' ', ColorCode::new(Color::White, Color::DarkGray)); self.frame.dimensions.x]; self.frame.dimensions.y];
+        self.frame.frame = vec![vec![ColouredChar::new(' '); self.frame.dimensions.x]; self.frame.dimensions.y];
 
         if args.len() > 0 {
             let equation: String = args.into_iter().collect();
@@ -85,9 +85,11 @@ impl Application for Grapher {
                         entry_box.clear();
                     },
                     KeyStroke::Char(Stdin::BACKSPACE) => {
-                        serial_println!("backspace");
                         entry_box.backspace()
                     },
+                    KeyStroke::Char('`') => {
+                        break;
+                    }
                     KeyStroke::Char(c) => entry_box.write_char(c),
                     KeyStroke::Left => entry_box.move_cursor(false),
                     KeyStroke::Right => entry_box.move_cursor(true),
@@ -96,8 +98,8 @@ impl Application for Grapher {
                 }
 
                 if commandresult.len() > 0 {
-                    let equation = commandresult.chars().take(40).collect();
-                    self.graph_equation(equation);
+                    self.reset_frame();
+                    self.graph_equation(commandresult.clone());
                     commandresult.clear();
                 }
 
@@ -108,8 +110,9 @@ impl Application for Grapher {
                     frame.write_to_screen().map_err(|_| Error::ApplicationError(String::from("failed to write to screen")))?;
                 }
             }
-        }
 
+        }
+        Screen::Terminal.set_mode().map_err(|_| Error::ApplicationError(String::from("failed to set application mode")))?;
         Ok(())
     }
 }
@@ -149,13 +152,11 @@ impl Grapher {
 
         let offset_x = point.x + OFFSET_X;
         let offset_y = point.y + OFFSET_Y;
-
-        self.frame.write(Position::new(offset_x as usize, 22-offset_y as usize), ColouredChar::coloured('*', ColorCode::new(Color::White, Color::DarkGray)));
+        self.frame.write(Position::new(offset_x as usize, 21-offset_y as usize), ColouredChar::new('*'));
     }
 
-
-    fn display(&mut self) {
-        self.frame.write_to_screen().unwrap();
+    fn reset_frame(&mut self) {
+        self.frame.frame = vec![vec![ColouredChar::new(' '); self.frame.dimensions.x]; self.frame.dimensions.y];
     }
 }
 

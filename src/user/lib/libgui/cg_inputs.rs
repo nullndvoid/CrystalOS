@@ -64,7 +64,7 @@ impl CgTextEdit for CgLineEdit {
         self.ptr += 1;
     }
     fn backspace(&mut self) {
-        if self.ptr >= 0 {
+        if self.ptr > 0 {
             self.ptr -= 1;
             self.text.remove(self.ptr);
         }
