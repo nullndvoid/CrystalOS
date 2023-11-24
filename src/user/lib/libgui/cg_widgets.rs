@@ -10,7 +10,6 @@ use super::cg_core::{
 use crate::std::frame::{ColouredChar, Dimensions, Position, Frame};
 use crate::std::io::Color;
 
-
 pub struct CgContainer<'a> {
     pub elements: Vec<Box<&'a dyn CgComponent>>,
     pub position: Position,
@@ -26,6 +25,9 @@ impl<'a> CgContainer<'a> {
             dimensions,
             outlined,
         }
+    }
+    pub fn insert(&mut self, element: Box<&'a dyn CgComponent>) {
+        self.elements.push(element);
     }
 }
 
@@ -58,7 +60,7 @@ impl CgComponent for CgContainer<'_> {
         for widget in &self.elements {
             let frame = widget.render()?;
             match result.render_bounds_check(&frame, true) { // TODO: this needs to be set to false for production
-                Ok(()) => result.render_element(&frame),
+                Ok(()) => result.place_child_element(&frame),
                 Err(e) => return Err(e),
             }
         }
@@ -71,7 +73,7 @@ impl CgComponent for CgContainer<'_> {
     }
 }
 
-
+#[derive(Debug, Clone)]
 pub struct CgTextBox {
     title: String,
     content: String,
@@ -178,7 +180,7 @@ impl CgOutline for CgTextBox {
 
 
 
-
+#[derive(Debug, Clone)]
 pub struct CgLabel {
     content: String,
     position: Position,
@@ -192,6 +194,9 @@ impl CgLabel {
             position: Position::new(position.x, position.y),
             dimensions: Dimensions::new(width, 1),
         }
+    }
+    pub fn set_text(&mut self, text: String) {
+        self.content = text;
     }
 }
 
@@ -208,6 +213,7 @@ impl CgComponent for CgLabel {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct CgIndicatorWidget {
     content: String,
     colour: ColorCode,
@@ -256,6 +262,7 @@ impl CgComponent for CgIndicatorWidget {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct CgIndicatorBar {
     pub fields: Vec<CgIndicatorWidget>,
     position: Position,
@@ -288,7 +295,7 @@ impl CgComponent for CgIndicatorBar {
             width_idx += widget.len();
 
             match result.render_bounds_check(&frame, true) {
-                Ok(()) => result.render_element(&frame),
+                Ok(()) => result.place_child_element(&frame),
                 Err(e) => return Err(e),
             }
         }
@@ -297,6 +304,7 @@ impl CgComponent for CgIndicatorBar {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct CgStatusBar {
     position: Position,
     dimensions: Dimensions,
@@ -321,10 +329,8 @@ impl CgComponent for CgStatusBar {
         let width = screen_mode.dimensions().x;
         screen_mode.set_position(Position::new(self.dimensions.x - width, 0));
 
-        frame.render_element(&window_title);
-        frame.render_element(&screen_mode);
-
-        serial_println!("{:?}", frame);
+        frame.place_child_element(&window_title);
+        frame.place_child_element(&screen_mode);
 
         Ok(frame)
     }

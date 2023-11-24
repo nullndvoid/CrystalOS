@@ -5,7 +5,7 @@ use x86_64::instructions::interrupts;
 
 use conquer_once::spin::OnceCell;
 use crossbeam_queue::ArrayQueue;
-use crate::println;
+use crate::{println, serial_println};
 
 use core::{pin::Pin, task::{Poll, Context}};
 use futures_util::stream::Stream;
@@ -15,8 +15,6 @@ use pc_keyboard::{layouts, DecodedKey, HandleControl, Keyboard, ScancodeSet1, Ke
 use crate::print;
 use crate::kernel::render::RENDERER;
 use alloc::{string::String};
-use core::ascii::Char;
-use crate::kernel::tasks::keyboard::CharOrKeystroke::Char;
 
 static WAKER: AtomicWaker = AtomicWaker::new();
 static SCANCODE_QUEUE: OnceCell<ArrayQueue<u8>> = OnceCell::uninit();
@@ -36,6 +34,7 @@ enum CharOrKeystroke {
 	Keystroke(KeyCode),
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum KeyStroke {
 	Char(char),
 	Ctrl,
@@ -46,6 +45,9 @@ pub enum KeyStroke {
 	RShift,
 	Meta,
 	RMeta,
+	Backspace,
+	Left,
+	Right,
 	None,
 }
 
@@ -60,6 +62,9 @@ impl KeyStroke {
 			KeyCode::ShiftRight => KeyStroke::RShift,
 			KeyCode::WindowsLeft => KeyStroke::Meta,
 			KeyCode::WindowsRight => KeyStroke::RMeta,
+			KeyCode::Backspace => KeyStroke::Backspace,
+			KeyCode::ArrowLeft => KeyStroke::Left,
+			KeyCode::ArrowRight => KeyStroke::Right,
 			_ => KeyStroke::None,
 		}
 	}
@@ -81,20 +86,12 @@ impl KeyboardHandler {
 				if let Ok(Some(key_event)) = self.keyboard.add_byte(scancode) {
 					if let Some(key) = self.keyboard.process_keyevent(key_event) {
 						match key {
-							DecodedKey::Unicode(character) => {
-								if character == b'\x08' as char { // checks if the character is a backspace
-									interrupts::without_interrupts(|| {
-										RENDERER.lock().backspace(); // runs the backspace function of the vga buffer to remove the last character
-									});
-									return None;
-								} else {
-									return Some(KeyStroke::Char(character));
-								}
-							},
+							DecodedKey::Unicode(character) => return Some(KeyStroke::Char(character)),
 							DecodedKey::RawKey(key) => {
-								print!("{:?}", key)
-								match key {
-									KeyCode::NOn
+								print!("{:?}", key);
+								match KeyStroke::from_keycode(key) {
+									KeyStroke::None => (),
+									k => return Some(k)
 								}
 							},
 						}
@@ -108,11 +105,8 @@ impl KeyboardHandler {
 		loop {
 			match self.get_keystroke_inner().await {
 				Some(c) => match c {
-					CharOrKeystroke::Char(c) => return KeyStroke::Char(c),
-					CharOrKeystroke::Keystroke(c) => match KeyStroke::from_keycode(c) {
-						KeyStroke::None => (),
-						key => return key
-					}
+					KeyStroke::None => (),
+					c => return c
 				},
 				None => ()
 			}
@@ -157,8 +151,16 @@ impl KeyboardHandler {
 				None => { val.pop(); continue; },
 			};
 
-			if let CharOrKeystroke::Char(c) = character {
-				print!("{}", character);
+			if let KeyStroke::Char(c) = character {
+				if c == '\x08' {
+					val.pop();
+					interrupts::without_interrupts(|| {
+						RENDERER.lock().backspace(); // runs the backspace function of the vga buffer to remove the last character
+					});
+					continue;
+				}
+
+				print!("{}", c);
 				let (c, execute): (char, bool) = match c {
 					'\n' => (c, true),
 					_ => (c, false),

@@ -4,7 +4,7 @@ use alloc::borrow::ToOwned;
 use core::arch::x86_64::_mm_test_all_ones;
 use core::cell::RefCell;
 use async_trait::async_trait;
-use crate::std::io::{Color, Screen, Stdin};
+use crate::std::io::{Color, KeyStroke, Screen, Stdin};
 use crate::std::time;
 use crate::kernel::tasks::keyboard::KEYBOARD;
 use crossbeam_queue::SegQueue;
@@ -138,7 +138,7 @@ impl Game {
                             // loop triggers when game is lost
                             loop {
                                 match Stdin::keystroke().await {
-                                    'x' => break 'gameloop,
+                                    KeyStroke::Char('x') => break 'gameloop,
                                     _ => continue,
                                 }
                             }
@@ -199,7 +199,7 @@ impl Game {
             }
         });
 
-        frame.render_to_screen()?;
+        frame.write_to_screen()?;
 
         Ok(())
     }
@@ -221,7 +221,7 @@ impl Game {
         frame[12] = Game::centre_text(80, String::from(format!("ur score was {}", self.score))).chars().map(|c| ColouredChar::coloured(c, ColorCode::new(Color::LightGreen, Color::Black))).collect();
         frame[14] = Game::centre_text(80, String::from("L bozo")).chars().map(|c| ColouredChar::coloured(c, ColorCode::new(Color::Red, Color::Black))).collect();
 
-        frame.render_to_screen()?;
+        frame.write_to_screen()?;
         Ok(())
     }
 }
@@ -272,7 +272,7 @@ impl Snake {
         if self.ai_controlled {
             self.dir = PathFinder::decide(&self.head, tails, points_of_interest);
         } else {
-            if let Some(c) = Stdin::try_keystroke() {
+            if let Some(KeyStroke::Char(c)) = Stdin::try_keystroke() {
                 self.dir = match c {
                     'w' => Direction::Degrees0,
                     'a' => Direction::Degrees270,

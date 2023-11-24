@@ -8,7 +8,7 @@ use async_trait::async_trait;
 use crate::kernel::render::{Color, ColorCode};
 use crate::{println, serial_println};
 use crate::std::frame::{ColouredChar, Frame, Position, Dimensions, RenderError};
-use crate::std::io::{Screen, Stdin};
+use crate::std::io::{KeyStroke, Screen, Stdin};
 use crate::std::time::wait;
 use crate::user::bin::snake::Game;
 
@@ -75,7 +75,7 @@ impl GameOfLife {
 
             self.render().map_err(|_| Error::ApplicationError(String::from("failed to render game screen")))?;
             match Stdin::try_keystroke() {
-                Some('x') => break 'mainloop,
+                Some(KeyStroke::Char('x')) => break 'mainloop,
                 _ => {},
             }
 
@@ -115,7 +115,7 @@ impl GameOfLife {
     }
 
     fn render(&self) -> Result<(), RenderError> {
-        self.frame.render_to_screen()?;
+        self.frame.write_to_screen()?;
         Ok(())
     }
 }

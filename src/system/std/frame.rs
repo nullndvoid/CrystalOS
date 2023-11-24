@@ -96,8 +96,7 @@ impl Frame {
 
         for line in elemstr.split("\n") {
             element.frame.push(
-                line
-                    .chars()
+                line.chars()
                     .map(|c| ColouredChar::new(c))
                     .collect::<Vec<ColouredChar>>()
             );
@@ -105,7 +104,7 @@ impl Frame {
 
         for row in element.clone().frame {
             let n = row.len();
-            if n > element.dimensions.x as usize {
+            if n > element.dimensions.x {
                 element.dimensions.x = n;
             }
         }
@@ -116,21 +115,19 @@ impl Frame {
         self.frame.clone()
     }
 
-    pub fn render_to_screen(&self) -> Result<(), RenderError> {
+    pub fn write_to_screen(&self) -> Result<(), RenderError> {
         let mut frame: [[ScreenChar; BUFFER_WIDTH]; BUFFER_HEIGHT] = [[ScreenChar::null(); BUFFER_WIDTH]; BUFFER_HEIGHT];
         for (i, row) in self.frame.iter().enumerate() {
             for (j, col) in row.iter().enumerate() {
-                //println!("{} {} {}", i, j, col);
-                frame[i + self.position.y as usize][j + self.position.x as usize] = col.as_screen_char();
+                frame[i + self.position.y][j + self.position.x] = col.as_screen_char();
             };
         }
         RENDERER.lock().render_frame(frame);
         Ok(())
     }
-    pub fn position(&self) -> Position {
+    pub fn get_position(&self) -> Position {
         self.position
     }
-
     pub fn set_position(&mut self, position: Position) {
         self.position = position
     }
@@ -140,7 +137,7 @@ impl Frame {
     pub fn write(&mut self, position: Position, char: ColouredChar) {
         self.frame[position.y][position.x] = char
     }
-    pub fn render_element(&mut self, other: &Frame) {
+    pub fn place_child_element(&mut self, other: &Frame) {
         for (i, row) in other.frame.iter().enumerate() {
             for (j, chr) in row.iter().enumerate() {
                 self.frame[i + other.position.y][j + other.position.x] = *chr
@@ -152,20 +149,20 @@ impl Frame {
 
         let (mut x, mut y) = (false, false);
 
-        if element.dimensions().x + element.position().x > self.dimensions.x {
+        if element.dimensions().x + element.get_position().x > self.dimensions.x {
             if should_panic { panic!(
                 "Element is to large to be rendered {} {}",
-                element.dimensions().x + element.position().x,
+                element.dimensions().x + element.get_position().x,
                 self.dimensions.x
             )} else {
                 x = true;
             }
         }
 
-        if element.dimensions().y + element.position().y > self.dimensions.y {
+        if element.dimensions().y + element.get_position().y > self.dimensions.y {
             if should_panic { panic!(
                 "Element is to large to be rendered {} {}",
-                element.dimensions().y + element.position().y,
+                element.dimensions().y + element.get_position().y,
                 self.dimensions.y
             )} else {
                 y = true;

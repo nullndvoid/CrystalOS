@@ -261,10 +261,16 @@ impl Renderer {
         if self.application_mode { return; }; // only in terminal mode
         self.term_buffer.push([ScreenChar::null(); BUFFER_WIDTH]);
         self.col_pos = 0;
+        if self.term_buffer.len() > 100 {
+            self.term_buffer.remove(0);
+        }
     }
 
     fn internal_lastline(&mut self) { // goes back to previous line and shifts all lines down
         if self.application_mode { return; };
+        if self.term_buffer.len() <= 25 {
+            self.term_buffer.insert(0, [ScreenChar::null(); BUFFER_WIDTH]);
+        }
         self.term_buffer.pop();
         self.col_pos = BUFFER_WIDTH;
     }

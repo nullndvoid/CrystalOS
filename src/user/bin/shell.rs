@@ -9,7 +9,7 @@ use vga::writers::{GraphicsWriter, PrimitiveDrawing};
 use crate::{print, printerr, println, serial_println, std, std::application::{Application, Error}, user::bin::*};
 use crate::kernel::render::ColorCode;
 use crate::std::frame::{Dimensions, Position};
-use crate::std::io::{Color, write, Screen, Stdin, Serial};
+use crate::std::io::{Color, write, Screen, Stdin, Serial, KeyStroke};
 use crate::std::random::Random;
 use crate::user::bin::gigachad_detector::GigachadDetector;
 use crate::user::bin::grapher::Grapher;
@@ -17,6 +17,7 @@ use crate::user::lib::libgui::{
     cg_core::{CgComponent},
     cg_widgets::{CgTextBox, CgContainer},
 };
+use crate::user::lib::libgui::cg_core::CgTextEdit;
 use crate::user::lib::libgui::cg_inputs::CgLineEdit;
 use crate::user::lib::libgui::cg_widgets::{CgIndicatorBar, CgIndicatorWidget, CgLabel, CgStatusBar};
 
@@ -190,8 +191,8 @@ async fn exec() -> Result<(), Error> {
 		"test_features" => {
             Screen::Application.set_mode().unwrap();
 
-            new_eventloop(|c| match c {
-                'x' => ('x', true),
+            setup_ui(|c| match c {
+                KeyStroke::Char('x') => (c, true),
                 _ => (c, false),
             }).await;
 
@@ -259,7 +260,7 @@ struct CmdHistory {
     history: Vec<String>,
 }
 
-async fn new_eventloop(input: impl Fn(char) -> (char, bool)) {
+async fn setup_ui(input: impl Fn(KeyStroke) -> (KeyStroke, bool)) {
 
     let textbox = CgTextBox::new(
         String::from("i'd just like to interject for a moment"),
@@ -269,42 +270,80 @@ async fn new_eventloop(input: impl Fn(char) -> (char, bool)) {
         true,
     );
 
+    let mut label = CgLabel::new(
+        String::from("test label"),
+        Position::new(1, 1),
+        40,
+    );
+
     let mut statusbar = CgStatusBar::new(Position::new(0, 0), Dimensions::new(80, 1));
 
     let mut textedit = CgLineEdit::new(
-        Position::new(0, 1),
+        Position::new(0, 20),
         80,
         String::from("enter text here >"),
     );
-    textedit.text = "hello".chars().collect();
 
-    let mut container = CgContainer::new(
-        Position::new(0, 0),
-        Dimensions::new(80, 25),
-        false,
-    );
-
-    container.elements.push(Box::new(&textbox));
-    container.elements.push(Box::new(&statusbar));
-    container.elements.push(Box::new(&textedit));
+    let mut commandresult = String::new();
 
     while let (c, false) = input(Stdin::keystroke().await) {
-
-
-        textedit.text.push(c);
-
         let mut container = CgContainer::new(
             Position::new(0, 0),
             Dimensions::new(80, 25),
             false,
         );
 
-        container.elements.push(Box::new(&textbox));
-        container.elements.push(Box::new(&statusbar));
-        container.elements.push(Box::new(&textedit));
+        match c {
+            KeyStroke::Char('\n') => {
+                commandresult = textedit.text.iter().collect();
+                textedit.clear();
+            },
+            KeyStroke::Char(Stdin::BACKSPACE) => {
+                serial_println!("backspace");
+                textedit.backspace()
+            },
+            KeyStroke::Char(c) => textedit.write_char(c),
+            KeyStroke::Left => textedit.move_cursor(false),
+            KeyStroke::Right => textedit.move_cursor(true),
+            _ => {}
+        }
+
+        if commandresult.len() > 0 {
+            let string = commandresult.chars().take(40).collect();
+            label.set_text(string);
+        }
+
+        container.insert(Box::new(&textbox));
+        container.insert(Box::new(&statusbar));
+        container.insert(Box::new(&textedit));
+        container.insert(Box::new(&label));
+
         if let Ok(frame) = container.render() {
-            frame.render_to_screen().unwrap();
+            frame.write_to_screen().unwrap();
         }
     }
-
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,7 +1,8 @@
 use crate::{
     kernel::render::{RENDERER, self},
-    kernel::tasks::keyboard::{KEYBOARD, KeyStroke},
+    kernel::tasks::keyboard::{KEYBOARD},
 };
+pub use crate::kernel::tasks::keyboard::KeyStroke;
 
 use alloc::string::String;
 use alloc::vec::Vec;
@@ -17,6 +18,7 @@ use crate::std::frame::RenderError;
 
 pub struct Stdin {}
 impl Stdin {
+    pub const BACKSPACE: char = b'\x08' as char;
     /// waits for the user to type in a string and press enter | blocking
     pub async fn readline() -> String {
         let string = KEYBOARD.lock().get_string().await;
@@ -24,13 +26,13 @@ impl Stdin {
     }
 
     /// waits for a keystroke | blocking
-    pub async fn keystroke() -> char {
+    pub async fn keystroke() -> KeyStroke {
         let chr = KEYBOARD.lock().get_keystroke().await;
         chr
     }
 
     /// gets the next keystroke if any is present | non blocking
-    pub fn try_keystroke() -> Option<char> {
+    pub fn try_keystroke() -> Option<KeyStroke> {
         let chr = KEYBOARD.lock().try_keystroke();
         chr
     }

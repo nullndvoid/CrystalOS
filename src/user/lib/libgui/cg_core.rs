@@ -18,12 +18,12 @@ pub trait CgComponent {
 	fn render(&self) -> Result<Frame, RenderError>;
 }
 
-/// trait for components that can have editable text, such as search boxes, command palletes, terminals, text inputs etc.
+/// trait for components that can have editable text, such as search boxes, command palettes, terminals, text inputs etc.
 pub trait CgTextEdit: CgComponent {
-	fn write_char(&self) -> Result<Frame, RenderError>; // this can also be implemented in a way that inserts characters
-	fn delete_char(&self) -> Result<Frame, RenderError>;
-	fn move_cursor(&self, direction: bool) -> Result<(), RenderError>; // true = right, false = left
-	fn clear(&self) -> Result<Frame, RenderError>;
+	fn write_char(&mut self, c: char); // this can also be implemented in a way that inserts characters
+	fn backspace(&mut self);
+	fn move_cursor(&mut self, direction: bool); // true = right, false = left
+	fn clear(&mut self);
 }
 
 

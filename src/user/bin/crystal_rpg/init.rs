@@ -17,6 +17,7 @@ use crate::{
         Error,
     },
 };
+use crate::std::io::{KeyStroke, Stdin};
 
 pub struct GameLoop;
 
@@ -98,7 +99,9 @@ impl Application for GameLoop {
 
 
         loop {
-            println!("{}", io::Stdin::keystroke().await)
+            if let KeyStroke::Char(c) = Stdin::keystroke().await {
+                println!("{}", c)
+            }
         }
 
         Ok(())
