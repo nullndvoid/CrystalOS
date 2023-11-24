@@ -4,11 +4,11 @@ use alloc::vec::Vec;
 use alloc::boxed::Box;
 use async_trait::async_trait;
 use crate::{println, serial_println};
-use crate::kernel::render::RenderError;
+use crate::kernel::render::{ColorCode, RenderError};
 use crate::shell::command_handler;
 use crate::std::application::{Application, Error};
 use crate::std::frame::{self, Frame, Position, Dimensions, ColouredChar};
-use crate::std::io::{KeyStroke, Screen, Stdin};
+use crate::std::io::{Color, KeyStroke, Screen, Stdin};
 use crate::user::lib::libgui::cg_core::{CgComponent, CgTextEdit};
 use crate::user::lib::libgui::cg_inputs::CgLineEdit;
 use crate::user::lib::libgui::cg_widgets::CgContainer;
@@ -37,11 +37,13 @@ impl Application for Grapher {
     fn new() -> Self {
         Self {
             points: Vec::new(),
-            frame: Frame::new(Position::new(0, 0), Dimensions::new(78, 22)).unwrap()
+            frame: Frame::new(Position::new(1, 1), Dimensions::new(78, 22)).unwrap()
         }
     }
     async fn run(&mut self, args: Vec<String>) -> Result<(), Error> {
         Screen::Application.set_mode().map_err(|_| Error::ApplicationError(String::from("failed to set application mode")))?;
+
+        self.frame.frame = vec![vec![ColouredChar::coloured(' ', ColorCode::new(Color::White, Color::DarkGray)); self.frame.dimensions.x]; self.frame.dimensions.y];
 
         if args.len() > 0 {
             let equation: String = args.into_iter().collect();
@@ -74,7 +76,7 @@ impl Application for Grapher {
                 let mut container = CgContainer::new(
                     Position::new(0, 0),
                     Dimensions::new(80, 25),
-                    false,
+                    true,
                 );
 
                 match c {
@@ -148,7 +150,7 @@ impl Grapher {
         let offset_x = point.x + OFFSET_X;
         let offset_y = point.y + OFFSET_Y;
 
-        self.frame.write(Position::new(offset_x as usize, 22-offset_y as usize), ColouredChar::new('*'));
+        self.frame.write(Position::new(offset_x as usize, 22-offset_y as usize), ColouredChar::coloured('*', ColorCode::new(Color::White, Color::DarkGray)));
     }
 
 
