@@ -1,4 +1,4 @@
-pub use crate::kernel::tasks::{Task, executor::Executor};
+pub use crate::system::kernel::tasks::{Task, executor::Executor};
 
 pub fn stop() -> ! {
     loop {

@@ -5,10 +5,8 @@ use alloc::vec::Vec;
 use alloc::boxed::Box;
 use crate::std::application::{Application, Error};
 use async_trait::async_trait;
-use crate::kernel::render::{Color, ColorCode};
-use crate::{println, serial_println};
 use crate::std::frame::{ColouredChar, Frame, Position, Dimensions, RenderError};
-use crate::std::io::{KeyStroke, Screen, Stdin};
+use crate::std::io::{KeyStroke, Screen, Stdin, Color, ColorCode};
 use crate::std::time::wait;
 use crate::user::bin::snake::Game;
 

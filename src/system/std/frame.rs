@@ -1,10 +1,7 @@
 use alloc::string::String;
 use alloc::vec;
 use alloc::vec::Vec;
-use lazy_static::lazy_static;
-use crate::kernel::render::{BUFFER_HEIGHT, BUFFER_WIDTH, ColorCode, RENDERER, ScreenChar};
-use crate::{println, serial_println};
-use spin::Mutex;
+use crate::system::kernel::render::{BUFFER_HEIGHT, BUFFER_WIDTH, RENDERER, ScreenChar};
 use crate::std::io::{Color, Screen};
 
 /// TODO: get a working implementation for CLI apps
@@ -13,11 +10,9 @@ use crate::std::io::{Color, Screen};
 /// the position of the element by passing a tuple (x,y) to render()
 ///
 /// nothing will appear on the screen until the frame is actually rendered by
-/// the render_frame method on the renderer
+/// the write_to_screen() method on the renderer
 
-pub use crate::system::kernel::render::{special_char, RenderError};
-
-
+pub use crate::system::kernel::render::{special_char, RenderError, ColorCode};
 
 
 #[derive(Clone, Copy, Debug, PartialEq)]

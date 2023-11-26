@@ -5,6 +5,7 @@ pub mod tasks;
 pub mod os;
 pub mod frame;
 pub mod time;
+pub mod syscall;
 
 
 // this is where the standard library for the operating system will be defined

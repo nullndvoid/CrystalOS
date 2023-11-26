@@ -3,7 +3,7 @@ use alloc::boxed::Box;
 use alloc::string::String;
 use alloc::vec;
 use alloc::vec::Vec;
-use crate::kernel::render::ScreenChar;
+use crate::std::frame::{ColouredChar};
 use crate::{serial_print, serial_println};
 use crate::std::application::{Application, Error};
 use crate::std::io::Screen;
@@ -13,7 +13,7 @@ use crate::user::lib::coords::{Direction, Position, PositionReal};
 pub(crate) struct TetrisEngine {
     score: u32,
     next: TetrisPiece,
-    completed_frame: [[ScreenChar; 80]; 25], // this frame does not contain falling blocks, only static ones
+    completed_frame: [[ColouredChar; 80]; 25], // this frame does not contain falling blocks, only static ones
 
 }
 
@@ -23,7 +23,7 @@ impl Application for TetrisEngine {
         Self {
             score: 0,
             next: TetrisPiece::new(PieceType::OPiece),
-            completed_frame: [[ScreenChar::null(); 80]; 25],
+            completed_frame: [[ColouredChar::null(); 80]; 25],
         }
     }
     async fn run(&mut self, args: Vec<String>) -> Result<(), Error> {

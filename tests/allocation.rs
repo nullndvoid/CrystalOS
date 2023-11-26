@@ -20,7 +20,7 @@ fn main(boot_info: &'static BootInfo) -> ! {
 	use CrystalOS::kernel::memory::{self, BootInfoFrameAllocator};
 	use x86_64::VirtAddr;
 
-	CrystalOS::init();
+	CrystalOS::start();
 
 	let physical_memory_offset = VirtAddr::new(boot_info.physical_memory_offset);
 	let mut mapper = unsafe { memory::init(physical_memory_offset)};

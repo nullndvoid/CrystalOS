@@ -2,16 +2,22 @@ use alloc::string::{String, ToString};
 use alloc::{format, vec};
 use alloc::vec::Vec;
 use alloc::boxed::Box;
+use alloc::sync::Arc;
 use async_trait::async_trait;
+use spin::Mutex;
 use crate::{println, serial_println};
-use crate::kernel::render::{ColorCode, RenderError};
+use crate::std::io::{ColorCode};
 use crate::shell::command_handler;
 use crate::std::application::{Application, Error};
-use crate::std::frame::{self, Frame, Position, Dimensions, ColouredChar};
+use crate::std::frame::{self, Frame, Position, Dimensions, ColouredChar, RenderError};
 use crate::std::io::{Color, KeyStroke, Screen, Stdin};
-use crate::user::lib::libgui::cg_core::{CgComponent, CgTextEdit};
-use crate::user::lib::libgui::cg_inputs::CgLineEdit;
-use crate::user::lib::libgui::cg_widgets::CgContainer;
+
+use crate::user::lib::libgui::{
+    cg_core::{CgComponent, CgTextInput, CgInputHandler, CgContainer},
+    cg_widgets::CgContainerWidget,
+    cg_inputs::CgLineEdit,
+};
+
 use super::calc;
 
 const OFFSET_X: i64 = 39;
@@ -73,7 +79,7 @@ impl Application for Grapher {
             let mut commandresult = String::new();
 
             while let c = Stdin::keystroke().await {
-                let mut container = CgContainer::new(
+                let mut container = CgContainerWidget::new(
                     Position::new(0, 0),
                     Dimensions::new(80, 25),
                     true,

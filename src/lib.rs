@@ -17,14 +17,12 @@ use core::panic::PanicInfo;
 pub mod system;
 pub mod user;
 
-pub use system::kernel as kernel;
 pub use system::std as std;
 pub use user::bin::*;
 
 extern crate alloc;
 //extern crate fatfs;
 
-#[cfg(test)]
 use bootloader::{entry_point, BootInfo};
 
 
@@ -36,10 +34,8 @@ fn alloc_error_handler(layout: alloc::alloc::Layout) -> ! {
 	panic!("error while allocating: {:?}", layout)
 }
 
-
-
-pub fn init() {
-	system::init();
+pub fn start(boot_info: &'static BootInfo) {
+	system::init(boot_info);
 }
 
 pub fn hlt() -> ! {
@@ -77,7 +73,7 @@ pub fn test_panic_handler(info: &PanicInfo) -> ! {
 
 #[cfg(test)]
 fn test_kernel_main(_boot_info: &'static BootInfo) -> ! {
-	init();
+	start();
 	test_main();
 	hlt();
 }

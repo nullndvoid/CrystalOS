@@ -1,20 +1,17 @@
-use crate::{
-    kernel::render::{RENDERER, self},
-    kernel::tasks::keyboard::{KEYBOARD},
+use crate::system::kernel::{
+    render::{RENDERER, self, RenderError},
+    tasks::keyboard::{KEYBOARD},
+    serial::{serial_reply},
 };
-pub use crate::kernel::tasks::keyboard::KeyStroke;
+
+pub use crate::system::kernel::{
+    tasks::keyboard::KeyStroke,
+    serial::{_serial_print},
+    render::{Color, ColorCode},
+};
 
 use alloc::string::String;
-use alloc::vec::Vec;
-
 pub use crate::{print, println, serial_print, serial_println};
-pub use crate::kernel::render::Color;
-use crate::kernel::serial::serial_reply;
-
-use lazy_static::lazy_static;
-use spin::Mutex;
-use crate::kernel::render::Renderer;
-use crate::std::frame::RenderError;
 
 pub struct Stdin {}
 impl Stdin {
@@ -108,6 +105,25 @@ macro_rules! print {
 macro_rules! printerr {
     ($($arg:tt)*) => ($crate::std::io::_printerr(format_args!($($arg)*)));
 }
+
+#[macro_export]
+macro_rules! serial_print {
+	($($arg:tt)*) => {
+		$crate::std::io::_serial_print(format_args!($($arg)*));
+	};
+}
+
+#[macro_export]
+macro_rules! serial_println {
+	() => (serial_print!("\n"));
+	($fmt:expr) => ($crate::serial_print!(concat!($fmt, "\n")));
+	($fmt:expr, $($arg:tt)*) => (
+		$crate::serial_print!(
+			concat!($fmt, "\n"), $($arg)*
+		)
+	);
+}
+
 
 #[doc(hidden)]
 pub fn _print(args: core::fmt::Arguments) {

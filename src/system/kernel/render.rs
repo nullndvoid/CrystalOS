@@ -6,7 +6,7 @@ use volatile::Volatile;
 use alloc::borrow::ToOwned;
 use alloc::vec;
 use alloc::vec::Vec;
-use crate::kernel::render::RenderError::InvalidRenderMode;
+use crate::system::kernel::render::RenderError::InvalidRenderMode;
 use crate::serial_println;
 use crate::std::io::Screen;
 
