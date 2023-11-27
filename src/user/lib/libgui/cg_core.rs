@@ -3,9 +3,10 @@ use alloc::string::String;
 use alloc::vec;
 use alloc::vec::Vec;
 use core::slice::from_mut;
-use crate::kernel::render::{ColorCode, RenderError, ScreenChar};
 use crate::{printerr, serial_println};
-use crate::std::frame::{ColouredChar, Dimensions, Position, special_char, Frame};
+use crate::std::frame::{ColouredChar, Dimensions, Position, special_char, Frame, RenderError, ColorCode};
+use crate::user::lib::libgui::cg_inputs::CgLineEdit;
+use crate::user::lib::libgui::cg_widgets::{CgContainer, CgTextBox, CgIndicatorBar, CgIndicatorWidget, CgLabel, CgStatusBar};
 
 /// implement this trait if you require the widget to be able to have an outline
 pub trait CgOutline: CgComponent {
@@ -25,15 +26,3 @@ pub trait CgTextEdit: CgComponent {
 	fn move_cursor(&mut self, direction: bool); // true = right, false = left
 	fn clear(&mut self);
 }
-
-
-
-
-
-
-
-
-
-
-
-

@@ -1,5 +1,4 @@
 pub mod calc;
-pub mod crystal_rpg;
 pub mod crystalfetch;
 pub mod rickroll;
 pub mod shell;
@@ -11,3 +10,4 @@ mod snake;
 mod grapher;
 mod gameoflife;
 mod tetris;
+mod asteroids;

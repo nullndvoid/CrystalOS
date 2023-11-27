@@ -2,12 +2,11 @@ use alloc::{boxed::Box, format, string::String, vec, vec::Vec};
 use alloc::fmt::format;
 use alloc::string::ToString;
 use core::cmp::{max, min};
-use crate::kernel::render::{ColorCode, RenderError};
 use crate::serial_println;
 use super::cg_core::{
     CgComponent, CgOutline
 };
-use crate::std::frame::{ColouredChar, Dimensions, Position, Frame};
+use crate::std::frame::{ColouredChar, Dimensions, Position, Frame, RenderError, ColorCode};
 use crate::std::io::Color;
 
 pub struct CgContainer<'a> {

@@ -13,10 +13,11 @@ use crate::std::frame::{self, Frame, Position, Dimensions, ColouredChar, RenderE
 use crate::std::io::{Color, KeyStroke, Screen, Stdin};
 
 use crate::user::lib::libgui::{
-    cg_core::{CgComponent, CgTextInput, CgInputHandler, CgContainer},
-    cg_widgets::CgContainerWidget,
+    cg_core::{CgComponent},
+    cg_widgets::CgContainer,
     cg_inputs::CgLineEdit,
 };
+use crate::user::lib::libgui::cg_core::CgTextEdit;
 
 use super::calc;
 
@@ -79,7 +80,7 @@ impl Application for Grapher {
             let mut commandresult = String::new();
 
             while let c = Stdin::keystroke().await {
-                let mut container = CgContainerWidget::new(
+                let mut container = CgContainer::new(
                     Position::new(0, 0),
                     Dimensions::new(80, 25),
                     true,

@@ -3,23 +3,19 @@ use lazy_static::lazy_static;
 use spin::Mutex;
 
 use alloc::{boxed::Box, string::{String, ToString}, vec, vec::Vec};
-use core::future::Future;
 use vga::writers::{GraphicsWriter, PrimitiveDrawing};
 
 use crate::{print, printerr, println, serial_println, std, std::application::{Application, Error}, user::bin::*};
-use crate::kernel::render::ColorCode;
-use crate::std::frame::{Dimensions, Position};
+use crate::std::frame::{Dimensions, Position, ColorCode};
 use crate::std::io::{Color, write, Screen, Stdin, Serial, KeyStroke};
 use crate::std::random::Random;
 use crate::user::bin::gigachad_detector::GigachadDetector;
 use crate::user::bin::grapher::Grapher;
 use crate::user::lib::libgui::{
-    cg_core::{CgComponent},
-    cg_widgets::{CgTextBox, CgContainer},
+    cg_core::{CgComponent, CgTextEdit},
+    cg_widgets::{CgTextBox, CgContainer, CgIndicatorBar, CgIndicatorWidget, CgLabel, CgStatusBar},
+    cg_inputs::CgLineEdit,
 };
-use crate::user::lib::libgui::cg_core::CgTextEdit;
-use crate::user::lib::libgui::cg_inputs::CgLineEdit;
-use crate::user::lib::libgui::cg_widgets::{CgIndicatorBar, CgIndicatorWidget, CgLabel, CgStatusBar};
 
 lazy_static! {
     pub static ref CMD: Mutex<CommandHandler> = Mutex::new(CommandHandler::new());
@@ -109,10 +105,6 @@ async fn exec() -> Result<(), Error> {
         "tasks" => {
             let mut cmd = tasks::Tasks::new();
             cmd.run(args).await?;
-        }
-        "play" => {
-            let mut gameloop = crystal_rpg::init::GameLoop::new();
-            gameloop.run(args).await?;
         }
         "VGA" => {
             use vga::colors::Color16;
