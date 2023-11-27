@@ -16,6 +16,7 @@ use crate::user::lib::libgui::{
     cg_widgets::{CgTextBox, CgContainer, CgIndicatorBar, CgIndicatorWidget, CgLabel, CgStatusBar},
     cg_inputs::CgLineEdit,
 };
+use crate::user::lib::libgui::cg_core::Widget;
 
 lazy_static! {
     pub static ref CMD: Mutex<CommandHandler> = Mutex::new(CommandHandler::new());
@@ -268,6 +269,8 @@ async fn setup_ui(input: impl Fn(KeyStroke) -> (KeyStroke, bool)) {
         40,
     );
 
+    test_new_datastore().await;
+
     let mut statusbar = CgStatusBar::new(Position::new(0, 0), Dimensions::new(80, 1));
 
     let mut textedit = CgLineEdit::new(
@@ -278,44 +281,66 @@ async fn setup_ui(input: impl Fn(KeyStroke) -> (KeyStroke, bool)) {
 
     let mut commandresult = String::new();
 
-    while let (c, false) = input(Stdin::keystroke().await) {
-        let mut container = CgContainer::new(
-            Position::new(0, 0),
-            Dimensions::new(80, 25),
-            false,
-        );
-
-        match c {
-            KeyStroke::Char('\n') => {
-                commandresult = textedit.text.iter().collect();
-                textedit.clear();
-            },
-            KeyStroke::Char(Stdin::BACKSPACE) => {
-                serial_println!("backspace");
-                textedit.backspace()
-            },
-            KeyStroke::Char(c) => textedit.write_char(c),
-            KeyStroke::Left => textedit.move_cursor(false),
-            KeyStroke::Right => textedit.move_cursor(true),
-            _ => {}
-        }
-
-        if commandresult.len() > 0 {
-            let string = commandresult.clone();
-            textbox.content = string;
-        }
-
-        container.insert(Box::new(&textbox));
-        container.insert(Box::new(&statusbar));
-        container.insert(Box::new(&textedit));
-
-        if let Ok(frame) = container.render() {
-            frame.write_to_screen().unwrap();
-        }
-    }
+    // while let (c, false) = input(Stdin::keystroke().await) {
+    //     let mut container = CgContainer::new(
+    //         Position::new(0, 0),
+    //         Dimensions::new(80, 25),
+    //         false,
+    //     );
+    //
+    //     match c {
+    //         KeyStroke::Char('\n') => {
+    //             commandresult = textedit.text.iter().collect();
+    //             textedit.clear();
+    //         },
+    //         KeyStroke::Char(Stdin::BACKSPACE) => {
+    //             serial_println!("backspace");
+    //             textedit.backspace()
+    //         },
+    //         KeyStroke::Char(c) => textedit.write_char(c),
+    //         KeyStroke::Left => textedit.move_cursor(false),
+    //         KeyStroke::Right => textedit.move_cursor(true),
+    //         _ => {}
+    //     }
+    //
+    //     if commandresult.len() > 0 {
+    //         let string = commandresult.clone();
+    //         textbox.content = string;
+    //     }
+    //
+    //     container.insert(Box::new(textbox.clone()));
+    //     container.insert(Box::new(statusbar.clone()));
+    //     container.insert(Box::new(textedit.clone()));
+    //
+    //     if let Ok(frame) = container.render() {
+    //         frame.write_to_screen().unwrap();
+    //     }
+    // }
 }
 
+async fn test_new_datastore() {
+    let container = Widget::insert(CgContainer::new(
+        Position::new(0, 0),
+        Dimensions::new(80, 25),
+        true,
+    ));
 
+    let textbox = Widget::insert(CgTextBox::new(
+        String::from("test textbox"),
+        String::from("dam"),
+        Position::new(2, 5),
+        Dimensions::new(40, 12),
+        true,
+    ));
+
+    let mut c = textbox.fetch::<CgTextBox>().unwrap();
+    c.content = String::from("dam2");
+    textbox.update(c);
+
+    let c = textbox.fetch::<CgTextBox>().unwrap();
+
+    serial_println!("{}", c.content);
+}
 
 
 

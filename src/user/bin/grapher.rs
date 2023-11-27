@@ -3,6 +3,7 @@ use alloc::{format, vec};
 use alloc::vec::Vec;
 use alloc::boxed::Box;
 use alloc::sync::Arc;
+use core::any::Any;
 use async_trait::async_trait;
 use spin::Mutex;
 use crate::{println, serial_println};
@@ -17,18 +18,20 @@ use crate::user::lib::libgui::{
     cg_widgets::CgContainer,
     cg_inputs::CgLineEdit,
 };
-use crate::user::lib::libgui::cg_core::CgTextEdit;
+use crate::user::lib::libgui::cg_core::{CgTextEdit, Widget};
 
 use super::calc;
 
 const OFFSET_X: i64 = 39;
 const OFFSET_Y: i64 = 10;
 
+#[derive(Clone)]
 pub struct Grapher {
     points: Vec<PointF64>,
     frame: Frame,
 }
 
+#[derive(Clone, Debug)]
 struct PointF64 {
     x: f64,
     y: f64,
@@ -71,35 +74,40 @@ impl Application for Grapher {
             return Ok(());
         }
         else {
-            let mut entry_box = CgLineEdit::new(
+            let mut container = CgContainer::new(
+                Position::new(0, 0),
+                Dimensions::new(80, 25),
+                true,
+            );
+
+            container.insert("entry_box", Widget::insert(CgLineEdit::new(
                 Position::new(1, 23),
                 78,
                 String::from("function >")
-            );
+            )));
+            container.insert("grapher", Widget::insert(self.clone()));
 
             let mut commandresult = String::new();
 
             while let c = Stdin::keystroke().await {
-                let mut container = CgContainer::new(
-                    Position::new(0, 0),
-                    Dimensions::new(80, 25),
-                    true,
-                );
+
+                let mut entry_widget = container.elements.get("entry_box").unwrap();
+                let mut entry = entry_widget.fetch::<CgLineEdit>().unwrap();
 
                 match c {
                     KeyStroke::Char('\n') => {
-                        commandresult = entry_box.text.iter().collect();
-                        entry_box.clear();
+                        commandresult = entry.text.iter().collect();
+                        entry.clear();
                     },
                     KeyStroke::Char(Stdin::BACKSPACE) => {
-                        entry_box.backspace()
+                        entry.backspace()
                     },
                     KeyStroke::Char('`') => {
                         break;
                     }
-                    KeyStroke::Char(c) => entry_box.write_char(c),
-                    KeyStroke::Left => entry_box.move_cursor(false),
-                    KeyStroke::Right => entry_box.move_cursor(true),
+                    KeyStroke::Char(c) => entry.write_char(c),
+                    KeyStroke::Left => entry.move_cursor(false),
+                    KeyStroke::Right => entry.move_cursor(true),
                     KeyStroke::Alt => break,
                     _ => {}
                 }
@@ -107,13 +115,27 @@ impl Application for Grapher {
                 if commandresult.len() > 0 {
                     self.reset_frame();
                     self.graph_equation(commandresult.clone());
+
+                    let self_widget = container.elements.get("grapher").unwrap();
+                    self_widget.update(self.clone());
+
                     commandresult.clear();
                 }
 
-                container.insert(Box::new(self));
-                container.insert(Box::new(&entry_box));
+                serial_println!("{:?}", entry.text);
+                entry_widget.update(entry);
 
                 if let Ok(frame) = container.render() {
+
+                    let self_widget = container.elements.get("grapher").unwrap();
+                    let self_clone = self_widget.fetch::<Grapher>().unwrap();
+                    serial_println!("{:?}", self_clone.points);
+
+                    let entry = container.elements.get("entry_box").unwrap();
+                    let entry_clone = entry.fetch::<CgLineEdit>().unwrap();
+                    serial_println!("{:?}", entry_clone.text);
+
+
                     frame.write_to_screen().map_err(|_| Error::ApplicationError(String::from("failed to write to screen")))?;
                 }
             }
@@ -170,6 +192,9 @@ impl Grapher {
 impl CgComponent for Grapher {
     fn render(&self) -> Result<Frame, RenderError> {
         Ok(self.frame.clone())
+    }
+    fn as_any(&self) -> &dyn Any {
+        self
     }
 }
 

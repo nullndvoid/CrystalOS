@@ -1,5 +1,6 @@
 use alloc::string::String;
 use alloc::vec::Vec;
+use core::any::Any;
 use crate::std::frame::{ColouredChar, Dimensions, Frame, Position, RenderError};
 use crate::user::lib::libgui::cg_core::{CgComponent, CgTextEdit};
 
@@ -55,6 +56,9 @@ impl CgComponent for CgLineEdit {
         });
 
         Ok(frame)
+    }
+    fn as_any(&self) -> &dyn Any {
+        self
     }
 }
 

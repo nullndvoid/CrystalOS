@@ -1,36 +1,37 @@
 use alloc::{boxed::Box, format, string::String, vec, vec::Vec};
 use alloc::fmt::format;
 use alloc::string::ToString;
+use core::any::Any;
 use core::cmp::{max, min};
+use hashbrown::HashMap;
 use crate::serial_println;
-use super::cg_core::{
-    CgComponent, CgOutline
-};
+use super::cg_core::{CgComponent, CgOutline, Widget};
 use crate::std::frame::{ColouredChar, Dimensions, Position, Frame, RenderError, ColorCode};
 use crate::std::io::Color;
 
-pub struct CgContainer<'a> {
-    pub elements: Vec<Box<&'a dyn CgComponent>>,
+#[derive(Debug, Clone)]
+pub struct CgContainer {
+    pub elements: HashMap<&'static str, Widget>,
     pub position: Position,
     pub dimensions: Dimensions,
     pub outlined: bool,
 }
 
-impl<'a> CgContainer<'a> {
-    pub fn new(position: Position, dimensions: Dimensions, outlined: bool) -> CgContainer<'a> {
+impl CgContainer {
+    pub fn new(position: Position, dimensions: Dimensions, outlined: bool) -> CgContainer {
         CgContainer {
-            elements: Vec::new(),
+            elements: HashMap::new(),
             position,
             dimensions,
             outlined,
         }
     }
-    pub fn insert(&mut self, element: Box<&'a dyn CgComponent>) {
-        self.elements.push(element);
+    pub fn insert(&mut self, name: &'static str, element: Widget) {
+        self.elements.insert(name,element);
     }
 }
 
-impl CgOutline for CgContainer<'_> {
+impl CgOutline for CgContainer {
     fn render_outline(&self, frame: &mut Frame) {
         // draws the sides of the container
         for i in 0..frame.dimensions.x {
@@ -52,12 +53,12 @@ impl CgOutline for CgContainer<'_> {
     }
 }
 
-impl CgComponent for CgContainer<'_> {
+impl CgComponent for CgContainer {
     fn render(&self) -> Result<Frame, RenderError> {
         let mut result = Frame::new(self.position, self.dimensions)?;
 
         for widget in &self.elements {
-            let frame = widget.render()?;
+            let frame = widget.1.render()?;
             match result.render_bounds_check(&frame, true) { // TODO: this needs to be set to false for production
                 Ok(()) => result.place_child_element(&frame),
                 Err(e) => return Err(e),
@@ -69,6 +70,9 @@ impl CgComponent for CgContainer<'_> {
         }
 
         Ok(result)
+    }
+    fn as_any(&self) -> &dyn Any {
+        self
     }
 }
 
@@ -150,7 +154,9 @@ impl CgComponent for CgTextBox {
 
         Ok(result)
     }
-
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
 }
 
 
@@ -210,6 +216,9 @@ impl CgComponent for CgLabel {
         };
         Ok(result)
     }
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -259,6 +268,9 @@ impl CgComponent for CgIndicatorWidget {
 
         Ok(result)
     }
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -301,6 +313,9 @@ impl CgComponent for CgIndicatorBar {
 
         Ok(result)
     }
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -332,6 +347,9 @@ impl CgComponent for CgStatusBar {
         frame.place_child_element(&screen_mode);
 
         Ok(frame)
+    }
+    fn as_any(&self) -> &dyn Any {
+        self
     }
 }
 
