@@ -252,6 +252,7 @@ struct CmdHistory {
 }
 
 async fn setup_ui() {
+    serial_println!("idk");
     let label= Widget::insert(CgLabel::new(
         String::from("test label"),
         Position::new(1, 1),
