@@ -29,6 +29,9 @@ impl CgContainer {
     pub fn insert(&mut self, name: &'static str, element: Widget) {
         self.elements.insert(name,element);
     }
+    pub fn fetch(&self, name: &'static str) -> Option<&Widget> {
+        self.elements.get(name)
+    }
 }
 
 impl CgOutline for CgContainer {
@@ -55,7 +58,11 @@ impl CgOutline for CgContainer {
 
 impl CgComponent for CgContainer {
     fn render(&self) -> Result<Frame, RenderError> {
+        serial_println!("rendering");
+
         let mut result = Frame::new(self.position, self.dimensions)?;
+
+        serial_println!("{:?}", self.elements);
 
         for widget in &self.elements {
             let frame = widget.1.render()?;

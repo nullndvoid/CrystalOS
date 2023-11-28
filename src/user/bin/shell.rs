@@ -3,9 +3,10 @@ use lazy_static::lazy_static;
 use spin::Mutex;
 
 use alloc::{boxed::Box, string::{String, ToString}, vec, vec::Vec};
+use futures_util::TryFutureExt;
 use vga::writers::{GraphicsWriter, PrimitiveDrawing};
 
-use crate::{print, printerr, println, serial_println, std, std::application::{Application, Error}, user::bin::*};
+use crate::{print, printerr, println, serial_println, std, std::application::{Application, Error, Exit}, user::bin::*};
 use crate::std::frame::{Dimensions, Position, ColorCode};
 use crate::std::io::{Color, write, Screen, Stdin, Serial, KeyStroke};
 use crate::std::random::Random;
@@ -16,7 +17,7 @@ use crate::user::lib::libgui::{
     cg_widgets::{CgTextBox, CgContainer, CgIndicatorBar, CgIndicatorWidget, CgLabel, CgStatusBar},
     cg_inputs::CgLineEdit,
 };
-use crate::user::lib::libgui::cg_core::Widget;
+use crate::user::lib::libgui::cg_core::{CgTextInput, Widget};
 
 lazy_static! {
     pub static ref CMD: Mutex<CommandHandler> = Mutex::new(CommandHandler::new());
@@ -184,10 +185,7 @@ async fn exec() -> Result<(), Error> {
 		"test_features" => {
             Screen::Application.set_mode().unwrap();
 
-            setup_ui(|c| match c {
-                KeyStroke::Char('`') => (c, true),
-                _ => (c, false),
-            }).await;
+            setup_ui().await;
 
             Screen::Terminal.set_mode().unwrap()
 
@@ -253,70 +251,68 @@ struct CmdHistory {
     history: Vec<String>,
 }
 
-async fn setup_ui(input: impl Fn(KeyStroke) -> (KeyStroke, bool)) {
+async fn setup_ui() {
+    let label= Widget::insert(CgLabel::new(
+        String::from("test label"),
+        Position::new(1, 1),
+        40,
+    ));
 
-    let mut textbox = CgTextBox::new(
+    let textbox = Widget::insert(CgTextBox::new(
         String::from("i'd just like to interject for a moment"),
         String::from("I'd just like to interject for a moment. What you're refering to as Linux, is in fact, GNU/Linux, or as I've recently taken to calling it, GNU plus Linux. Linux is not an operating system unto itself, but rather another free component of a fully functioning GNU system made useful by the GNU corelibs, shell utilities and vital system components comprising a full OS as defined by POSIX. Many computer users run a modified version of the GNU system every day, without realizing it. Through a peculiar turn of events, the version of GNU which is widely used today is often called Linux, and many of its users are not aware that it is basically the GNU system, developed by the GNU Project. There really is a Linux, and these people are using it, but it is just a part of the system they use. Linux is the kernel: the program in the system that allocates the machine's resources to the other programs that you run. The kernel is an essential part of an operating system, but useless by itself; it can only function in the context of a complete operating system. Linux is normally used in combination with the GNU operating system: the whole system is basically GNU with Linux added, or GNU/Linux. All the so-called Linux distributions are really distributions of GNU/Linux!"),
         Position::new(2, 5),
         Dimensions::new(40, 12),
         true,
-    );
+    ));
 
-    let mut label = CgLabel::new(
-        String::from("test label"),
-        Position::new(1, 1),
-        40,
-    );
-
-    test_new_datastore().await;
-
-    let mut statusbar = CgStatusBar::new(Position::new(0, 0), Dimensions::new(80, 1));
-
-    let mut textedit = CgLineEdit::new(
+    let textedit = Widget::insert(CgLineEdit::new(
         Position::new(10, 20),
         60,
         String::from("enter text here >"),
-    );
+    ));
 
-    let mut commandresult = String::new();
+    let statusbar = Widget::insert(CgStatusBar::new(Position::new(0, 0), Dimensions::new(80, 1)));
+    let container = Widget::insert({
+        let mut container = CgContainer::new(
+            Position::new(0, 0),
+            Dimensions::new(80, 25),
+            true,
+        );
+        container.insert("textbox", textbox);
+        container.insert("label", label);
+        container.insert("textedit", textedit);
+        container.insert("statusbar", statusbar);
+        container
+    });
 
-    // while let (c, false) = input(Stdin::keystroke().await) {
-    //     let mut container = CgContainer::new(
-    //         Position::new(0, 0),
-    //         Dimensions::new(80, 25),
-    //         false,
-    //     );
-    //
-    //     match c {
-    //         KeyStroke::Char('\n') => {
-    //             commandresult = textedit.text.iter().collect();
-    //             textedit.clear();
-    //         },
-    //         KeyStroke::Char(Stdin::BACKSPACE) => {
-    //             serial_println!("backspace");
-    //             textedit.backspace()
-    //         },
-    //         KeyStroke::Char(c) => textedit.write_char(c),
-    //         KeyStroke::Left => textedit.move_cursor(false),
-    //         KeyStroke::Right => textedit.move_cursor(true),
-    //         _ => {}
-    //     }
-    //
-    //     if commandresult.len() > 0 {
-    //         let string = commandresult.clone();
-    //         textbox.content = string;
-    //     }
-    //
-    //     container.insert(Box::new(textbox.clone()));
-    //     container.insert(Box::new(statusbar.clone()));
-    //     container.insert(Box::new(textedit.clone()));
-    //
-    //     if let Ok(frame) = container.render() {
-    //         frame.write_to_screen().unwrap();
-    //     }
-    // }
+    if let Ok(frame) = container.render() {
+        frame.write_to_screen().unwrap();
+    } else {
+        serial_println!("failed to write to screen");
+    }
+
+
+    let exit = |x: KeyStroke| { match x {
+        KeyStroke::Char('`') => (KeyStroke::None, Exit::Exit),
+        _ => (x, Exit::None),
+    }};
+
+    let container_copy = container.fetch::<CgContainer>().unwrap();
+    let entry_ref = container_copy.fetch("textedit").unwrap();
+    let mut entry = entry_ref.fetch::<CgLineEdit>().unwrap();
+
+    while let Ok((string, false)) = entry.input(exit, &entry_ref, &container).await {
+        let textbox_ref = container_copy.fetch("textbox").unwrap();
+        let mut textbox = textbox_ref.fetch::<CgTextBox>().unwrap();
+        textbox.content = string;
+        textbox_ref.update(textbox);
+        if let Ok(frame) = container.render() {
+            frame.write_to_screen().unwrap();
+        }
+    }
 }
+
 
 async fn test_new_datastore() {
     let container = Widget::insert(CgContainer::new(

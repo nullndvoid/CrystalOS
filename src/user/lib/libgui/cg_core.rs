@@ -11,7 +11,10 @@ use alloc::{
 	string::String,
 };
 use core::any::Any;
+use async_trait::async_trait;
 use lazy_static::lazy_static;
+use crate::std::application::Exit;
+use crate::std::io::KeyStroke;
 
 /// implement this trait if you require the widget to be able to have an outline
 pub trait CgOutline: CgComponent {
@@ -33,6 +36,11 @@ pub trait CgTextEdit: CgComponent {
 	fn backspace(&mut self);
 	fn move_cursor(&mut self, direction: bool); // true = right, false = left
 	fn clear(&mut self);
+}
+
+#[async_trait]
+pub trait CgTextInput: CgTextEdit {
+	async fn input(&mut self, break_condition: fn(KeyStroke) -> (KeyStroke, Exit), id: &Widget, app: &Widget) -> Result<(String, bool), RenderError>;
 }
 
 
@@ -76,11 +84,13 @@ impl Widget {
 	}
 
 	pub fn render(&self) -> Result<Frame, RenderError> {
-		if let Some(frame) = GUITREE.lock().frame(self) {
-			frame
-		} else {
-			panic!("CRITICAL: Widget not found in tree");
-		}
+		let component_arc_mutex = match GUITREE.lock().frame(self) {
+			Some(component) => component,
+			None => panic!("CRITICAL: Widget not found in tree"),
+		};
+
+		let component = component_arc_mutex.lock();
+		component.render()
 	}
 }
 
@@ -121,12 +131,9 @@ impl DataStore {
 		})
 	}
 
-	fn frame(&self, id: &Widget) -> Option<Result<Frame, RenderError>> {
+	fn frame(&self, id: &Widget) -> Option<Arc<Mutex<dyn CgComponent + Send + Sync + 'static>>> {
 		let items = self.items.lock();
-		items.get(&id.id).and_then(|arc| {
-			let item = arc.lock();
-			Some(item.render())
-		})
+		items.get(&id.id).cloned()
 	}
 
 	fn remove(&self, id: &Widget) {

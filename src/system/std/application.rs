@@ -18,3 +18,8 @@ pub enum Error {
 	EmptyCommand,
 }
 
+pub enum Exit {
+	None,
+	Exit,
+	ExitWithError(Error),
+}
