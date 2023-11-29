@@ -18,4 +18,4 @@ jobs:
         username: FantasyPvP
         password: ${{ secrets.DOCKER_CONTAINER_REGISTRY_TOKEN }}
     steps:
-      run: cargo run --release
+      - run: cargo run --release
