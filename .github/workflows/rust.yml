@@ -11,10 +11,11 @@ env:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
+    container:
+      image: ghcr.io/fantasypvp/crystalos_builder:latest
+      credentials:
+        username: FantasyPvP
+        password: ${{ secrets.DOCKER_CONTAINER_REGISTRY_TOKEN }}
     steps:
-    - uses: actions/checkout@v3
-    - name: Build
-      run: cargo build --verbose
+      - run: cargo build --release
