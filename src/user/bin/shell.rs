@@ -125,6 +125,10 @@ async fn exec() -> Result<(), Error> {
             let mut game = snake::Game::new();
             game.run(args).await?;
         }
+        "asteroids" => {
+            let mut asteroid_game = asteroids::game::Game::new();
+            asteroid_game.run(args).await?;
+        }
         "serial" => {
             let c = Serial::reply_char('e');
             println!("{}", c);
@@ -184,11 +188,8 @@ async fn exec() -> Result<(), Error> {
         }
 		"test_features" => {
             Screen::Application.set_mode().unwrap();
-
             setup_ui().await;
-
-            Screen::Terminal.set_mode().unwrap()
-
+            Screen::Terminal.set_mode().unwrap();
 		}
         _ => {
             return Err(Error::UnknownCommand(
@@ -312,31 +313,6 @@ async fn setup_ui() {
             frame.write_to_screen().unwrap();
         }
     }
-}
-
-
-async fn test_new_datastore() {
-    let container = Widget::insert(CgContainer::new(
-        Position::new(0, 0),
-        Dimensions::new(80, 25),
-        true,
-    ));
-
-    let textbox = Widget::insert(CgTextBox::new(
-        String::from("test textbox"),
-        String::from("dam"),
-        Position::new(2, 5),
-        Dimensions::new(40, 12),
-        true,
-    ));
-
-    let mut c = textbox.fetch::<CgTextBox>().unwrap();
-    c.content = String::from("dam2");
-    textbox.update(c);
-
-    let c = textbox.fetch::<CgTextBox>().unwrap();
-
-    serial_println!("{}", c.content);
 }
 
 

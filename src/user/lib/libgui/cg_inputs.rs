@@ -93,35 +93,63 @@ impl CgTextEdit for CgLineEdit {
 #[async_trait]
 impl CgTextInput for CgLineEdit {
     async fn input(&mut self, break_condition: fn(KeyStroke) -> (KeyStroke, Exit), id: &Widget, app: &Widget) -> Result<(String, bool), RenderError> {
-        while let (c, Exit::None) = break_condition(Stdin::keystroke().await) {
-            match c {
-                KeyStroke::Char('\n') => break,
-                KeyStroke::Char('\x08') => self.backspace(),
-                KeyStroke::Backspace => self.backspace(),
-                KeyStroke::Char(c) => self.write_char(c),
-                KeyStroke::Left => self.move_cursor(false),
-                KeyStroke::Right => self.move_cursor(true),
+        loop {
+            match break_condition(Stdin::keystroke().await) {
+                (KeyStroke::Char('\n'), Exit::None) => {
+                    let res = self.text.iter().collect();
+                    self.clear();
+                    id.update(self.clone());
+                    match app.render() {
+                        Ok(frame) => frame.write_to_screen()?,
+                        Err(e) => return Err(e),
+                    }
+                    return Ok((res, false))
+                },
+                (c, Exit::None) => {
+                    match c {
+                        KeyStroke::Char('\x08') => self.backspace(),
+                        KeyStroke::Backspace => self.backspace(),
+                        KeyStroke::Char(c) => self.write_char(c),
+                        KeyStroke::Left => self.move_cursor(false),
+                        KeyStroke::Right => self.move_cursor(true),
+                        _ => (),
+                    }
+
+                    id.update(self.clone());
+                    match app.render() {
+                        Ok(frame) => frame.write_to_screen()?,
+                        Err(e) => return Err(e),
+                    }
+                },
+                (_, Exit::Exit) => {
+                    return Ok((String::new(), true))
+                },
                 _ => (),
             }
-
-            id.update(self.clone());
-            match app.render() {
-                Ok(frame) => frame.write_to_screen()?,
-                Err(e) => return Err(e),
-            }
-        };
-        let res = self.text.iter().collect();
-        self.clear();
-        id.update(self.clone());
-        match app.render() {
-            Ok(frame) => frame.write_to_screen()?,
-            Err(e) => return Err(e),
         }
-        Ok((res, false))
     }
 }
 
+#[derive(Debug, Clone)]
+pub struct CgBoxEdit {
+    pub position: Position,
+    pub dimensions: Dimensions,
+    pub prompt: String,
+    pub text: Vec<char>,
+    pub ptr: Position,
+}
 
+impl CgBoxEdit {
+    pub fn new(position: Position, dimensions: Dimensions, prompt: String) -> CgBoxEdit {
+        CgBoxEdit {
+            position,
+            dimensions,
+            prompt,
+            text: Vec::new(),
+            ptr: Position::new(0, 0)
+        }
+    }
+}
 
 
 

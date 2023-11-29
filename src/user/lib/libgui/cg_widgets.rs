@@ -58,12 +58,7 @@ impl CgOutline for CgContainer {
 
 impl CgComponent for CgContainer {
     fn render(&self) -> Result<Frame, RenderError> {
-        serial_println!("rendering");
-
         let mut result = Frame::new(self.position, self.dimensions)?;
-
-        serial_println!("{:?}", self.elements);
-
         for widget in &self.elements {
             let frame = widget.1.render()?;
             match result.render_bounds_check(&frame, true) { // TODO: this needs to be set to false for production

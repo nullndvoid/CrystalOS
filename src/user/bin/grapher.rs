@@ -2,6 +2,7 @@ use alloc::string::{String, ToString};
 use alloc::{format, vec};
 use alloc::vec::Vec;
 use alloc::boxed::Box;
+use alloc::fmt::format;
 use alloc::sync::Arc;
 use core::any::Any;
 use async_trait::async_trait;
@@ -24,6 +25,9 @@ use super::calc;
 
 const OFFSET_X: i64 = 39;
 const OFFSET_Y: i64 = 10;
+
+use core::f64::consts::E;
+use core::f64::consts::PI;
 
 #[derive(Clone)]
 pub struct Grapher {
@@ -155,7 +159,12 @@ impl Grapher {
             let x = x as f64 / 100.0;
 
             let new_eq = equation.chars().map(|c| {
-                if c == 'x' { format!("({})", x) } else { c.to_string() }
+                match c {
+                    'x' => format!("({})", x),
+                    'e' => format!("({})", E),
+                    'π' => format!("({})", PI),
+                    _ => c.to_string(),
+                }
             }).collect::<String>();
 
             let fx = cal.calculate(new_eq);

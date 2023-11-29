@@ -96,7 +96,8 @@ impl Widget {
 
 impl Drop for Widget {
 	fn drop(&mut self) {
-		GUITREE.lock().remove(self);
+		let removed = GUITREE.lock().remove(self);
+		drop(removed);
 	}
 }
 
@@ -136,9 +137,9 @@ impl DataStore {
 		items.get(&id.id).cloned()
 	}
 
-	fn remove(&self, id: &Widget) {
+	fn remove(&self, id: &Widget) -> Option<Arc<Mutex<dyn CgComponent + Send + Sync>>> {
 		let mut items = self.items.lock();
-		items.remove(&id.id);
+		items.remove(&id.id)
 	}
 }
 
