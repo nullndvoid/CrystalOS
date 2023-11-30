@@ -30,6 +30,7 @@ entry_point!(main);
 fn main(boot_info: &'static BootInfo) -> ! {
     CrystalOS::start(boot_info);
 
+    // runs the 'mainloop' of the OS;
     let mut executor = Executor::new();
     executor.spawn(Task::new(shell::command_handler()));
     loop {
