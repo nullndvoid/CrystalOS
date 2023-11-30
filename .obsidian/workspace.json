@@ -13,7 +13,7 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "docs/standard library docs/random.rs.md",
+                "file": "docs/standard library docs/application.rs.md",
                 "mode": "source",
                 "source": false
               }
@@ -85,7 +85,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "docs/standard library docs/random.rs.md",
+                "file": "docs/standard library docs/application.rs.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -102,7 +102,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "docs/standard library docs/random.rs.md",
+                "file": "docs/standard library docs/application.rs.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -125,7 +125,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "docs/standard library docs/random.rs.md"
+                "file": "docs/standard library docs/application.rs.md"
               }
             }
           }
@@ -148,6 +148,9 @@
   },
   "active": "66a91bbf10023e7b",
   "lastOpenFiles": [
+    "docs/standard library docs/io.rs.md",
+    "docs/standard library docs/application.rs.md",
+    "docs/standard library docs/random.rs.md",
     "src/system/std/random.rs~",
     "target/x86_64-CrystalOS/debug/incremental/CrystalOS-3u2m7vf43mho9/s-gpbbzwrvu5-1u8ini4-working/dep-graph.part.bin",
     "target/x86_64-CrystalOS/debug/incremental/CrystalOS-3u2m7vf43mho9/s-gpbbzwrvu5-1u8ini4-working/zul1rjeojuld5ix.o",
@@ -158,10 +161,6 @@
     "target/x86_64-CrystalOS/debug/incremental/CrystalOS-3u2m7vf43mho9/s-gpbbzwrvu5-1u8ini4-working/xt0etcnzycl3z0h.o",
     "target/x86_64-CrystalOS/debug/incremental/CrystalOS-3u2m7vf43mho9/s-gpbbzwrvu5-1u8ini4-working/xaip1tz6tun888.o",
     "target/x86_64-CrystalOS/debug/incremental/CrystalOS-3u2m7vf43mho9/s-gpbbzwrvu5-1u8ini4-working/wv8eny5rk6dji78.o",
-    "target/x86_64-CrystalOS/debug/incremental/CrystalOS-3u2m7vf43mho9/s-gpbbzwrvu5-1u8ini4-working/work-products.bin",
-    "docs/standard library docs/application.rs.md",
-    "docs/standard library docs/random.rs.md",
-    "docs/standard library docs/io.rs.md",
     "docs/main.md",
     "docs/crystal-api.md",
     "docs/Untitled.md",
