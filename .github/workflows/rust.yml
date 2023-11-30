@@ -12,10 +12,13 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container:
-      image: ghcr.io/fantasypvp/crystalos_builder:latest
-      credentials:
-        username: FantasyPvP
-        password: ${{ secrets.DOCKER_CONTAINER_REGISTRY_TOKEN }}
     steps:
-      - run: cargo build --release
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+
+    - name: Build Docker Image
+      run: docker build -t crystal-os .
+
+    - name: Run Build in Docker Container
+      run: docker run --rm crystal-os

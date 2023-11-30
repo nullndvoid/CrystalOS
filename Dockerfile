@@ -20,3 +20,5 @@ RUN cargo install bootimage
 COPY . .
 
 RUN cargo update -p proc-macro2
+
+CMD ["cargo", "build", "--release", "--verbose"]
