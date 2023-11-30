@@ -258,6 +258,7 @@ async fn setup_ui() {
         String::from("test label"),
         Position::new(1, 1),
         40,
+        false,
     ));
 
     let textbox = Widget::insert(CgTextBox::new(

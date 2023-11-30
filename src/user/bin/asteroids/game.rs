@@ -12,7 +12,7 @@ use crate::std::frame::{Position, Dimensions, RenderError, Frame, ColouredChar};
 use crate::std::io::{Color, ColorCode, KeyStroke, Screen, Stdin};
 use crate::std::random::Random;
 use crate::user::lib::libgui::cg_core::{CgComponent, Widget};
-use crate::user::lib::libgui::cg_widgets::{CgContainer, CgIndicatorWidget};
+use crate::user::lib::libgui::cg_widgets::{CgContainer, CgIndicatorWidget, CgLabel};
 
 #[derive(Clone)]
 pub struct Player {
@@ -33,6 +33,9 @@ pub struct Game {
 	pub player: Player,
 	pub enemies: Vec<Enemy>,
 	pub score: u32,
+	pub hit: bool,
+	pub difficulty_idx: u8,
+	pub gamespeed: f64,
 }
 
 #[async_trait]
@@ -41,7 +44,10 @@ impl Application for Game {
 		Self {
 			player: Player::new(),
 			enemies: Vec::new(),
-			score: 0
+			score: 0,
+			hit: false,
+			difficulty_idx: 1,
+			gamespeed: 1.0,
 		}
 	}
 	async fn run(&mut self, args: Vec<String>) -> Result<(), Error> {
@@ -55,23 +61,55 @@ impl Application for Game {
 			true,
 		);
 
+		let score_label = Widget::insert(CgLabel::new(
+			String::new(),
+			Position::new(1, 1),
+			78,
+			true,
+		));
+
 		let self_ref = Widget::insert(self.clone());
 		container_data.insert("app", self_ref);
+		container_data.insert("score_label", score_label);
 		let self_ref = container_data.fetch("app").unwrap();
+		let score_ref = container_data.fetch("score_label").unwrap();
 
 		loop {
-			std::time::wait(0.1);
+			match self.score {
+				0..=9 => { self.gamespeed = 1.0; self.difficulty_idx = 1 },
+				10..=24 => { self.gamespeed = 2.0; self.difficulty_idx = 2 },
+				25..=49 => { self.gamespeed = 3.0; self.difficulty_idx = 3 },
+				50..=99 => { self.gamespeed = 4.0; self.difficulty_idx = 4 },
+				100..=199 => { self.gamespeed = 5.0; self.difficulty_idx = 5 },
+				_ => self.gamespeed = 10.0,
+			};
+
+			std::time::wait(0.2 / self.gamespeed);
 
 			spawn_timer += 1;
 
 			if spawn_timer >= 8 {
 				spawn_timer = 0;
-				self.enemies.push(Enemy::new(Random::int(1, 21)));
+				self.new_enemy();
 			}
 
-			self.enemies.retain(|e| {if e.position.x <= 0 {self.score += 1; false } else { true }});
+			self.enemies.iter().for_each(|e| {
+
+			});
+
+			self.enemies.retain(|e| {
+				if e.position.y == self.player.position.y && (0..5).map(|i| e.position.x + i).collect::<Vec<_>>().contains(&self.player.position.x) {
+					self.player.health -= 1;
+					self.hit = true;
+					false
+				} else if e.position.x <= 0 {
+					self.score += 1;
+					false
+				} else {
+					true
+				}
+			});
 			self.enemies.iter_mut().for_each(|e| e.position.x -= 1);
-			self.enemies.iter().for_each(|e| { if e.position.x == self.player.position.x && e.position.y == self.player.position.y { self.player.health -= 1; } });
 
 			if self.player.health == 0 {
 				break;
@@ -90,9 +128,11 @@ impl Application for Game {
 				}
 			}
 			self_ref.update(self.clone());
+			score_ref.update(CgLabel::new(format!("< Score: {} >", self.score), Position::new(1, 1), 78, true, ));
 			if let Ok(frame) = container_data.render() {
 				frame.write_to_screen().unwrap();
 			}
+			self.hit = false;
 		}
 
 		let mut frame = Frame::new(Dimensions::new(0, 0), Dimensions::new(80, 25)).map_err(|_| ApplicationError("idk".to_string()))?;
@@ -117,22 +157,48 @@ impl Application for Game {
 	}
 }
 
+impl Game {
+	fn new_enemy(&mut self) {
+
+		let enemy_num = match self.difficulty_idx {
+			1 => 1,
+			2 => 2,
+			3 => 3,
+			4 => 5,
+			_ => 7,
+		};
+
+		for _ in 0..enemy_num {
+			self.enemies.push(Enemy::new(Random::int(1, 21)));
+		}
+	}
+}
+
 impl CgComponent for Game {
 	fn render(&self) -> Result<Frame, RenderError> {
-		let mut frame = Frame::new(Dimensions::new(1, 1), Dimensions::new(78, 23))?;
+		let mut frame = Frame::new(Dimensions::new(1, 2), Dimensions::new(78, 22))?;
 
 		let pos = self.player.position;
 
+		let player_colour = match self.hit {
+			true => Color::Red,
+			false => Color::Cyan
+		};
+
 		frame[pos.y][pos.x] = ColouredChar {
 			character: '@',
-			colour: ColorCode::new(Color::Cyan, Color::Black),
+			colour: ColorCode::new(player_colour, Color::Black),
 		};
 
 		for i in self.enemies.iter().map(|enemy| enemy.position).collect::<Vec<Position>>() {
 			frame[i.y][i.x] = ColouredChar {
-				character: '*',
-				colour: ColorCode::new(Color::Red, Color::Black),
-			}
+				character: '<',
+				colour: ColorCode::new(Color::LightGray, Color::Black),
+			};
+			(1..5).for_each(|offset| if i.x + offset < frame.dimensions.x { frame[i.y][i.x + offset] = ColouredChar {
+				character: '=',
+				colour: ColorCode::new(Color::LightGray, Color::Black),
+			}});
 		}
 
 		Ok(frame)

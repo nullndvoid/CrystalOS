@@ -1,2 +1,1 @@
-mod render;
-pub(crate) mod game;
+pub mod game;

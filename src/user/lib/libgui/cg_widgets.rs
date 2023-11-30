@@ -192,14 +192,16 @@ pub struct CgLabel {
     content: String,
     position: Position,
     dimensions: Dimensions,
+    centered: bool,
 }
 
 impl CgLabel {
-    pub fn new(content: String, position: Position, width: usize) -> CgLabel {
+    pub fn new(content: String, position: Position, width: usize, centered: bool) -> CgLabel {
         CgLabel {
             content,
             position: Position::new(position.x, position.y),
             dimensions: Dimensions::new(width, 1),
+            centered,
         }
     }
     pub fn set_text(&mut self, text: String) {
@@ -213,8 +215,22 @@ impl CgComponent for CgLabel {
 
         let shortened_string = self.content.chars().take(self.dimensions.x).collect::<String>();
 
+        let left = if self.centered && self.content.len() < self.dimensions.x {
+            let difference = self.dimensions.x - self.content.len();
+            difference / 2
+        } else {
+            0
+        };
+
+
         for (i, c) in shortened_string.chars().enumerate() {
-            result.write(Position::new(i, 0), ColouredChar::new(c));
+            if i + left >= self.dimensions.x {
+                (0..3).for_each(|z| {
+                    result.write(Position::new(self.dimensions.x - z + left, self.dimensions.y - 1), ColouredChar::new('.'));
+                });
+                break;
+            }
+            result.write(Position::new(i + left, 0), ColouredChar::new(c));
         };
         Ok(result)
     }
