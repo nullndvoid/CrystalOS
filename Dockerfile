@@ -21,4 +21,5 @@ COPY . .
 
 RUN cargo update -p proc-macro2
 
-CMD ["cargo", "build", "--release;", "cargo", "test"]
+CMD ["cargo", "build", "--release"]
+CMD ["cargo", "test"]
