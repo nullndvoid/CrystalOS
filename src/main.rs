@@ -25,10 +25,14 @@ fn panic(info: &PanicInfo) -> ! {
     CrystalOS::test_panic_handler(info)
 }
 
+
 entry_point!(main);
 
 fn main(boot_info: &'static BootInfo) -> ! {
     CrystalOS::start(boot_info);
+
+    #[cfg(test)]
+    test_main();
 
     // runs the 'mainloop' of the OS;
     let mut executor = Executor::new();
@@ -37,8 +41,8 @@ fn main(boot_info: &'static BootInfo) -> ! {
         executor.try_run();
     }
 
-    #[cfg(test)]
-    test_main();
+
 
     loop {}
 }
+

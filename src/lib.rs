@@ -1,6 +1,4 @@
-
 #![no_std]
-
 #![cfg_attr(test, no_main)]
 #![feature(custom_test_frameworks)]
 #![test_runner(crate::test_runner)]
@@ -11,23 +9,42 @@
 #![feature(async_closure)]
 #![feature(global_asm)]
 
+
+use alloc::string::String;
+use alloc::vec;
+use bootloader::{entry_point, BootInfo};
 use core::panic::PanicInfo;
+extern crate alloc;
 
 
 pub mod system;
 pub mod user;
-
 pub use system::std as std;
 pub use user::bin::*;
-
-extern crate alloc;
-//extern crate fatfs;
-
-use bootloader::{entry_point, BootInfo};
+use crate::calc::Calculator;
+use crate::std::application::Application;
 
 
-#[cfg(test)]
-entry_point!(test_kernel_main);
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[repr(u32)]
+pub enum QemuExitCode {
+	Ok = 0x10,
+	Err = 0x11,
+}
+
+pub fn poweroff() {
+	exit(QemuExitCode::Ok);
+}
+
+pub fn exit(code: QemuExitCode) {
+	use x86_64::instructions::port::Port;
+
+	unsafe {
+		let mut port = Port::new(0xf4);
+		port.write(code as u32);
+	}
+	println!("e");
+}
 
 #[alloc_error_handler]
 fn alloc_error_handler(layout: alloc::alloc::Layout) -> ! {
@@ -42,6 +59,17 @@ pub fn hlt() -> ! {
 	loop {
 		x86_64::instructions::hlt();
 	}
+}
+
+
+#[cfg(test)]
+entry_point!(test_kernel_main);
+
+#[cfg(test)]
+fn test_kernel_main(boot_info: &'static BootInfo) -> ! {
+	system::init(boot_info);
+	test_main();
+	hlt();
 }
 
 pub trait Testable {
@@ -71,12 +99,6 @@ pub fn test_panic_handler(info: &PanicInfo) -> ! {
 	hlt();
 }
 
-#[cfg(test)]
-fn test_kernel_main(_boot_info: &'static BootInfo) -> ! {
-	start();
-	test_main();
-	hlt();
-}
 
 #[cfg(test)]
 #[panic_handler]
@@ -84,23 +106,10 @@ fn panic(info: &PanicInfo) -> ! {
 	test_panic_handler(info)
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-#[repr(u32)]
-pub enum QemuExitCode {
-	Ok = 0x10,
-	Err = 0x11,
-}
 
-pub fn poweroff() {
-	exit(QemuExitCode::Ok);
-}
 
-pub fn exit(code: QemuExitCode) {
-	use x86_64::instructions::port::Port;
-
-	unsafe {
-		let mut port = Port::new(0xf4);
-		port.write(code as u32);
-	}
-	println!("e");
+#[cfg(test)]
+#[test_case]
+fn trivial_assertion() {
+	assert_eq!(1, 1);
 }
