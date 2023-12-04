@@ -5,7 +5,7 @@ use x86_64::{
 	PhysAddr
 };
 use bootloader::bootinfo::{MemoryMap, MemoryRegionType};
-use x86_64::structures::paging::OffsetPageTable;
+use x86_64::structures::paging::{mapper, OffsetPageTable};
 
 unsafe fn active_level_4_table(physical_memory_offset: VirtAddr) -> &'static mut PageTable {
 
@@ -72,7 +72,7 @@ unsafe impl FrameAllocator<Size4KiB> for BootInfoFrameAllocator {
 	}
 }
 
-/*
+
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct StackBounds {
@@ -119,7 +119,7 @@ fn reserve_stack_memory(size_in_pages: u64) -> Page {
 pub fn alloc_stack(
 	size_in_pages: u64, mapper: &mut impl Mapper<Size4KiB>,
 	frame_allocator: &mut impl FrameAllocator<Size4KiB>
-) -> Result<StackBounds, mapper::MapToError> {
+) -> Result<StackBounds, mapper::MapToError<Size4KiB>> {
 	use x86_64::structures::paging::PageTableFlags as Flags;
 
 	let guard_page = reserve_stack_memory(size_in_pages + 1);
@@ -127,9 +127,10 @@ pub fn alloc_stack(
 	let stack_end = stack_start + size_in_pages;
 
 	for page in Page::range(stack_start, stack_end) {
-		let frame = frame_allocator.allocate_frame().ok_or(mapper.MapToError::FrameAllocatorFailed)?;
+		let frame = frame_allocator.allocate_frame().ok_or(mapper::MapToError::FrameAllocationFailed)?;
 		let flags = Flags::PRESENT | Flags::WRITABLE;
-		mapper.map_to(page, frame, flags, frame_allocator)?.flush();
+
+		unsafe { mapper.map_to(page, frame, flags, frame_allocator)?.flush() };
 	}
 
 	Ok(StackBounds {
@@ -137,4 +138,4 @@ pub fn alloc_stack(
 		end: stack_end.start_address(),
 	})
 }
-*/
+

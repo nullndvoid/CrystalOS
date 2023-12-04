@@ -126,7 +126,7 @@ async fn exec() -> Result<(), Error> {
             game.run(args).await?;
         }
         "asteroids" => {
-            let mut asteroid_game = asteroids::game::Game::new();
+            let mut asteroid_game = asteroids::Game::new();
             asteroid_game.run(args).await?;
         }
         "serial" => {

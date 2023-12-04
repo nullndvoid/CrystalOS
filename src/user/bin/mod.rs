@@ -11,3 +11,4 @@ mod grapher;
 mod gameoflife;
 mod tetris;
 mod asteroids;
+mod crystalrpg;

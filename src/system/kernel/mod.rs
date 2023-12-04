@@ -7,3 +7,4 @@ pub mod tasks;
 pub mod sysinit;
 pub mod authenticator;
 pub mod render;
+pub mod multitasking;
