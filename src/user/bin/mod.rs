@@ -12,3 +12,4 @@ mod gameoflife;
 mod tetris;
 mod asteroids;
 mod crystalrpg;
+mod pong;

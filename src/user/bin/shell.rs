@@ -18,6 +18,7 @@ use crate::user::lib::libgui::{
     cg_inputs::CgLineEdit,
 };
 use crate::user::lib::libgui::cg_core::{CgTextInput, Widget};
+use crate::user::lib::libgui::cg_widgets::CgDialog;
 
 lazy_static! {
     pub static ref CMD: Mutex<CommandHandler> = Mutex::new(CommandHandler::new());
@@ -253,6 +254,18 @@ struct CmdHistory {
 }
 
 async fn setup_ui() {
+    let dialog = CgDialog::new(
+        Dimensions::new(40, 10),
+        String::from("test dialog"),
+        String::from("dialog body"),
+        String::from("[dialog footer]")
+    );
+
+    if let Ok(frame) = dialog.render() {
+        frame.write_to_screen().unwrap();
+    }
+    return;
+
     serial_println!("idk");
     let label= Widget::insert(CgLabel::new(
         String::from("test label"),

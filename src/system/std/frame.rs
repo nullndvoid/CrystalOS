@@ -1,7 +1,7 @@
 use alloc::string::String;
 use alloc::vec;
 use alloc::vec::Vec;
-use crate::system::kernel::render::{BUFFER_HEIGHT, BUFFER_WIDTH, RENDERER, ScreenChar};
+use crate::system::kernel::render::{RENDERER, ScreenChar};
 use crate::std::io::{Color, Screen};
 
 /// TODO: get a working implementation for CLI apps
@@ -12,7 +12,13 @@ use crate::std::io::{Color, Screen};
 /// nothing will appear on the screen until the frame is actually rendered by
 /// the write_to_screen() method on the renderer
 
-pub use crate::system::kernel::render::{special_char, RenderError, ColorCode};
+pub use crate::system::kernel::render::{
+    special_char,
+    RenderError,
+    ColorCode,
+    BUFFER_WIDTH,
+    BUFFER_HEIGHT
+};
 
 
 #[derive(Clone, Copy, Debug, PartialEq)]

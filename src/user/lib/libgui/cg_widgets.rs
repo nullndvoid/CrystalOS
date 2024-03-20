@@ -6,7 +6,8 @@ use core::cmp::{max, min};
 use hashbrown::HashMap;
 use crate::serial_println;
 use super::cg_core::{CgComponent, CgOutline, Widget};
-use crate::std::frame::{ColouredChar, Dimensions, Position, Frame, RenderError, ColorCode};
+use super::cg_utils::render_outline;
+use crate::std::frame::{ColouredChar, Dimensions, Position, Frame, RenderError, ColorCode, BUFFER_WIDTH, BUFFER_HEIGHT};
 use crate::std::io::Color;
 
 #[derive(Debug, Clone)]
@@ -33,29 +34,6 @@ impl CgContainer {
         self.elements.get(name)
     }
 }
-
-impl CgOutline for CgContainer {
-    fn render_outline(&self, frame: &mut Frame) {
-        // draws the sides of the container
-        for i in 0..frame.dimensions.x {
-            frame.write(Position::new(i, 0), ColouredChar::new('─'));
-            frame.write(Position::new(i, frame.dimensions.y - 1), ColouredChar::new('─'));
-        }
-
-        // draws the top and bottom of the container
-        for i in 0..frame.dimensions.y {
-            frame.write(Position::new(0, i), ColouredChar::new('│'));
-            frame.write(Position::new(frame.dimensions.x - 1, i), ColouredChar::new('│'));
-        }
-
-        // draws the corners of the container
-        frame.write(Position::new(0, 0), ColouredChar::new('┌'));
-        frame.write(Position::new(self.dimensions.x - 1, 0), ColouredChar::new('┐'));
-        frame.write(Position::new(0, self.dimensions.y - 1), ColouredChar::new('└'));
-        frame.write(Position::new(self.dimensions.x - 1, self.dimensions.y - 1), ColouredChar::new('┘'));
-    }
-}
-
 impl CgComponent for CgContainer {
     fn render(&self) -> Result<Frame, RenderError> {
         let mut result = Frame::new(self.position, self.dimensions)?;
@@ -68,7 +46,7 @@ impl CgComponent for CgContainer {
         }
 
         if self.outlined {
-            self.render_outline(&mut result);
+            render_outline(&mut result, self.dimensions.clone());
         }
 
         Ok(result)
@@ -115,7 +93,7 @@ impl CgComponent for CgTextBox {
         let mut result = Frame::new(self.position, self.dimensions)?;
 
         if self.outlined {
-            self.render_outline(&mut result);
+            render_outline(&mut result, self.dimensions.clone());
         }
 
         self.render_title(&mut result);
@@ -160,32 +138,6 @@ impl CgComponent for CgTextBox {
         self
     }
 }
-
-
-impl CgOutline for CgTextBox {
-    fn render_outline(&self, frame: &mut Frame) {
-        // draws the sides of the container
-        for i in 0..frame.dimensions.x {
-            frame.write(Position::new(i, 0), ColouredChar::new('─'));
-            frame.write(Position::new(i, frame.dimensions.y - 1), ColouredChar::new('─'));
-        }
-
-        // draws the top and bottom of the container
-        for i in 0..frame.dimensions.y {
-            frame.write(Position::new(0, i), ColouredChar::new('│'));
-            frame.write(Position::new(frame.dimensions.x - 1, i), ColouredChar::new('│'));
-        }
-
-        // draws the corners of the container
-        frame.write(Position::new(0, 0), ColouredChar::new('┌'));
-        frame.write(Position::new(self.dimensions.x - 1, 0), ColouredChar::new('┐'));
-        frame.write(Position::new(0, self.dimensions.y - 1), ColouredChar::new('└'));
-        frame.write(Position::new(self.dimensions.x - 1, self.dimensions.y - 1), ColouredChar::new('┘'));
-    }
-}
-
-
-
 
 #[derive(Debug, Clone)]
 pub struct CgLabel {
@@ -349,7 +301,7 @@ impl CgComponent for CgStatusBar {
     fn render(&self) -> Result<Frame, RenderError> {
         let mut frame = Frame::new(self.position, self.dimensions)?;
 
-        (0..80).for_each(|x| frame[0][x] = ColouredChar::coloured(' ', ColorCode::new(Color::Black, Color::DarkGray)));
+        (0..BUFFER_WIDTH).for_each(|x| frame[0][x] = ColouredChar::coloured(' ', ColorCode::new(Color::Black, Color::DarkGray)));
 
         // render window title centred
         let mut window_title = self.window_title.render()?;
@@ -393,10 +345,54 @@ impl CgStatusBar {
     }
 }
 
+enum CgDialogType {
+    Information,
+    Confirmation,
+}
 
+pub struct CgDialog {
+    dimensions: Dimensions,
+    title: String,
+    content: String,
+    button_text: String,
+    accepted: bool,
+    outlined: bool,
+}
 
+impl CgDialog {
+    pub(crate) fn new(dimensions: Dimensions, title: String, content: String, button_text: String) -> CgDialog {
+        CgDialog {
+            dimensions,
+            title,
+            content,
+            button_text,
+            accepted: false,
+            outlined: true,
+        }
+    }
+}
 
+impl CgComponent for CgDialog {
+    fn render(&self) -> Result<Frame, RenderError> {
+        if self.dimensions.x > BUFFER_WIDTH || self.dimensions.y > BUFFER_HEIGHT {
+            return Err(RenderError::OutOfBounds(self.dimensions.x > BUFFER_WIDTH, self.dimensions.y > BUFFER_HEIGHT));
+        }
+        let x_offset = (BUFFER_WIDTH - self.dimensions.x) / 2;
+        let y_offset = (BUFFER_HEIGHT - self.dimensions.y) / 2;
 
+        let mut frame = Frame::new(Position::new(x_offset, y_offset), Dimensions::new(self.dimensions.x, self.dimensions.y))?;
+
+        if self.outlined {
+            render_outline(&mut frame, self.dimensions);
+        }
+
+        Ok(frame)
+    }
+
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
+}
 
 
 

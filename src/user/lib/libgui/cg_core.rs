@@ -29,7 +29,6 @@ pub trait CgComponent: Any {
 	fn as_any(&self) -> &dyn Any;
 }
 
-
 /// trait for components that can have editable text, such as search boxes, command palettes, terminals, text inputs etc.
 pub trait CgTextEdit: CgComponent {
 	fn write_char(&mut self, c: char); // this can also be implemented in a way that inserts characters
@@ -43,7 +42,10 @@ pub trait CgTextInput: CgTextEdit {
 	async fn input(&mut self, break_condition: fn(KeyStroke) -> (KeyStroke, Exit), id: &Widget, app: &Widget) -> Result<(String, bool), RenderError>;
 }
 
-
+#[async_trait]
+pub trait CgKeyboardCapture: CgComponent {
+	async fn keyboard_capture(&mut self, break_condition: fn(KeyStroke) -> (KeyStroke, Exit), app: Option<&Widget>) -> Result<bool, RenderError>;
+}
 
 static ID_COUNTER: Mutex<usize> = Mutex::new(0);
 
