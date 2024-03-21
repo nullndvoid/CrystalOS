@@ -55,8 +55,8 @@ impl Application for CrystalFetch {
 " [   OS      »  {}
  [   BUILD   »  {}
  [   Shell   »  CrySH
- [   Github  »  https://github.com/FantasyPvP/CrystalOS-Restructured
- [   Author  »  FantasyPvP / ZXQ5", os, version);
+ [   Github  »  https://github.com/FantasyPvP/CrystalOS
+ [   Author  »  ZXQ5", os, version);
 
 		// write to output
 		let spacer = "\n".repeat(25 - logo_string.lines().count() - 4 - info_string.lines().count());

@@ -8,6 +8,7 @@
 #![feature(async_fn_in_trait)]
 #![feature(async_closure)]
 #![feature(global_asm)]
+#![feature(inherent_associated_types)]
 
 
 use alloc::string::String;

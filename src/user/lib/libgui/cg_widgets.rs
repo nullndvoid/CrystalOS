@@ -3,12 +3,14 @@ use alloc::fmt::format;
 use alloc::string::ToString;
 use core::any::Any;
 use core::cmp::{max, min};
+use async_trait::async_trait;
 use hashbrown::HashMap;
 use crate::serial_println;
-use super::cg_core::{CgComponent, CgOutline, Widget};
+use crate::std::application::Exit;
+use super::cg_core::{CgComponent, CgKeyboardCapture, CgOutline, Widget};
 use super::cg_utils::render_outline;
 use crate::std::frame::{ColouredChar, Dimensions, Position, Frame, RenderError, ColorCode, BUFFER_WIDTH, BUFFER_HEIGHT};
-use crate::std::io::Color;
+use crate::std::io::{Color, KeyStroke, Stdin};
 
 #[derive(Debug, Clone)]
 pub struct CgContainer {
@@ -74,7 +76,7 @@ impl CgTextBox {
     fn render_title(&self, frame: &mut Frame) {
         let title = self.title.chars();
         for (i, c) in title.enumerate() {
-            if i + 2 == self.dimensions.x - 3 { // we dont want to write at the top of the text box
+            if i + 2 == self.dimensions.x - 3 { // we don't want to write at the top of the text box
                 frame.write(Position::new(i + 1, 0), ColouredChar::new('.'));
             } else if i + 2 >= self.dimensions.x - 2 {
                 frame.write(Position::new(i + 1, 0), ColouredChar::new('.'));
@@ -102,7 +104,7 @@ impl CgComponent for CgTextBox {
 
         for word in self.content.split(' ') {
             if self.wrap_words {
-                if word.len() > self.dimensions.x - 2 - x {
+                if word.len() + 1 > 1 + self.dimensions.x - 2 - x {
                     if word.len() <= self.dimensions.x - 2 {
                         x = 1;
                         y += 1;
@@ -345,46 +347,150 @@ impl CgStatusBar {
     }
 }
 
-enum CgDialogType {
+pub enum CgDialogType {
     Information,
     Confirmation,
+    Selection(Vec<String>),
 }
 
 pub struct CgDialog {
-    dimensions: Dimensions,
+    width: usize,
     title: String,
     content: String,
-    button_text: String,
     accepted: bool,
     outlined: bool,
+    dialog_class: CgDialogType,
 }
 
 impl CgDialog {
-    pub(crate) fn new(dimensions: Dimensions, title: String, content: String, button_text: String) -> CgDialog {
+    pub(crate) fn new(title: String, content: String, class: CgDialogType) -> CgDialog {
         CgDialog {
-            dimensions,
+            width: 40,
             title,
             content,
-            button_text,
             accepted: false,
             outlined: true,
+            dialog_class: class,
         }
     }
 }
 
+
+// TODO: make dialogs responsive.
 impl CgComponent for CgDialog {
     fn render(&self) -> Result<Frame, RenderError> {
-        if self.dimensions.x > BUFFER_WIDTH || self.dimensions.y > BUFFER_HEIGHT {
-            return Err(RenderError::OutOfBounds(self.dimensions.x > BUFFER_WIDTH, self.dimensions.y > BUFFER_HEIGHT));
-        }
-        let x_offset = (BUFFER_WIDTH - self.dimensions.x) / 2;
-        let y_offset = (BUFFER_HEIGHT - self.dimensions.y) / 2;
 
-        let mut frame = Frame::new(Position::new(x_offset, y_offset), Dimensions::new(self.dimensions.x, self.dimensions.y))?;
+        // find the size needed for the dialog buttons
+        let dialog_button_width = match &self.dialog_class {
+            CgDialogType::Selection(options) => {
+                options.iter().fold(0, |sum, x| sum + 5 + x.len()) // [ Option ] for each option
+            },
+            CgDialogType::Information => 6, // [ Ok ]
+            CgDialogType::Confirmation => 22  // [ Confirm ] [ Cancel ]
+        };
 
-        if self.outlined {
-            render_outline(&mut frame, self.dimensions);
+        // picks the largest out of the title length, dialog button length and 40 to determine the minimum width of the dialog.
+        let mut width = max(max(self.title.len(), dialog_button_width), 40);
+
+        // we set the base height to 5, assuming the content is none.
+        let mut height = 5;
+
+        // calculate required width and height of textbox based on the size of the content.
+        while self.content.len() as f32 * 1.25 / width as f32 >= BUFFER_HEIGHT as f32 - 8.0 + 1.0 { // the + 1.0 accounts for decimal values being truncated down, ensuring that the max height of 25 can be reached.
+            if width < BUFFER_WIDTH - 4 {
+                width += 1;
+            } else {
+                // in the case that the text does not fit within the dialog
+                // TODO: handle this properly
+                return Err(RenderError::OutOfBounds(true, true));
+            }
+        };
+        height = (self.content.len() as f32 * 1.25 / (width as f32)) as usize;
+
+        // account for borders
+        width += 4;
+        height += 8;
+        
+        // offsets to centre the dialog
+        let x_offset = (BUFFER_WIDTH - width) / 2;
+        let y_offset = (BUFFER_HEIGHT - height) / 2;
+
+        // now that we know the X and Y offsets, we can start to draw the frame
+        let mut frame = Frame::new(Position::new(x_offset, y_offset), Dimensions::new(width, height))?;
+        render_outline(&mut frame, Dimensions::new(width, height));
+
+        
+        // render title
+        let title_offset = (width - self.title.len()) / 2;
+        let title = CgLabel::new(self.title.clone(), Position::new(title_offset, 2), self.title.len(), true);
+        frame.place_child_element(&title.render().unwrap());
+
+
+        let (mut x, mut y) = (2, 5); // top left of the text box
+        for word in self.content.split(' ') {
+            if word.len() + 1 > 1 + width - 4 - x { // adding a +1 on both sides accounts for the possible negative value at the end of the line, avoiding integer underflow.
+                if word.len() <= width - 4 {
+                    x = 2;
+                    y += 1;
+                }
+            }
+
+            for c in format!("{} ", word).chars() {
+                if x >= width - 3 {
+                    x = 2;
+                    y += 1;
+                    if c == ' ' {
+                        continue;
+                    }
+                }
+                if y >= height - 4 {
+                    break;
+                }
+
+                frame.write(Position::new(x, y), ColouredChar::new(c));
+                x += 1;
+            };
         }
+        
+        // dialog buttons
+        match &self.dialog_class {
+            CgDialogType::Information => {
+                let button_x_offset = (width - 6) / 2;
+                "[ Ok ]".chars().enumerate().for_each(|(i, c)| {
+                    frame.write(Position::new(button_x_offset + i, height - 3), ColouredChar {
+                        character: c,
+                        colour: ColorCode::new(Color::Black, Color::White),
+                    });
+                })
+            }
+            CgDialogType::Confirmation => {
+                let button_x_offset = (width - 22) / 2;
+                let button_y_offset = height - 3;
+                "[ Confirm ]".chars().enumerate().for_each(|(i, c)| {
+                    frame.write(Position::new(button_x_offset + i, button_y_offset), ColouredChar {
+                        character: c,
+                        colour: ColorCode::new(Color::Black, Color::White),
+                    });
+                });
+                "[ Cancel ]".chars().enumerate().for_each(|(i, c)| {
+                    frame.write(Position::new(button_x_offset + i, button_y_offset + 1), ColouredChar {
+                        character: c,
+                        colour: ColorCode::new(Color::Black, Color::White),
+                    });
+                });
+            },
+            CgDialogType::Selection(options) => {
+                let button_string = options.iter().map(|option| format!("[ {} ] ", option)).collect::<String>();
+                let button_x_offset = (width - button_string.len()) / 2;
+                button_string.chars().enumerate().for_each(|(i, c)| {
+                    frame.write(Position::new(button_x_offset + i, height - 3), ColouredChar {
+                        character: c,
+                        colour: ColorCode::new(Color::Black, Color::White),
+                    });
+                })
+            }
+        };
+        
 
         Ok(frame)
     }
@@ -394,8 +500,28 @@ impl CgComponent for CgDialog {
     }
 }
 
+#[async_trait]
+impl CgKeyboardCapture for CgDialog {
+    async fn keyboard_capture(&mut self, break_condition: fn(KeyStroke) -> (KeyStroke, Exit), app: Option<&Widget>) -> Result<bool, RenderError> {
+        loop {
+            let k = break_condition(Stdin::keystroke().await);
+            serial_println!("captured: {:?}", k.0);
+            match k { 
+                (KeyStroke::Char('\n'), _) => {
+                    return Ok(true)
+                },
+                _ => {}
+            }
+        }
+    }
+}
 
+impl CgDialog {
+    pub type Type = CgDialogType;
 
+    fn dynamic_layout(&mut self) {
+    }
+}
 
 
 

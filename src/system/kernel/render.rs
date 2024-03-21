@@ -52,6 +52,7 @@ pub struct ScreenChar {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum RenderError {
     OutOfBounds(bool, bool), // (bool, bool) refers to x and y respectively
+    TooSmall,
     InvalidCharacter,
     InvalidColour,
     InvalidRenderMode,

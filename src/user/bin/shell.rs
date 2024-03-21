@@ -10,6 +10,7 @@ use crate::{print, printerr, println, serial_println, std, std::application::{Ap
 use crate::std::frame::{Dimensions, Position, ColorCode};
 use crate::std::io::{Color, write, Screen, Stdin, Serial, KeyStroke};
 use crate::std::random::Random;
+use crate::std::time::timer;
 use crate::user::bin::gigachad_detector::GigachadDetector;
 use crate::user::bin::grapher::Grapher;
 use crate::user::lib::libgui::{
@@ -17,8 +18,8 @@ use crate::user::lib::libgui::{
     cg_widgets::{CgTextBox, CgContainer, CgIndicatorBar, CgIndicatorWidget, CgLabel, CgStatusBar},
     cg_inputs::CgLineEdit,
 };
-use crate::user::lib::libgui::cg_core::{CgTextInput, Widget};
-use crate::user::lib::libgui::cg_widgets::CgDialog;
+use crate::user::lib::libgui::cg_core::{CgKeyboardCapture, CgTextInput, Widget};
+use crate::user::lib::libgui::cg_widgets::{CgDialog, CgDialogType};
 
 lazy_static! {
     pub static ref CMD: Mutex<CommandHandler> = Mutex::new(CommandHandler::new());
@@ -254,17 +255,23 @@ struct CmdHistory {
 }
 
 async fn setup_ui() {
-    let dialog = CgDialog::new(
-        Dimensions::new(40, 10),
-        String::from("test dialog"),
-        String::from("dialog body"),
-        String::from("[dialog footer]")
+    let exit = |x: KeyStroke| { match x {
+        KeyStroke::Char('`') => (KeyStroke::None, Exit::Exit),
+        _ => (x, Exit::None),
+    }};
+
+    let mut dialog = CgDialog::new(
+        String::from("i'd just like to interject for a moment"),
+        String::from("The kernel is an essential part of an operating system, but useless by itself; it can only function in the context of a complete operating system. Linux is normally used in combination with the GNU operating system: the whole system is basically GNU with Linux added, or GNU/Linux. All the so-called Linux distributions are really distributions of GNU/Linux!"),
+        // CgDialog::Type::Selection(vec![String::from("Shut Up Nerd"), String::from("Ok Boomer"), String::from("Nice")]),
+        CgDialogType::Information
     );
 
     if let Ok(frame) = dialog.render() {
         frame.write_to_screen().unwrap();
     }
-    return;
+    dialog.keyboard_capture(exit, None).await.unwrap();
+    
 
     serial_println!("idk");
     let label= Widget::insert(CgLabel::new(
@@ -276,7 +283,7 @@ async fn setup_ui() {
 
     let textbox = Widget::insert(CgTextBox::new(
         String::from("i'd just like to interject for a moment"),
-        String::from("I'd just like to interject for a moment. What you're refering to as Linux, is in fact, GNU/Linux, or as I've recently taken to calling it, GNU plus Linux. Linux is not an operating system unto itself, but rather another free component of a fully functioning GNU system made useful by the GNU corelibs, shell utilities and vital system components comprising a full OS as defined by POSIX. Many computer users run a modified version of the GNU system every day, without realizing it. Through a peculiar turn of events, the version of GNU which is widely used today is often called Linux, and many of its users are not aware that it is basically the GNU system, developed by the GNU Project. There really is a Linux, and these people are using it, but it is just a part of the system they use. Linux is the kernel: the program in the system that allocates the machine's resources to the other programs that you run. The kernel is an essential part of an operating system, but useless by itself; it can only function in the context of a complete operating system. Linux is normally used in combination with the GNU operating system: the whole system is basically GNU with Linux added, or GNU/Linux. All the so-called Linux distributions are really distributions of GNU/Linux!"),
+        String::from("I'd just like to interject for a moment. What you're referring to as Linux, is in fact, GNU/Linux, or as I've recently taken to calling it, GNU plus Linux. Linux is not an operating system unto itself, but rather another free component of a fully functioning GNU system made useful by the GNU corelibs, shell utilities and vital system components comprising a full OS as defined by POSIX. Many computer users run a modified version of the GNU system every day, without realizing it. Through a peculiar turn of events, the version of GNU which is widely used today is often called Linux, and many of its users are not aware that it is basically the GNU system, developed by the GNU Project. There really is a Linux, and these people are using it, but it is just a part of the system they use. Linux is the kernel: the program in the system that allocates the machine's resources to the other programs that you run. The kernel is an essential part of an operating system, but useless by itself; it can only function in the context of a complete operating system. Linux is normally used in combination with the GNU operating system: the whole system is basically GNU with Linux added, or GNU/Linux. All the so-called Linux distributions are really distributions of GNU/Linux!"),
         Position::new(2, 5),
         Dimensions::new(40, 12),
         true,
@@ -309,10 +316,7 @@ async fn setup_ui() {
     }
 
 
-    let exit = |x: KeyStroke| { match x {
-        KeyStroke::Char('`') => (KeyStroke::None, Exit::Exit),
-        _ => (x, Exit::None),
-    }};
+    
 
     let container_copy = container.fetch::<CgContainer>().unwrap();
     let entry_ref = container_copy.fetch("textedit").unwrap();
