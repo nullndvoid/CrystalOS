@@ -2,24 +2,35 @@ use async_trait::async_trait;
 use lazy_static::lazy_static;
 use spin::Mutex;
 
-use alloc::{boxed::Box, string::{String, ToString}, vec, vec::Vec};
+use alloc::{boxed::Box, format, string::{String, ToString}, vec, vec::Vec};
 use futures_util::TryFutureExt;
 use vga::writers::{GraphicsWriter, PrimitiveDrawing};
 
-use crate::{print, printerr, println, serial_println, std, std::application::{Application, Error, Exit}, user::bin::*};
-use crate::std::frame::{Dimensions, Position, ColorCode};
-use crate::std::io::{Color, write, Screen, Stdin, Serial, KeyStroke};
-use crate::std::random::Random;
-use crate::std::time::timer;
-use crate::user::bin::gigachad_detector::GigachadDetector;
-use crate::user::bin::grapher::Grapher;
-use crate::user::lib::libgui::{
-    cg_core::{CgComponent, CgTextEdit},
-    cg_widgets::{CgTextBox, CgContainer, CgIndicatorBar, CgIndicatorWidget, CgLabel, CgStatusBar},
-    cg_inputs::CgLineEdit,
+use crate::{
+    print,
+    printerr,
+    println,
+    serial_println,
 };
-use crate::user::lib::libgui::cg_core::{CgKeyboardCapture, CgTextInput, Widget};
-use crate::user::lib::libgui::cg_widgets::{CgDialog, CgDialogType};
+
+use crate::std::{
+    application::{Application, Error, Exit},
+    time::{timer, wait},
+    random::Random,
+    io::{
+        Color, write, Screen, Stdin, Serial, KeyStroke
+    },
+    frame::{Dimensions, Position, ColorCode},
+};
+
+use crate::user::{
+    lib::libgui::{
+        cg_core::{CgComponent, CgTextEdit, CgKeyboardCapture, CgTextInput, Widget},
+        cg_widgets::{CgTextBox, CgContainer, CgLabel, CgStatusBar, CgDialog},
+        cg_inputs::CgLineEdit,
+    },
+    bin::*,
+};
 
 lazy_static! {
     pub static ref CMD: Mutex<CommandHandler> = Mutex::new(CommandHandler::new());
@@ -120,12 +131,10 @@ async fn exec() -> Result<(), Error> {
             mode.draw_line((80, 60), (80, 420), Color16::Cyan);
         }
         "graph" => {
-            let mut grapher = Grapher::new();
-            grapher.run(args).await?;
+            grapher::Grapher::new().run(args).await?;
         }
         "snake" => {
-            let mut game = snake::Game::new();
-            game.run(args).await?;
+            snake::Game::new().run(args).await?;
         }
         "asteroids" => {
             let mut asteroid_game = asteroids::Game::new();
@@ -145,13 +154,11 @@ async fn exec() -> Result<(), Error> {
         }
 
         "gigachad?" => {
-            let mut gigachad_detector = GigachadDetector::new();
-            gigachad_detector.run(args).await?;
+            let mut detector = gigachad_detector::GigachadDetector::new();
+            detector.run(args).await?;
         }
 
         "wait" => {
-            use std::time::wait;
-
             if args.len() != 1 {
                 return Err(Error::CommandFailed("exactly one argument must be provided".to_string()))
             }
@@ -260,77 +267,90 @@ async fn setup_ui() {
         _ => (x, Exit::None),
     }};
 
+    let options = vec![String::from("Nerd Detected"), String::from("Ok Boomer"), String::from("Idefksda")];
+
     let mut dialog = CgDialog::new(
         String::from("i'd just like to interject for a moment"),
         String::from("The kernel is an essential part of an operating system, but useless by itself; it can only function in the context of a complete operating system. Linux is normally used in combination with the GNU operating system: the whole system is basically GNU with Linux added, or GNU/Linux. All the so-called Linux distributions are really distributions of GNU/Linux!"),
-        // CgDialog::Type::Selection(vec![String::from("Shut Up Nerd"), String::from("Ok Boomer"), String::from("Nice")]),
-        CgDialogType::Information
+        CgDialog::Type::Selection(options.clone()),
+        // CgDialogType::Information
+        // CgDialogType::Confirmation
+    );
+
+    if let Ok(frame) = dialog.render() {
+        frame.write_to_screen().unwrap();
+    }
+    let (_, x) = dialog.keyboard_capture(exit, None).await.unwrap();
+
+    let mut dialog = CgDialog::new(
+        String::from("i'd just like to interject for a moment"),
+        format!("Your response was [{}]", options[x]),
+        CgDialog::Type::Information,
     );
 
     if let Ok(frame) = dialog.render() {
         frame.write_to_screen().unwrap();
     }
     dialog.keyboard_capture(exit, None).await.unwrap();
-    
-
-    serial_println!("idk");
-    let label= Widget::insert(CgLabel::new(
-        String::from("test label"),
-        Position::new(1, 1),
-        40,
-        false,
-    ));
-
-    let textbox = Widget::insert(CgTextBox::new(
-        String::from("i'd just like to interject for a moment"),
-        String::from("I'd just like to interject for a moment. What you're referring to as Linux, is in fact, GNU/Linux, or as I've recently taken to calling it, GNU plus Linux. Linux is not an operating system unto itself, but rather another free component of a fully functioning GNU system made useful by the GNU corelibs, shell utilities and vital system components comprising a full OS as defined by POSIX. Many computer users run a modified version of the GNU system every day, without realizing it. Through a peculiar turn of events, the version of GNU which is widely used today is often called Linux, and many of its users are not aware that it is basically the GNU system, developed by the GNU Project. There really is a Linux, and these people are using it, but it is just a part of the system they use. Linux is the kernel: the program in the system that allocates the machine's resources to the other programs that you run. The kernel is an essential part of an operating system, but useless by itself; it can only function in the context of a complete operating system. Linux is normally used in combination with the GNU operating system: the whole system is basically GNU with Linux added, or GNU/Linux. All the so-called Linux distributions are really distributions of GNU/Linux!"),
-        Position::new(2, 5),
-        Dimensions::new(40, 12),
-        true,
-    ));
-
-    let textedit = Widget::insert(CgLineEdit::new(
-        Position::new(10, 20),
-        60,
-        String::from("enter text here >"),
-    ));
-
-    let statusbar = Widget::insert(CgStatusBar::new(Position::new(0, 0), Dimensions::new(80, 1)));
-    let container = Widget::insert({
-        let mut container = CgContainer::new(
-            Position::new(0, 0),
-            Dimensions::new(80, 25),
-            true,
-        );
-        container.insert("textbox", textbox);
-        container.insert("label", label);
-        container.insert("textedit", textedit);
-        container.insert("statusbar", statusbar);
-        container
-    });
-
-    if let Ok(frame) = container.render() {
-        frame.write_to_screen().unwrap();
-    } else {
-        serial_println!("failed to write to screen");
-    }
 
 
-    
-
-    let container_copy = container.fetch::<CgContainer>().unwrap();
-    let entry_ref = container_copy.fetch("textedit").unwrap();
-    let mut entry = entry_ref.fetch::<CgLineEdit>().unwrap();
-
-    while let Ok((string, false)) = entry.input(exit, &entry_ref, &container).await {
-        let textbox_ref = container_copy.fetch("textbox").unwrap();
-        let mut textbox = textbox_ref.fetch::<CgTextBox>().unwrap();
-        textbox.content = string;
-        textbox_ref.update(textbox);
-        if let Ok(frame) = container.render() {
-            frame.write_to_screen().unwrap();
-        }
-    }
+    // let label= Widget::insert(CgLabel::new(
+    //     String::from("test label"),
+    //     Position::new(1, 1),
+    //     40,
+    //     false,
+    // ));
+    //
+    // let textbox = Widget::insert(CgTextBox::new(
+    //     String::from("i'd just like to interject for a moment"),
+    //     String::from("I'd just like to interject for a moment. What you're referring to as Linux, is in fact, GNU/Linux, or as I've recently taken to calling it, GNU plus Linux. Linux is not an operating system unto itself, but rather another free component of a fully functioning GNU system made useful by the GNU corelibs, shell utilities and vital system components comprising a full OS as defined by POSIX. Many computer users run a modified version of the GNU system every day, without realizing it. Through a peculiar turn of events, the version of GNU which is widely used today is often called Linux, and many of its users are not aware that it is basically the GNU system, developed by the GNU Project. There really is a Linux, and these people are using it, but it is just a part of the system they use. Linux is the kernel: the program in the system that allocates the machine's resources to the other programs that you run. The kernel is an essential part of an operating system, but useless by itself; it can only function in the context of a complete operating system. Linux is normally used in combination with the GNU operating system: the whole system is basically GNU with Linux added, or GNU/Linux. All the so-called Linux distributions are really distributions of GNU/Linux!"),
+    //     Position::new(2, 5),
+    //     Dimensions::new(40, 12),
+    //     true,
+    // ));
+    //
+    // let textedit = Widget::insert(CgLineEdit::new(
+    //     Position::new(10, 20),
+    //     60,
+    //     String::from("enter text here >"),
+    // ));
+    //
+    // let statusbar = Widget::insert(CgStatusBar::new(Position::new(0, 0), Dimensions::new(80, 1)));
+    // let container = Widget::insert({
+    //     let mut container = CgContainer::new(
+    //         Position::new(0, 0),
+    //         Dimensions::new(80, 25),
+    //         true,
+    //     );
+    //     container.insert("textbox", textbox);
+    //     container.insert("label", label);
+    //     container.insert("textedit", textedit);
+    //     container.insert("statusbar", statusbar);
+    //     container
+    // });
+    //
+    // if let Ok(frame) = container.render() {
+    //     frame.write_to_screen().unwrap();
+    // } else {
+    //     serial_println!("failed to write to screen");
+    // }
+    //
+    //
+    //
+    //
+    // let container_copy = container.fetch::<CgContainer>().unwrap();
+    // let entry_ref = container_copy.fetch("textedit").unwrap();
+    // let mut entry = entry_ref.fetch::<CgLineEdit>().unwrap();
+    //
+    // while let Ok((string, false)) = entry.input(exit, &entry_ref, &container).await {
+    //     let textbox_ref = container_copy.fetch("textbox").unwrap();
+    //     let mut textbox = textbox_ref.fetch::<CgTextBox>().unwrap();
+    //     textbox.content = string;
+    //     textbox_ref.update(textbox);
+    //     if let Ok(frame) = container.render() {
+    //         frame.write_to_screen().unwrap();
+    //     }
+    // }
 }
 
 

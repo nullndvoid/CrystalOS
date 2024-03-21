@@ -61,7 +61,7 @@ impl Application for Grapher {
 
         if args.len() > 0 {
             let equation: String = args.into_iter().collect();
-            self.graph_equation(equation);
+            self.graph_equation(equation, (0, 0));
 
             if let Ok(frame) = self.render() {
                 frame.write_to_screen().map_err(|_| Error::ApplicationError(String::from("failed to write to screen")))?;
@@ -93,52 +93,58 @@ impl Application for Grapher {
 
             let mut commandresult = String::new();
 
+            let mut offset_x: i64 = 0;
+            let mut offset_y: i64 = 0;
+
+            let mut rerender = true;
+
             while let c = Stdin::keystroke().await {
 
                 let mut entry_widget = container.elements.get("entry_box").unwrap();
                 let mut entry = entry_widget.fetch::<CgLineEdit>().unwrap();
 
+                rerender = true;
                 match c {
                     KeyStroke::Char('\n') => {
                         commandresult = entry.text.iter().collect();
                         entry.clear();
+                        offset_x = 0;
+                        offset_y = 0;
                     },
                     KeyStroke::Char(Stdin::BACKSPACE) => {
+                        rerender = false;
                         entry.backspace()
                     },
                     KeyStroke::Char('`') => {
                         break;
                     }
                     KeyStroke::Char(c) => entry.write_char(c),
-                    KeyStroke::Left => entry.move_cursor(false),
-                    KeyStroke::Right => entry.move_cursor(true),
+                    KeyStroke::Left => offset_x -= 1,
+                    KeyStroke::Right => offset_x += 1,
+                    KeyStroke::Up => offset_y -= 1,
+                    KeyStroke::Down => offset_y += 1,
                     KeyStroke::Alt => break,
-                    _ => {}
+                    _ => {
+                        rerender = false;
+                    }
                 }
 
-                if commandresult.len() > 0 {
+                if commandresult.len() > 0 && rerender {
                     self.reset_frame();
-                    self.graph_equation(commandresult.clone());
-
+                    self.graph_equation(commandresult.clone(), (offset_x, offset_y));
                     let self_widget = container.elements.get("grapher").unwrap();
                     self_widget.update(self.clone());
-
-                    commandresult.clear();
                 }
 
-                serial_println!("{:?}", entry.text);
                 entry_widget.update(entry);
 
                 if let Ok(frame) = container.render() {
 
                     let self_widget = container.elements.get("grapher").unwrap();
                     let self_clone = self_widget.fetch::<Grapher>().unwrap();
-                    serial_println!("{:?}", self_clone.points);
 
                     let entry = container.elements.get("entry_box").unwrap();
                     let entry_clone = entry.fetch::<CgLineEdit>().unwrap();
-                    serial_println!("{:?}", entry_clone.text);
-
 
                     frame.write_to_screen().map_err(|_| Error::ApplicationError(String::from("failed to write to screen")))?;
                 }
@@ -152,7 +158,7 @@ impl Application for Grapher {
 
 impl Grapher {
 
-    fn graph_equation(&mut self, equation: String) {
+    fn graph_equation(&mut self, equation: String, offsets: (i64, i64)) {
 
         let cal = calc::Calculator::new();
         for x in -4000..4000 {
@@ -160,7 +166,7 @@ impl Grapher {
 
             let new_eq = equation.chars().map(|c| {
                 match c {
-                    'x' => format!("({})", x),
+                    'x' => format!("({})", x + offsets.0 as f64),
                     'e' => format!("({})", E),
                     'π' => format!("({})", PI),
                     _ => c.to_string(),
@@ -171,7 +177,7 @@ impl Grapher {
             if let Ok(y) = fx {
                 self.render_point(PointF64 {
                     x,
-                    y,
+                    y: y + offsets.1 as f64,
                 })
             }
         };

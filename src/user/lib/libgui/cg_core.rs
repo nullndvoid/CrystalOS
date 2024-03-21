@@ -44,7 +44,7 @@ pub trait CgTextInput: CgTextEdit {
 
 #[async_trait]
 pub trait CgKeyboardCapture: CgComponent {
-	async fn keyboard_capture(&mut self, break_condition: fn(KeyStroke) -> (KeyStroke, Exit), app: Option<&Widget>) -> Result<bool, RenderError>;
+	async fn keyboard_capture(&mut self, break_condition: fn(KeyStroke) -> (KeyStroke, Exit), app: Option<&Widget>) -> Result<(Exit, usize), RenderError>;
 }
 
 static ID_COUNTER: Mutex<usize> = Mutex::new(0);

@@ -48,6 +48,8 @@ pub enum KeyStroke {
 	Backspace,
 	Left,
 	Right,
+	Up,
+	Down,
 	None,
 	Enter
 }
@@ -66,6 +68,8 @@ impl KeyStroke {
 			KeyCode::Backspace => KeyStroke::Backspace,
 			KeyCode::ArrowLeft => KeyStroke::Left,
 			KeyCode::ArrowRight => KeyStroke::Right,
+			KeyCode::ArrowUp => KeyStroke::Up,
+			KeyCode::ArrowDown => KeyStroke::Down,
 			KeyCode::Enter => KeyStroke::Enter,
 			_ => KeyStroke::None,
 		}

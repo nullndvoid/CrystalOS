@@ -40,28 +40,36 @@ fn factorial(x: f64) -> Result<f64, String> {
 
 fn cos(mut x: f64) -> Result<f64, String> {
     while x > PI {
-        x -= PI;
+        x -= 2.0*PI;
+    }
+    while x < -PI {
+        x += 2.0*PI;
     }
     
     let res = 1.0 - trig_term(x, 2) + trig_term(x, 4) - trig_term(x, 6) + trig_term(x, 8) - trig_term(x, 10);
     if res >= -1.0 && res <= 1.0 {
         Ok(res)
     } else {
-        panic!("something is very wrong with the cos function : {}", res);
+        Ok(res)
+        // panic!("something is very wrong with the cos function : {}", res);
     }
 }
 
 fn sin(mut x: f64) -> Result<f64, String> {
     while x > PI {
-        x -= PI;
+        x -= 2.0*PI;
+    }
+    while x < -PI {
+        x += 2.0*PI;
     }
 
-    
+
     let res = x - trig_term(x, 3) + trig_term(x, 5) - trig_term(x, 7) + trig_term(x, 9) - trig_term(x, 11);
     if res >= -1.0 && res <= 1.0 {
         Ok(res) 
     } else {
-        panic!("something is very wrong with the sin function: {}", res);
+        Ok(res)
+        // panic!("something is very wrong with the sin function: {}", res);
     }
 }
 

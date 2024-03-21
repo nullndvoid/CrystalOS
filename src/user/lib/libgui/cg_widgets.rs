@@ -359,7 +359,8 @@ pub struct CgDialog {
     content: String,
     accepted: bool,
     outlined: bool,
-    dialog_class: CgDialogType,
+    pub dialog_class: CgDialogType,
+    pub selected_idx: usize,
 }
 
 impl CgDialog {
@@ -371,6 +372,7 @@ impl CgDialog {
             accepted: false,
             outlined: true,
             dialog_class: class,
+            selected_idx: 0,
         }
     }
 }
@@ -405,7 +407,7 @@ impl CgComponent for CgDialog {
                 return Err(RenderError::OutOfBounds(true, true));
             }
         };
-        height = (self.content.len() as f32 * 1.25 / (width as f32)) as usize;
+        height = (self.content.len() as f32 * 1.25 / (width as f32)) as usize + 1;
 
         // account for borders
         width += 4;
@@ -426,7 +428,7 @@ impl CgComponent for CgDialog {
         frame.place_child_element(&title.render().unwrap());
 
 
-        let (mut x, mut y) = (2, 5); // top left of the text box
+        let (mut x, mut y) = (2, 4); // top left of the text box
         for word in self.content.split(' ') {
             if word.len() + 1 > 1 + width - 4 - x { // adding a +1 on both sides accounts for the possible negative value at the end of the line, avoiding integer underflow.
                 if word.len() <= width - 4 {
@@ -459,34 +461,50 @@ impl CgComponent for CgDialog {
                 "[ Ok ]".chars().enumerate().for_each(|(i, c)| {
                     frame.write(Position::new(button_x_offset + i, height - 3), ColouredChar {
                         character: c,
-                        colour: ColorCode::new(Color::Black, Color::White),
+                        colour: ColorCode::new(Color::Cyan, Color::Black),
                     });
                 })
             }
             CgDialogType::Confirmation => {
-                let button_x_offset = (width - 22) / 2;
-                let button_y_offset = height - 3;
-                "[ Confirm ]".chars().enumerate().for_each(|(i, c)| {
-                    frame.write(Position::new(button_x_offset + i, button_y_offset), ColouredChar {
-                        character: c,
-                        colour: ColorCode::new(Color::Black, Color::White),
-                    });
-                });
-                "[ Cancel ]".chars().enumerate().for_each(|(i, c)| {
-                    frame.write(Position::new(button_x_offset + i, button_y_offset + 1), ColouredChar {
-                        character: c,
-                        colour: ColorCode::new(Color::Black, Color::White),
-                    });
-                });
+                let button_fmt = ["Cancel", "Confirm"]
+                    .iter()
+                    .enumerate()
+                    .map(|(i, s)| {
+                        if i == self.selected_idx {
+                            format!("[{}] ", s).chars().map(|c| ColouredChar {
+                                character: c,
+                                colour: ColorCode::new(Color::Cyan, Color::Black),
+                            }).collect::<Vec<ColouredChar>>()
+                        } else {
+                            format!("[{}] ", s).chars().map(|c| ColouredChar::new(c)).collect()
+                        }
+                    }).flatten()
+                    .collect::<Vec<ColouredChar>>();
+
+                let button_x_offset = (width - button_fmt.len()) / 2;
+                button_fmt.into_iter().enumerate().for_each(|(i, c)| {
+                    frame.write(Position::new(button_x_offset + i, height - 3), c);
+                })
             },
             CgDialogType::Selection(options) => {
-                let button_string = options.iter().map(|option| format!("[ {} ] ", option)).collect::<String>();
-                let button_x_offset = (width - button_string.len()) / 2;
-                button_string.chars().enumerate().for_each(|(i, c)| {
-                    frame.write(Position::new(button_x_offset + i, height - 3), ColouredChar {
-                        character: c,
-                        colour: ColorCode::new(Color::Black, Color::White),
-                    });
+                let button_fmt = options
+                    .iter()
+                    .enumerate()
+                    .map(|(i, s)| {
+                        if i == self.selected_idx {
+                            format!("[{}] ", s).chars().map(|c| ColouredChar {
+                                character: c,
+                                colour: ColorCode::new(Color::Cyan, Color::Black),
+                            }).collect::<Vec<ColouredChar>>()
+                        } else {
+                            format!("[{}] ", s).chars().map(|c| ColouredChar::new(c)).collect()
+                        }
+                    }).flatten()
+                    .collect::<Vec<ColouredChar>>();
+
+                let button_x_offset = (width - button_fmt.len()) / 2;
+                button_fmt.into_iter().enumerate().for_each(|(i, c)| {
+                    frame.write(Position::new(button_x_offset + i, height - 3), c);
                 })
             }
         };
@@ -502,14 +520,46 @@ impl CgComponent for CgDialog {
 
 #[async_trait]
 impl CgKeyboardCapture for CgDialog {
-    async fn keyboard_capture(&mut self, break_condition: fn(KeyStroke) -> (KeyStroke, Exit), app: Option<&Widget>) -> Result<bool, RenderError> {
+    async fn keyboard_capture(&mut self, break_condition: fn(KeyStroke) -> (KeyStroke, Exit), app: Option<&Widget>) -> Result<(Exit, usize), RenderError> {
         loop {
             let k = break_condition(Stdin::keystroke().await);
-            serial_println!("captured: {:?}", k.0);
-            match k { 
-                (KeyStroke::Char('\n'), _) => {
-                    return Ok(true)
+            match k {
+                (_, Exit::Exit) => { // this handles the "exit" keybind given to the function
+                    return Ok((Exit::Exit, 0))
+                }
+                (KeyStroke::Char('\n'), _) => { // return the chosen option
+                    return Ok((Exit::None, self.selected_idx))
                 },
+                (KeyStroke::Left, _) => {
+                    if self.selected_idx > 0 {
+                        self.selected_idx -= 1;
+                        if let Ok(frame) = self.render() {
+                            frame.write_to_screen()?;
+                        }
+                    }
+                }
+                (KeyStroke::Right, _) => {
+                    match &self.dialog_class {
+                        CgDialogType::Information => continue,
+                        CgDialogType::Confirmation => {
+                            if self.selected_idx == 0 {
+                                self.selected_idx += 1;
+                                if let Ok(frame) = self.render() {
+                                    frame.write_to_screen()?;
+                                }
+                            }
+
+                        }
+                        CgDialogType::Selection(options) => {
+                            if self.selected_idx < options.len() - 1 {
+                                self.selected_idx += 1;
+                                if let Ok(frame) = self.render() {
+                                    frame.write_to_screen()?;
+                                }
+                            }
+                        }
+                    }
+                }
                 _ => {}
             }
         }
