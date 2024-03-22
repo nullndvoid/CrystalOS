@@ -1,7 +1,7 @@
 use crate::std::application::Error;
 use crate::std::application::Error::ApplicationError;
 use crate::std::frame::{ColouredChar, Dimensions, Frame, Position, RenderError};
-use crate::std::io::{Color, ColorCode, KeyStroke, Screen, Stdin};
+use crate::std::io::{Color, ColorCode, Display, KeyStroke, Screen, Stdin};
 use crate::std::random::Random;
 use crate::system::std::application::Application;
 use crate::user::lib::libgui::cg_core::{CgComponent, Widget};
@@ -53,7 +53,7 @@ impl Application for Game {
         }
     }
     async fn run(&mut self, args: Vec<String>) -> Result<(), Error> {
-        Screen::Application.set_mode().unwrap();
+        let d = Display::borrow();
 
         let mut container_data =
             CgContainer::new(Position::new(0, 0), Dimensions::new(80, 25), true);
@@ -223,8 +223,6 @@ impl Game {
                 break;
             }
         }
-
-        Screen::Terminal.set_mode().unwrap();
 
         Ok(())
     }

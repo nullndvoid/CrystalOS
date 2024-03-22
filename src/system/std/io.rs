@@ -52,12 +52,12 @@ pub enum Screen {
 /// DEPRECATED - STOP USING THIS SOON
 impl Screen {
     /// mode can be set for the kernel using this method
-    pub fn set_mode(&self) -> Result<(), RenderError> {
-        Ok(match self {
-            Screen::Terminal => RENDERER.lock().terminal_mode(),
-            Screen::Application => RENDERER.lock().application_mode(),
-        })
-    }
+    // pub fn set_mode(&self) -> Result<(), RenderError> {
+    //     Ok(match self {
+    //         Screen::Terminal => RENDERER.lock().terminal_mode(),
+    //         Screen::Application => RENDERER.lock().application_mode(),
+    //     })
+    // }
 
     /// returns the current display mode
     pub fn get_mode() -> Screen {

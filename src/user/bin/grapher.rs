@@ -6,7 +6,7 @@ use core::any::Any;
 use async_trait::async_trait;
 use crate::std::application::{Application, Error};
 use crate::std::frame::{Frame, Position, Dimensions, ColouredChar, RenderError};
-use crate::std::io::{KeyStroke, Screen, Stdin};
+use crate::std::io::{Display, KeyStroke, Screen, Stdin};
 
 use crate::user::lib::libgui::{
     cg_core::{CgComponent},
@@ -49,7 +49,7 @@ impl Application for Grapher {
         }
     }
     async fn run(&mut self, args: Vec<String>) -> Result<(), Error> {
-        Screen::Application.set_mode().map_err(|_| Error::ApplicationError(String::from("failed to set application mode")))?;
+        let d = Display::borrow();
 
         self.frame.frame = vec![vec![ColouredChar::new(' '); self.frame.dimensions.x]; self.frame.dimensions.y];
 
@@ -68,7 +68,6 @@ impl Application for Grapher {
                 }
             }
 
-            Screen::Terminal.set_mode().map_err(|_| Error::ApplicationError(String::from("failed to set terminal mode")))?;
             return Ok(());
         }
         else {
@@ -145,7 +144,6 @@ impl Application for Grapher {
             }
 
         }
-        Screen::Terminal.set_mode().map_err(|_| Error::ApplicationError(String::from("failed to set application mode")))?;
         Ok(())
     }
 }

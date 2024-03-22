@@ -137,7 +137,10 @@ impl Frame {
     }
     pub fn write(&mut self, position: Position, char: ColouredChar) -> Result<(), RenderError> {
         if position.x >= self.dimensions.x || position.y >= self.dimensions.y {
-            return Err(RenderError::OutOfBounds(true, true));
+            return Err(RenderError::OutOfBounds(
+                position.x >= self.dimensions.x,
+                position.y >= self.dimensions.y,
+            ));
         }
         self.frame[position.y][position.x] = char;
         Ok(())

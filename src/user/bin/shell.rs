@@ -16,6 +16,7 @@ use crate::std::{
         Color, write, Screen, Stdin, Serial, KeyStroke
     },
 };
+use crate::std::io::Display;
 
 use crate::user::{
     lib::libgui::{
@@ -181,19 +182,12 @@ async fn exec() -> Result<(), Error> {
             // not sure why this code was here but leaving it in case weird bugs happen so i remember to add it back if so
             //interrupts::without_interrupts(|| {});
         }
-        "switch" => {
-            match Screen::get_mode() {
-                Screen::Terminal => Screen::Application.set_mode().unwrap(),
-                Screen::Application => Screen::Terminal.set_mode().unwrap(),
-            };
-        }
         "time" => {
             timer();
         }
 		"test_features" => {
-            Screen::Application.set_mode().unwrap();
+            let d = Display::borrow();
             setup_ui().await;
-            Screen::Terminal.set_mode().unwrap();
 		}
         _ => {
             return Err(Error::UnknownCommand(
