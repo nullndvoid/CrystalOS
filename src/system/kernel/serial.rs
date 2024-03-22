@@ -25,7 +25,6 @@ pub fn _serial_print(args: core::fmt::Arguments) {
 
 }
 pub fn serial_reply(chr: char) -> char {
-	use core::fmt::Write;
 	use x86_64::instructions::interrupts;
 
 	let mut chr_return: char = 'X';

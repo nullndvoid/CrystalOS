@@ -2,7 +2,6 @@ use alloc::string::String;
 use alloc::vec::Vec;
 use alloc::boxed::Box;
 use core::any::Any;
-use core::task::ready;
 use async_trait::async_trait;
 use crate::std::application::Exit;
 use crate::std::frame::{ColouredChar, Dimensions, Frame, Position, RenderError};
@@ -23,7 +22,7 @@ impl CgLineEdit {
         CgLineEdit {
             position,
             dimensions: Dimensions::new(width, 1),
-            prompt: prompt,
+            prompt,
             text: Vec::new(),
             ptr: 0
         }
@@ -39,24 +38,24 @@ impl CgComponent for CgLineEdit {
             if idx >= self.dimensions.x {
                 break;
             }
-            frame.write(Position::new(idx, 0), ColouredChar::new(c));
+            frame.write(Position::new(idx, 0), ColouredChar::new(c)).unwrap();
             idx += 1
         }
 
         idx += 1; // create a space between the prompt and the text
 
         if idx + self.text.len() > self.dimensions.x {
-            frame.write(Position::new(idx, 0), ColouredChar::new('['));
-            frame.write(Position::new(idx + 1, 0), ColouredChar::new('.'));
-            frame.write(Position::new(idx + 2, 0), ColouredChar::new('.'));
-            frame.write(Position::new(idx + 3, 0), ColouredChar::new('.'));
-            frame.write(Position::new(idx + 4, 0), ColouredChar::new(']'));
+            frame.write(Position::new(idx, 0), ColouredChar::new('[')).unwrap();
+            frame.write(Position::new(idx + 1, 0), ColouredChar::new('.')).unwrap();
+            frame.write(Position::new(idx + 2, 0), ColouredChar::new('.')).unwrap();
+            frame.write(Position::new(idx + 3, 0), ColouredChar::new('.')).unwrap();
+            frame.write(Position::new(idx + 4, 0), ColouredChar::new(']')).unwrap();
             idx += 5
         }
 
 
         self.text.iter().rev().take(self.dimensions.x - idx).rev().for_each(|c| {
-            frame.write(Position::new(idx, 0), ColouredChar::new(*c));
+            frame.write(Position::new(idx, 0), ColouredChar::new(*c)).unwrap();
             idx += 1
         });
 

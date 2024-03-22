@@ -2,17 +2,11 @@ use alloc::string::{String, ToString};
 use alloc::{format, vec};
 use alloc::vec::Vec;
 use alloc::boxed::Box;
-use alloc::fmt::format;
-use alloc::sync::Arc;
 use core::any::Any;
 use async_trait::async_trait;
-use spin::Mutex;
-use crate::{println, serial_println};
-use crate::std::io::{ColorCode};
-use crate::shell::command_handler;
 use crate::std::application::{Application, Error};
-use crate::std::frame::{self, Frame, Position, Dimensions, ColouredChar, RenderError};
-use crate::std::io::{Color, KeyStroke, Screen, Stdin};
+use crate::std::frame::{Frame, Position, Dimensions, ColouredChar, RenderError};
+use crate::std::io::{KeyStroke, Screen, Stdin};
 
 use crate::user::lib::libgui::{
     cg_core::{CgComponent},
@@ -100,7 +94,7 @@ impl Application for Grapher {
 
             while let c = Stdin::keystroke().await {
 
-                let mut entry_widget = container.elements.get("entry_box").unwrap();
+                let entry_widget = container.elements.get("entry_box").unwrap();
                 let mut entry = entry_widget.fetch::<CgLineEdit>().unwrap();
 
                 rerender = true;
@@ -196,7 +190,7 @@ impl Grapher {
 
         let offset_x = point.x + OFFSET_X;
         let offset_y = point.y + OFFSET_Y;
-        self.frame.write(Position::new(offset_x as usize, 21-offset_y as usize), ColouredChar::new('*'));
+        self.frame.write(Position::new(offset_x as usize, 21-offset_y as usize), ColouredChar::new('*')).expect("Failed to write to frame - this function is broken.");
     }
 
     fn reset_frame(&mut self) {

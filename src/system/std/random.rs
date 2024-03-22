@@ -1,6 +1,5 @@
 use alloc::{string::{String, ToString}, vec::Vec};
-use core::ops::Index;
-use rand::{Rng, SeedableRng, rngs::SmallRng, RngCore};
+use rand::{SeedableRng, rngs::SmallRng, RngCore};
 use spin::Mutex;
 use lazy_static::lazy_static;
 use cmos_rtc::{ReadRTC, Time};

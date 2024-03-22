@@ -1,11 +1,12 @@
 use async_trait::async_trait;
 use alloc::{boxed::Box, format, string::String, vec::Vec};
-use log::info;
 
-use crate::{std::os::OS, std::io::{Color, write, Screen}, println, std::application::{
-	Application,
-	Error,
-}, std};
+use crate::std::{
+	os::OS,
+	io::{Color, write, Screen},
+	application::{Application, Error},
+};
+use crate::println;
 
 const CRYSTAL_LOGO: &str =
 	"\n  $$$$$$\\                              $$\\             $$\\ $$$$$$\\  $$$$$$\\

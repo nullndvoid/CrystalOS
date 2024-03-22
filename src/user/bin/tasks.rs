@@ -3,12 +3,11 @@ use crate::std::application::{
 	Application,
 	Error
 };
-use crate::{print, println};
+use crate::println;
 use lazy_static::lazy_static;
 use spin::Mutex;
 use async_trait::async_trait;
 use alloc::{
-	string::ToString,
 	borrow::ToOwned,
 };
 
@@ -101,13 +100,13 @@ println!("\n-------------------------------------");
 
 impl Tasks {
 	fn add_task(&mut self, content: String) {
-		TASKS.lock().add(content);
+		TASKS.lock().add(content).unwrap();
 	}
 	fn remove_task(&self, idx: usize) {
-		TASKS.lock().remove(idx);
+		TASKS.lock().remove(idx).unwrap();
 	}
 	fn select_task(&self, idx: i32) {
-		TASKS.lock().select(idx);
+		TASKS.lock().select(idx).unwrap();
 	}
 }
 

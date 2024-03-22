@@ -5,7 +5,7 @@ use x86_64::instructions::interrupts;
 
 use conquer_once::spin::OnceCell;
 use crossbeam_queue::ArrayQueue;
-use crate::{println, serial_println};
+use crate::println;
 
 use core::{pin::Pin, task::{Poll, Context}};
 use futures_util::stream::Stream;

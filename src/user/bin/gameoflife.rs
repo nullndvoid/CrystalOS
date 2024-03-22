@@ -1,4 +1,3 @@
-use alloc::borrow::ToOwned;
 use alloc::string::String;
 use alloc::vec;
 use alloc::vec::Vec;
@@ -6,9 +5,8 @@ use alloc::boxed::Box;
 use crate::std::application::{Application, Error};
 use async_trait::async_trait;
 use crate::std::frame::{ColouredChar, Frame, Position, Dimensions, RenderError};
-use crate::std::io::{KeyStroke, Screen, Stdin, Color, ColorCode};
+use crate::std::io::{KeyStroke, Stdin, Color, ColorCode, Display};
 use crate::std::time::wait;
-use crate::user::bin::snake::Game;
 
 pub struct GameOfLife {
     frame: Frame
@@ -25,7 +23,7 @@ impl Application for GameOfLife {
     }
     async fn run(&mut self, args: Vec<String>) -> Result<(), Error> {
         // setup:
-        Screen::Application.set_mode();
+        let d = Display::borrow();
 
         let xoffset = 38;
         let yoffset = 5;
@@ -56,7 +54,6 @@ impl Application for GameOfLife {
 
         self.mainloop()?;
 
-        Screen::Terminal.set_mode();
         Ok(())
     }
 }

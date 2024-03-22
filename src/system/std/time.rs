@@ -1,6 +1,3 @@
-use core::time::Duration;
-use embedded_time::{Clock, Timer};
-use cmos_rtc::{ReadRTC, Time};
 use crate::println;
 use super::super::kernel::interrupts::GLOBALTIMER;
 use x86_64::instructions::interrupts;

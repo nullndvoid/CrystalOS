@@ -48,13 +48,15 @@ pub enum Screen {
     Terminal,
     Application,
 }
+
+/// DEPRECATED - STOP USING THIS SOON
 impl Screen {
     /// mode can be set for the kernel using this method
     pub fn set_mode(&self) -> Result<(), RenderError> {
-        match self {
+        Ok(match self {
             Screen::Terminal => RENDERER.lock().terminal_mode(),
             Screen::Application => RENDERER.lock().application_mode(),
-        }
+        })
     }
 
     /// returns the current display mode
@@ -68,15 +70,35 @@ impl Screen {
     /// switches between modes
     pub fn switch(&self) {
         if RENDERER.lock().mode_is_app() == true {
-            RENDERER.lock().terminal_mode().unwrap();
+            RENDERER.lock().terminal_mode();
         } else {
-            RENDERER.lock().application_mode().unwrap();
+            RENDERER.lock().application_mode();
         }
     }
     pub fn clear() {
         RENDERER.lock().clear();
     }
 }
+
+/// An interface that tells the kernel what rendering mode to use
+/// Creating an instance of this struct will enable application rendering mode
+/// Dropping the instance will return the display to focus on the terminal.
+pub struct Display;
+
+impl Display {
+    pub fn borrow() -> Display {
+        RENDERER.lock().application_mode();
+        Display
+    }
+}
+
+impl Drop for Display {
+    fn drop(&mut self) {
+        RENDERER.lock().terminal_mode();
+    }
+}
+
+
 
 
 #[macro_export]

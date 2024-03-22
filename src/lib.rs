@@ -7,12 +7,9 @@
 #![feature(alloc_error_handler)]
 #![feature(async_fn_in_trait)]
 #![feature(async_closure)]
-#![feature(global_asm)]
 #![feature(inherent_associated_types)]
 
 
-use alloc::string::String;
-use alloc::vec;
 use bootloader::{entry_point, BootInfo};
 use core::panic::PanicInfo;
 extern crate alloc;
@@ -23,7 +20,6 @@ pub mod user;
 pub use system::std as std;
 pub use user::bin::*;
 use crate::calc::Calculator;
-use crate::std::application::Application;
 
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

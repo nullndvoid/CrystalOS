@@ -1,19 +1,13 @@
-use alloc::string::{String, ToString};
+use alloc::string::String;
 use alloc::{format, vec, vec::Vec, boxed::Box};
-use alloc::borrow::ToOwned;
-use core::arch::x86_64::_mm_test_all_ones;
-use core::cell::RefCell;
 use async_trait::async_trait;
-use crate::std::io::{Color, KeyStroke, Screen, Stdin};
+use crate::std::io::{Color, Display, KeyStroke, Stdin};
 use crate::std::time;
-use crossbeam_queue::SegQueue;
-use lazy_static::lazy_static;
-use crate::{println, serial_println};
 use crate::std::application::{Application, Error};
 use crate::std::frame::{ColouredChar, Dimensions, Frame, RenderError, ColorCode};
 use crate::std::random::Random;
 use crate::system::std::frame;
-use super::super::lib::coords::{Line, Position, Direction};
+use super::super::lib::coords::{Position, Direction};
 
 #[derive(PartialEq)]
 enum Gamemode {
@@ -53,10 +47,10 @@ impl Application for Game {
 
     async fn run(&mut self, args: Vec<String>) -> Result<(), Error> {
 
-        let mut settings = [0, 0, 0]; // ai_count, snake_len, poi_count
+        let settings = [0, 0, 0]; // ai_count, snake_len, poi_count
 
         if args.len() == 0 {
-            self.gamemode == Gamemode::SinglePlayer;
+            self.gamemode = Gamemode::SinglePlayer;
         } else {
             match args[0].as_str() {
                 "easy" => {
@@ -81,13 +75,11 @@ impl Application for Game {
         self.prepare();
 
         // switch OS to application mode
-        Screen::Application.set_mode();
+        let d = Display::borrow();
         // render the initial state of the screen.
         self.render().map_err(|_| Error::ApplicationError(String::from("failed to render game screen")))?;
         // run the game
         self.gameloop().await?;
-        // return to the terminal
-        Screen::Terminal.set_mode();
         Ok(())
     }
 }
@@ -356,8 +348,6 @@ impl PathFinder {
          //   serial_println!("{:?} {:?} {:?} {:?}", nearest_poi, rel_pos, head, optimal);
             return optimal;
         }
-
-        Direction::None
     }
 
     fn optimal_move(head: &Position, rel_pos: &Position, moves: &Vec<Direction>) -> Direction {

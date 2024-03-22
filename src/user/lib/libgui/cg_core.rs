@@ -1,13 +1,10 @@
 use hashbrown::HashMap;
-use spin::{Mutex, MutexGuard};
-use crate::{printerr, serial_println};
-use crate::std::frame::{ColouredChar, Dimensions, Position, special_char, Frame, RenderError, ColorCode};
+use spin::{Mutex};
+use crate::std::frame::{Frame, RenderError};
 
 use alloc::{
 	boxed::Box,
 	sync::Arc,
-	vec::Vec,
-	vec,
 	string::String,
 };
 use core::any::Any;

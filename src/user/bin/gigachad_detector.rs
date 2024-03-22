@@ -2,8 +2,6 @@ use async_trait::async_trait;
 use alloc::{boxed::Box, string::String, vec::Vec};
 
 use crate::{
-    std::os::OS,
-    std::io::{Color, write},
     println,
     std::application::{
         Application,

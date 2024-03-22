@@ -5,13 +5,10 @@ use alloc::borrow::ToOwned;
 use crate::{println, print,  mknode, std};
 
 use async_trait::async_trait;
-use lazy_static::lazy_static;
 use crate::std::application::{
 	Application,
 	Error as ShellError
 };
-
-
 
 
 struct Parser {

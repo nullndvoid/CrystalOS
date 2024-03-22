@@ -2,7 +2,7 @@ use alloc::string::String;
 use alloc::vec;
 use alloc::vec::Vec;
 use crate::system::kernel::render::{RENDERER, ScreenChar};
-use crate::std::io::{Color, Screen};
+use crate::std::io::Color;
 
 /// TODO: get a working implementation for CLI apps
 /// elements can be created using their from_str() method
@@ -135,8 +135,12 @@ impl Frame {
     pub fn dimensions(&self) -> Dimensions {
         self.dimensions
     }
-    pub fn write(&mut self, position: Position, char: ColouredChar) {
-        self.frame[position.y][position.x] = char
+    pub fn write(&mut self, position: Position, char: ColouredChar) -> Result<(), RenderError> {
+        if position.x >= self.dimensions.x || position.y >= self.dimensions.y {
+            return Err(RenderError::OutOfBounds(true, true));
+        }
+        self.frame[position.y][position.x] = char;
+        Ok(())
     }
     pub fn place_child_element(&mut self, other: &Frame) {
         for (i, row) in other.frame.iter().enumerate() {

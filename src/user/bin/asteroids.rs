@@ -292,13 +292,7 @@ impl GameTimer {
         self.time_since_spawn += 1;
         self.time_since_move += 1;
     }
-
-    pub fn get_spawn_time(&self) -> u32 {
-        self.time_since_spawn
-    }
-    pub fn reset_spawn_time(&mut self) {
-        self.time_since_spawn = 0
-    }
+    
     pub fn get_move_time(&self) -> u32 {
         self.time_since_move
     }

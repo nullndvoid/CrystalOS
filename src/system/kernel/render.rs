@@ -3,12 +3,8 @@ use lazy_static::lazy_static;
 use spin::Mutex;
 use volatile::Volatile;
 
-use alloc::borrow::ToOwned;
 use alloc::vec;
 use alloc::vec::Vec;
-use crate::system::kernel::render::RenderError::InvalidRenderMode;
-use crate::serial_println;
-use crate::std::io::Screen;
 
 #[allow(dead_code)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -137,24 +133,14 @@ impl Renderer {
         self.internal_render();
     }
 
-    pub fn application_mode(&mut self) -> Result<(), RenderError> {
-        if self.application_mode {
-            return Err(InvalidRenderMode);
-        } else {
-            self.application_mode = true;
-            self.internal_render();
-            Ok(())
-        }
+    pub fn application_mode(&mut self) {
+        self.application_mode = true;
+        self.internal_render();
     }
 
-    pub fn terminal_mode(&mut self) -> Result<(), RenderError> {
-        if !self.application_mode {
-            return Err(InvalidRenderMode);
-        } else {
-            self.application_mode = false;
-            self.internal_render();
-            Ok(())
-        }
+    pub fn terminal_mode(&mut self) {
+        self.application_mode = false;
+        self.internal_render();
     }
 
     pub fn mode_is_app(&self) -> bool {
@@ -210,10 +196,10 @@ impl Renderer {
 
     pub fn cursor_position(&mut self, x: u8, y: u8) -> Result<(), RenderError> {
         // check that x and y are within bounds
-        if x >= 80 || x < 0 || y >= 25 || y < 0 {
+        if x >= 80 || y >= 25 {
             return Err(RenderError::OutOfBounds(
-                x >= 80 || x < 0,
-                y >= 25 || y < 0
+                x >= 80,
+                y >= 25
             ))
         }
         self.internal_set_cursor_position(x, y);

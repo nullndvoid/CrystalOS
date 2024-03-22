@@ -1,13 +1,11 @@
-use alloc::{boxed::Box, format, string::String, vec, vec::Vec};
-use alloc::fmt::format;
+use alloc::{boxed::Box, format, string::String, vec::Vec};
 use alloc::string::ToString;
 use core::any::Any;
 use core::cmp::{max, min};
 use async_trait::async_trait;
 use hashbrown::HashMap;
-use crate::serial_println;
 use crate::std::application::Exit;
-use super::cg_core::{CgComponent, CgKeyboardCapture, CgOutline, Widget};
+use super::cg_core::{CgComponent, CgKeyboardCapture, Widget};
 use super::cg_utils::render_outline;
 use crate::std::frame::{ColouredChar, Dimensions, Position, Frame, RenderError, ColorCode, BUFFER_WIDTH, BUFFER_HEIGHT};
 use crate::std::io::{Color, KeyStroke, Stdin};
@@ -48,7 +46,7 @@ impl CgComponent for CgContainer {
         }
 
         if self.outlined {
-            render_outline(&mut result, self.dimensions.clone());
+            render_outline(&mut result, self.dimensions.clone())?;
         }
 
         Ok(result)
@@ -73,17 +71,18 @@ impl CgTextBox {
         CgTextBox { title, content, position, dimensions, outlined, wrap_words: true }
     }
 
-    fn render_title(&self, frame: &mut Frame) {
+    fn render_title(&self, frame: &mut Frame) -> Result<(), RenderError>{
         let title = self.title.chars();
         for (i, c) in title.enumerate() {
             if i + 2 == self.dimensions.x - 3 { // we don't want to write at the top of the text box
-                frame.write(Position::new(i + 1, 0), ColouredChar::new('.'));
+                frame.write(Position::new(i + 1, 0), ColouredChar::new('.'))?;
             } else if i + 2 >= self.dimensions.x - 2 {
-                frame.write(Position::new(i + 1, 0), ColouredChar::new('.'));
+                frame.write(Position::new(i + 1, 0), ColouredChar::new('.'))?;
                 break;
             }
-            frame.write(Position::new(i + 2, 0), ColouredChar::new(c));
-        }
+            frame.write(Position::new(i + 2, 0), ColouredChar::new(c))?;
+        };
+        Ok(())
     }
     pub fn wrap_words(&mut self, wrap: bool) {
         self.wrap_words = wrap;
@@ -95,10 +94,10 @@ impl CgComponent for CgTextBox {
         let mut result = Frame::new(self.position, self.dimensions)?;
 
         if self.outlined {
-            render_outline(&mut result, self.dimensions.clone());
+            render_outline(&mut result, self.dimensions.clone())?;
         }
 
-        self.render_title(&mut result);
+        self.render_title(&mut result)?;
 
         let (mut x, mut y) = (1, 1);
 
@@ -123,13 +122,13 @@ impl CgComponent for CgTextBox {
                 if y == self.dimensions.y - 1 {
                     if c != ' ' {
                         (2..5).for_each(|z| {
-                            result.write(Position::new(self.dimensions.x - z, self.dimensions.y - 1), ColouredChar::new('.'));
+                            result.write(Position::new(self.dimensions.x - z, self.dimensions.y - 1), ColouredChar::new('.')).unwrap();
                         })
                     }
                     break;
                 }
 
-                result.write(Position::new(x, y), ColouredChar::new(c));
+                result.write(Position::new(x, y), ColouredChar::new(c))?;
                 x += 1;
             };
         }
@@ -180,11 +179,11 @@ impl CgComponent for CgLabel {
         for (i, c) in shortened_string.chars().enumerate() {
             if i + left >= self.dimensions.x {
                 (0..3).for_each(|z| {
-                    result.write(Position::new(self.dimensions.x - z + left, self.dimensions.y - 1), ColouredChar::new('.'));
+                    result.write(Position::new(self.dimensions.x - z + left, self.dimensions.y - 1), ColouredChar::new('.')).expect("failed to write");
                 });
                 break;
             }
-            result.write(Position::new(i + left, 0), ColouredChar::new(c));
+            result.write(Position::new(i + left, 0), ColouredChar::new(c))?;
         };
         Ok(result)
     }
@@ -235,7 +234,7 @@ impl CgComponent for CgIndicatorWidget {
 
         let shortened_string = self.content.chars().take(self.max_width).collect::<String>();
         for (i, c) in shortened_string.chars().enumerate() {
-            result.write(Position::new(i, 0), ColouredChar::coloured(c, self.colour));
+            result.write(Position::new(i, 0), ColouredChar::coloured(c, self.colour)).expect("failed to render indicator widget");
         };
 
         Ok(result)
@@ -419,7 +418,9 @@ impl CgComponent for CgDialog {
 
         // now that we know the X and Y offsets, we can start to draw the frame
         let mut frame = Frame::new(Position::new(x_offset, y_offset), Dimensions::new(width, height))?;
-        render_outline(&mut frame, Dimensions::new(width, height));
+        if let Err(e) = render_outline(&mut frame, Dimensions::new(width, height)) {
+            return Err(e);
+        }
 
         
         // render title
@@ -449,7 +450,7 @@ impl CgComponent for CgDialog {
                     break;
                 }
 
-                frame.write(Position::new(x, y), ColouredChar::new(c));
+                frame.write(Position::new(x, y), ColouredChar::new(c)).unwrap();
                 x += 1;
             };
         }
@@ -462,7 +463,7 @@ impl CgComponent for CgDialog {
                     frame.write(Position::new(button_x_offset + i, height - 3), ColouredChar {
                         character: c,
                         colour: ColorCode::new(Color::Cyan, Color::Black),
-                    });
+                    }).expect("failed to write to frame, perhaps buttons were placed wrongly or width too great");
                 })
             }
             CgDialogType::Confirmation => {
@@ -483,7 +484,7 @@ impl CgComponent for CgDialog {
 
                 let button_x_offset = (width - button_fmt.len()) / 2;
                 button_fmt.into_iter().enumerate().for_each(|(i, c)| {
-                    frame.write(Position::new(button_x_offset + i, height - 3), c);
+                    frame.write(Position::new(button_x_offset + i, height - 3), c).expect("failed to write to frame, perhaps buttons were placed wrongly or width too great");
                 })
             },
             CgDialogType::Selection(options) => {
@@ -504,7 +505,7 @@ impl CgComponent for CgDialog {
 
                 let button_x_offset = (width - button_fmt.len()) / 2;
                 button_fmt.into_iter().enumerate().for_each(|(i, c)| {
-                    frame.write(Position::new(button_x_offset + i, height - 3), c);
+                    frame.write(Position::new(button_x_offset + i, height - 3), c).expect("failed to write to frame, perhaps buttons were placed wrongly or width too great");
                 })
             }
         };

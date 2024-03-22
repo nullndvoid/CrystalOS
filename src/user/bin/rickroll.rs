@@ -43,7 +43,7 @@ const RICKROLL2: &str = "
  1a###w#*mObo*oatXkW*oo#*###p       `--'  `---'  `----'      `-----' |  |-'
                                                                      `--'";
 
-use crate::{println, serial_println};
+use crate::println;
 use alloc::{string::String, boxed::Box, vec::Vec};
 
 

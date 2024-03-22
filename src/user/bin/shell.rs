@@ -1,33 +1,26 @@
-use async_trait::async_trait;
 use lazy_static::lazy_static;
 use spin::Mutex;
 
 use alloc::{boxed::Box, format, string::{String, ToString}, vec, vec::Vec};
-use futures_util::TryFutureExt;
-use vga::writers::{GraphicsWriter, PrimitiveDrawing};
+use vga::writers::{PrimitiveDrawing};
 
 use crate::{
-    print,
     printerr,
     println,
-    serial_println,
 };
 
 use crate::std::{
     application::{Application, Error, Exit},
     time::{timer, wait},
-    random::Random,
     io::{
         Color, write, Screen, Stdin, Serial, KeyStroke
     },
-    frame::{Dimensions, Position, ColorCode},
 };
 
 use crate::user::{
     lib::libgui::{
-        cg_core::{CgComponent, CgTextEdit, CgKeyboardCapture, CgTextInput, Widget},
-        cg_widgets::{CgTextBox, CgContainer, CgLabel, CgStatusBar, CgDialog},
-        cg_inputs::CgLineEdit,
+        cg_core::{CgComponent, CgKeyboardCapture},
+        cg_widgets::CgDialog,
     },
     bin::*,
 };
@@ -140,6 +133,9 @@ async fn exec() -> Result<(), Error> {
             let mut asteroid_game = asteroids::Game::new();
             asteroid_game.run(args).await?;
         }
+        "pong" => {
+            pong::Game::new().run(args).await?;
+        }
         "serial" => {
             let c = Serial::reply_char('e');
             println!("{}", c);
@@ -149,8 +145,8 @@ async fn exec() -> Result<(), Error> {
             game.run(Vec::new()).await?;
         }
         "tetris" => {
-            let mut game = tetris::TetrisEngine::new();
-            game.run(Vec::new()).await?;
+            // let mut game = tetris::TetrisEngine::new();
+            // game.run(Vec::new()).await?;
         }
 
         "gigachad?" => {
@@ -192,7 +188,6 @@ async fn exec() -> Result<(), Error> {
             };
         }
         "time" => {
-            use crate::std::time::timer;
             timer();
         }
 		"test_features" => {
