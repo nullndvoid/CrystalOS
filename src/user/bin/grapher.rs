@@ -22,6 +22,7 @@ const OFFSET_Y: i64 = 10;
 
 use core::f64::consts::E;
 use core::f64::consts::PI;
+use crate::serial_println;
 
 #[derive(Clone)]
 pub struct Grapher {
@@ -89,14 +90,14 @@ impl Application for Grapher {
             let mut offset_x: i64 = 0;
             let mut offset_y: i64 = 0;
 
-            let mut rerender = true;
+            let mut redraw_graph = true;
 
             while let c = Stdin::keystroke().await {
 
                 let entry_widget = container.elements.get("entry_box").unwrap();
                 let mut entry = entry_widget.fetch::<CgLineEdit>().unwrap();
 
-                rerender = true;
+                redraw_graph = true;
                 match c {
                     KeyStroke::Char('\n') => {
                         commandresult = entry.text.iter().collect();
@@ -105,24 +106,27 @@ impl Application for Grapher {
                         offset_y = 0;
                     },
                     KeyStroke::Char(Stdin::BACKSPACE) => {
-                        rerender = false;
+                        redraw_graph = false;
                         entry.backspace()
                     },
                     KeyStroke::Char('`') => {
                         break;
                     }
-                    KeyStroke::Char(c) => entry.write_char(c),
+                    KeyStroke::Char(c) => {
+                        redraw_graph = false;
+                        entry.write_char(c)
+                    },
                     KeyStroke::Left => offset_x -= 1,
                     KeyStroke::Right => offset_x += 1,
                     KeyStroke::Up => offset_y -= 1,
                     KeyStroke::Down => offset_y += 1,
                     KeyStroke::Alt => break,
                     _ => {
-                        rerender = false;
+                        redraw_graph = false;
                     }
                 }
 
-                if commandresult.len() > 0 && rerender {
+                if commandresult.len() > 0 && redraw_graph {
                     self.reset_frame();
                     self.graph_equation(commandresult.clone(), (offset_x, offset_y));
                     let self_widget = container.elements.get("grapher").unwrap();
@@ -153,26 +157,40 @@ impl Grapher {
     fn graph_equation(&mut self, equation: String, offsets: (i64, i64)) {
 
         let cal = calc::Calculator::new();
-        for x in -4000..4000 {
-            let x = x as f64 / 100.0;
-
-            let new_eq = equation.chars().map(|c| {
-                match c {
-                    'x' => format!("({})", x + offsets.0 as f64),
-                    'e' => format!("({})", E),
-                    'π' => format!("({})", PI),
-                    _ => c.to_string(),
-                }
-            }).collect::<String>();
-
-            let fx = cal.calculate(new_eq);
-            if let Ok(y) = fx {
-                self.render_point(PointF64 {
-                    x,
-                    y: y + offsets.1 as f64,
-                })
+        let ast = cal.get_expr(equation.chars().map(|c| {
+            match c {
+                'e' => format!("({})", E),
+                'π' => format!("({})", PI),
+                _ => c.to_string(),
             }
-        };
+        }).collect::<String>());
+        
+        if let Ok(ast) = ast {
+            for x in -4000..4000 {
+                let x = x as f64 / 100.0;
+
+                let mut cmd = ast.clone();
+                cal.substitute(&mut cmd, x + offsets.0 as f64);
+
+                //
+                // let new_eq = equation.chars().map(|c| {
+                //     match c {
+                //         'x' => format!("({})", x + offsets.0 as f64),
+                //         'e' => format!("({})", E),
+                //         'π' => format!("({})", PI),
+                //         _ => c.to_string(),
+                //     }
+                // }).collect::<String>();
+
+                let fx = cal.evaluate(&cmd);
+                if let Ok(y) = fx {
+                    self.render_point(PointF64 {
+                        x,
+                        y: y + offsets.1 as f64,
+                    })
+                }
+            };
+        }
     }
 
 

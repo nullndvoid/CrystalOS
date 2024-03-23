@@ -131,10 +131,10 @@ impl Ball {
             (self.pos.y as i32 + self.vy) as usize
         );
         for i in 0..5 {
-            if player1.pos.y + i == pos_next.y && player1.pos.x == pos_next.x {
+            if player1.pos.y + i - 2 == pos_next.y && player1.pos.x == pos_next.x {
                 self.vx = -self.vx;
                 break;
-            } else if player2.pos.y + i == pos_next.y && player2.pos.x == pos_next.x {
+            } else if player2.pos.y + i - 2 == pos_next.y && player2.pos.x == pos_next.x {
                 self.vx = -self.vx;
                 break;
             }

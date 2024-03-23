@@ -1,8 +1,8 @@
 use core::fmt;
-use alloc::{boxed::Box, string::String, vec::Vec};
+use alloc::{boxed::Box, format, string::String, vec::Vec};
 use alloc::string::ToString;
 use alloc::borrow::ToOwned;
-use crate::{println, print,  mknode, std};
+use crate::{println, print, mknode, std, serial_println};
 
 use async_trait::async_trait;
 use crate::std::application::{
@@ -35,6 +35,7 @@ impl Interpreter {
             Node::Number(_) => return self.visit_number(node),
             Node::Operator(_) => return self.visit_operator(node),
             Node::Function(_) => return self.visit_function(node),
+            Node::Variable => panic!("substitution not used!"),
         }
     }
 
@@ -195,16 +196,6 @@ impl Interpreter {
 
 }
 
-
-
-
-
-
-
-
-
-
-
 impl Parser {
     fn new(tokens: Vec<Token>) -> Result<Self, Error> {
         let mut parser = Self { tokens, idx: -1, current: Token::Null };
@@ -217,9 +208,7 @@ impl Parser {
         let result = self.expr();
         result
     }
-
-
-
+    
     fn advance(&mut self) -> Result<Option<Token>, Error> {
         self.idx += 1;
         if self.idx < self.tokens.len() as i32 {
@@ -240,7 +229,10 @@ impl Parser {
                 self.advance()?;
                 return Ok(Node::Number(x))
             },
-
+            Token::Variable => {
+                self.advance()?;
+                return Ok(Node::Variable)
+            },
             Token::Bracket('(') => {
                 self.advance()?;
                 let expr = self.expr()?;
@@ -381,7 +373,7 @@ impl Application for Calculator {
 				match self.calculate_and_format(inp) {
 			        Ok(_) => (),
 			        Err(e) => {
-                        println!("your input must be a valid mathematical expression contaning only numbers (including floats) and the operators: [ +, -, *, **, /, //, % ]");
+                        println!("your input must be a valid mathematical expression containing only numbers (including floats) and the operators: [ +, -, *, **, /, //, % ]");
                         println!("{:?}", e);
                         return Err(ShellError::CommandFailed(String::from("failed")))
                     },
@@ -391,7 +383,7 @@ impl Application for Calculator {
 		    match self.calculate_and_format(args.into_iter().collect()) {
 		        Ok(x) => x,
 		        Err(e) => {
-                    println!("your input must be a valid mathematical expression contaning only numbers (including floats) and the operators: [ +, -, *, **, /, //, % ]");
+                    println!("your input must be a valid mathematical expression containing only numbers (including floats) and the operators: [ +, -, *, **, /, //, % ]");
                     println!("{:?}", e);
                     return Err(ShellError::CommandFailed(String::from("failed")))
                 },
@@ -417,7 +409,51 @@ impl Calculator {
     {}", equation, res);
         Ok(res)
     }
-
+    
+    pub fn get_expr(&self, mut equation: String) -> Result<Node, String> {
+        equation.push('\n');
+        let mut neweq = equation.clone();
+        neweq.pop();
+        
+        let tokens = tokenise(&equation).map_err(|e| format!(
+            "failed to tokenise: {:?}",
+            e
+        ))?;
+        
+        serial_println!("{:?}", tokens);
+        
+        let mut parser = Parser::new(tokens).unwrap();
+        parser.parse().map_err(|e| format!("{:?}", e))
+    }
+    
+    pub fn substitute(&self, equation: &mut Node, value: f64) {
+        match equation {
+            Node::BinaryOperation(x) => {
+                self.substitute(&mut x.left, value);
+                self.substitute(&mut x.right, value);
+            },
+            Node::UnaryOperation(x) => {
+                self.substitute(&mut x.other, value);
+            },
+            Node::Function(x) => {
+                self.substitute(&mut x.arg, value);
+            },
+            Node::Variable => {
+                *equation = Node::Number(value);
+            }
+            _ => ()
+        }
+    }
+    
+    pub fn evaluate(&self, equation: &Node) -> Result<f64, String> {
+        let mut interpreter = Interpreter::new().unwrap();
+        let result = interpreter.visit(equation.clone()).unwrap();
+        let return_res = if let Value::Number(x) = result {
+            x
+        } else { panic!("the value returned was not a float! THIS IS A BUG") };
+        Ok(return_res)
+    }
+    
     fn calculate_inner(&self, mut equation: String) -> Result<f64, Error> {
         equation.push('\n');
         let mut neweq = equation.clone();
@@ -436,6 +472,7 @@ impl Calculator {
     }
 }
 
+
 fn tokenise(equation: &str) -> Result<Vec<Token>, Error> {
     let mut tokens = Vec::new();
     let mut current_num = "".to_string();
@@ -446,6 +483,16 @@ fn tokenise(equation: &str) -> Result<Vec<Token>, Error> {
     'mainloop: for (x, character) in equation.chars().enumerate() {
 
         match character {
+            'x' => {
+                if is_var {
+                    tokens.push(Token::Func(current_string.clone()));
+                }
+                is_var = false;
+                current_string = "".to_string();
+                tokens.push(Token::Variable);
+                continue;
+            }
+            
             'a'..='z' => {
                 is_var = true;
                 current_string.push(character);
@@ -468,7 +515,6 @@ fn tokenise(equation: &str) -> Result<Vec<Token>, Error> {
                     tokens.push(Token::Number(current_num.parse::<f64>().unwrap()));
                     current_num = "".to_string();
                 } else if current_string.len() != 0 {
-
                 } match character {
                     '+' => tokens.push(Token::Operator(Operator::Add)),
                     '-' => tokens.push(Token::Operator(Operator::Sub)),
@@ -495,7 +541,7 @@ fn tokenise(equation: &str) -> Result<Vec<Token>, Error> {
                     '\n' => break 'mainloop,
                     ' ' => (),
                     _ => {
-                        return Err(Error::InvalidCharacter(x))
+                        return Err(Error::InvalidCharacter(character))
                     },
                 }
             }
@@ -522,11 +568,12 @@ enum Token {
     Bracket(char),
     Null,
     Func(String),
+    Variable,
 }
 
 
 #[derive(Copy, Debug, Clone, PartialEq)]
-enum Operator {
+pub enum Operator {
     Add,
     Sub,
     Mul,
@@ -539,7 +586,7 @@ enum Operator {
 #[derive(Debug)]
 enum Error {
     InvalidSyntax(usize),
-    InvalidCharacter(usize),
+    InvalidCharacter(char),
     LogicalError(String),
     Eof,
     Other(String),
@@ -548,8 +595,9 @@ enum Error {
 
 
 #[derive(Debug, Clone, PartialEq)]
-enum Node {
+pub enum Node {
     Number(f64),
+    Variable,
     Operator(Operator),
     Function(Box<FunctionCall>),
     BinaryOperation(Box<BinaryOperation>),
@@ -558,20 +606,20 @@ enum Node {
 
 
 #[derive(Debug, Clone, PartialEq)]
-struct BinaryOperation {
+pub struct BinaryOperation {
     left: Node,
     operator: Node,
     right: Node,
 }
 
 #[derive(Debug, Clone, PartialEq)]
-struct UnaryOperation {
+pub struct UnaryOperation {
     operator: Node,
     other: Node,
 }
 
 #[derive(Debug, Clone, PartialEq)]
-struct FunctionCall {
+pub struct FunctionCall {
     name: String,
     arg: Node,
 }
@@ -612,6 +660,7 @@ impl fmt::Display for Node {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Node::Number(x) => write!(f, "{}", x),
+            Node::Variable => write!(f, "x"),
             Node::Operator(x) => write!(f, "{}", x),
             Node::BinaryOperation(x) => {
                 let inner = *x.clone();

@@ -173,7 +173,7 @@ impl Game {
                 false => ColorCode::new(Color::LightGreen, Color::Black),
             };
             for point in s.tail.iter() {
-                frame[24 - point.y as usize][point.x as usize] = ColouredChar::coloured('@', curr_colour);
+                frame[24 - point.y as usize][point.x as usize] = ColouredChar::coloured('▓', curr_colour);
             }
         }
 
