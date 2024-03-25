@@ -3,6 +3,7 @@ use alloc::vec;
 use alloc::vec::Vec;
 use crate::system::kernel::render::{RENDERER, ScreenChar};
 use crate::std::io::Color;
+use num_traits::{Num, ToPrimitive};
 
 /// TODO: get a working implementation for CLI apps
 /// elements can be created using their from_str() method
@@ -61,30 +62,50 @@ impl ColouredChar {
 
 
 #[derive(Copy, Clone, Debug)]
-pub struct Position {
-    pub x: usize,
-    pub y: usize,
+pub struct Position<T: Num> {
+    pub x: T,
+    pub y: T,
 }
 
-impl Position {
-    pub fn new(x: usize, y: usize) -> Position {
+impl<T: Num + ToPrimitive> Position<T> {
+    pub fn new(x: T, y: T) -> Position<T> {
         Position { x, y }
+    }
+    
+    pub fn into_usize(self) -> Result<Position<usize>, ()> { 
+        Ok(Position { 
+            x: self.x.to_usize().ok_or(())?, 
+            y: self.y.to_usize().ok_or(())?,
+        })
+    }
+    pub fn into_i32(self) -> Result<Position<i32>, ()> {
+        Ok(Position {
+            x: self.x.to_i32().ok_or(())?,
+            y: self.y.to_i32().ok_or(())?,
+        })
+    }
+
+    pub fn into_f32(self) -> Result<Position<f32>, ()> {
+        Ok(Position {
+            x: self.x.to_f32().ok_or(())?,
+            y: self.y.to_f32().ok_or(())?,
+        })
     }
 }
 
-pub type Dimensions = Position;
+pub type Dimensions<T> = Position<T>;
 
 
 #[derive(Clone, Debug)]
 pub struct Frame {
-    pub position: Position,
-    pub dimensions: Dimensions,
+    pub position: Position<usize>,
+    pub dimensions: Dimensions<usize>,
     pub frame: Vec<Vec<ColouredChar>>,
 }
 
 
 impl Frame {
-    pub fn new(position: Position, dimensions: Dimensions) -> Result<Frame, RenderError> {
+    pub fn new(position: Position<usize>, dimensions: Dimensions<usize>) -> Result<Frame, RenderError> {
         Ok(Frame {
             position,
             dimensions,
@@ -126,16 +147,16 @@ impl Frame {
         RENDERER.lock().render_frame(frame);
         Ok(())
     }
-    pub fn get_position(&self) -> Position {
+    pub fn get_position(&self) -> Position<usize> {
         self.position
     }
-    pub fn set_position(&mut self, position: Position) {
+    pub fn set_position(&mut self, position: Position<usize>) {
         self.position = position
     }
-    pub fn dimensions(&self) -> Dimensions {
+    pub fn dimensions(&self) -> Dimensions<usize> {
         self.dimensions
     }
-    pub fn write(&mut self, position: Position, char: ColouredChar) -> Result<(), RenderError> {
+    pub fn write(&mut self, position: Position<usize>, char: ColouredChar) -> Result<(), RenderError> {
         if position.x >= self.dimensions.x || position.y >= self.dimensions.y {
             return Err(RenderError::OutOfBounds(
                 position.x >= self.dimensions.x,

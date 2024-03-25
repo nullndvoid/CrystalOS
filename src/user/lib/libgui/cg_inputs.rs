@@ -4,21 +4,21 @@ use alloc::boxed::Box;
 use core::any::Any;
 use async_trait::async_trait;
 use crate::std::application::Exit;
-use crate::std::frame::{ColouredChar, Dimensions, Frame, Position, RenderError};
+use crate::std::render::{ColouredChar, Dimensions, Frame, Position, RenderError};
 use crate::std::io::{KeyStroke, Stdin};
 use crate::user::lib::libgui::cg_core::{CgComponent, CgTextEdit, CgTextInput, Widget};
 
 #[derive(Debug, Clone)]
 pub struct CgLineEdit {
-    pub position: Position,
-    pub dimensions: Dimensions,
+    pub position: Position<usize>,
+    pub dimensions: Dimensions<usize>,
     pub prompt: String,
     pub text: Vec<char>,
     pub ptr: usize, // cursor position
 }
 
 impl CgLineEdit {
-    pub fn new(position: Position, width: usize, prompt: String) -> CgLineEdit {
+    pub fn new(position: Position<usize>, width: usize, prompt: String) -> CgLineEdit {
         CgLineEdit {
             position,
             dimensions: Dimensions::new(width, 1),
@@ -131,15 +131,15 @@ impl CgTextInput for CgLineEdit {
 
 #[derive(Debug, Clone)]
 pub struct CgBoxEdit {
-    pub position: Position,
-    pub dimensions: Dimensions,
+    pub position: Position<usize>,
+    pub dimensions: Dimensions<usize>,
     pub prompt: String,
     pub text: Vec<char>,
-    pub ptr: Position,
+    pub ptr: Position<usize>,
 }
 
 impl CgBoxEdit {
-    pub fn new(position: Position, dimensions: Dimensions, prompt: String) -> CgBoxEdit {
+    pub fn new(position: Position<usize>, dimensions: Dimensions<usize>, prompt: String) -> CgBoxEdit {
         CgBoxEdit {
             position,
             dimensions,

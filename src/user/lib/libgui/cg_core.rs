@@ -1,6 +1,6 @@
 use hashbrown::HashMap;
 use spin::{Mutex};
-use crate::std::frame::{Frame, RenderError};
+use crate::std::render::{Frame, RenderError};
 
 use alloc::{
 	boxed::Box,

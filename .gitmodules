@@ -1,0 +1,3 @@
+[submodule "CrystalPy"]
+	path = CrystalPy
+	url = git@github.com:FantasyPvP/CrystalPy.git

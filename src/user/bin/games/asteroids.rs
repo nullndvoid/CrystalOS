@@ -1,6 +1,6 @@
 use crate::std::application::Error;
 use crate::std::application::Error::ApplicationError;
-use crate::std::frame::{ColouredChar, Dimensions, Frame, Position, RenderError};
+use crate::std::render::{ColouredChar, Dimensions, Frame, Position, RenderError};
 use crate::std::io::{Color, ColorCode, Display, KeyStroke, Screen, Stdin};
 use crate::std::random::Random;
 use crate::system::std::application::Application;
@@ -17,7 +17,7 @@ use core::any::Any;
 #[derive(Clone)]
 pub struct Player {
     pub health: i32,
-    pub position: Position,
+    pub position: Position<usize>,
 }
 impl Player {
     pub fn new() -> Player {
@@ -195,9 +195,9 @@ impl Game {
 
         if let Some(input_key) = Stdin::try_keystroke() {
             match input_key {
-                KeyStroke::Char('q') => return true,
-                KeyStroke::Char('w') => self.player.position.y -= 1,
-                KeyStroke::Char('s') => self.player.position.y += 1,
+                KeyStroke::Char('`') => return true,
+                KeyStroke::Char('w') => { if self.player.position.y > 0 { self.player.position.y -= 1 }},
+                KeyStroke::Char('s') => { if self.player.position.y < 21 { self.player.position.y += 1 }},
                 _ => (),
             }
         }
@@ -219,7 +219,7 @@ impl Game {
         frame.write_to_screen().unwrap();
 
         while let KeyStroke::Char(c) = Stdin::keystroke().await {
-            if c == 'q' {
+            if c == '`' {
                 break;
             }
         }
@@ -251,13 +251,13 @@ impl CgComponent for Game {
             .collect::<Vec<(i16, i16)>>()
         {
             frame[i.1 as usize][i.0 as usize] = ColouredChar {
-                character: '<',
+                character: '«',
                 colour: ColorCode::new(Color::LightGray, Color::Black),
             };
             (1..5).for_each(|offset| {
                 if i.0 + offset < frame.dimensions.x as i16 {
                     frame[i.1 as usize][(i.0 + offset) as usize] = ColouredChar {
-                        character: '=',
+                        character: '═',
                         colour: ColorCode::new(Color::LightGray, Color::Black),
                     }
                 }

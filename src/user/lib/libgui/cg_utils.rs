@@ -1,6 +1,6 @@
-use crate::std::frame::{ColouredChar, Dimensions, Frame, Position, RenderError};
+use crate::std::render::{ColouredChar, Dimensions, Frame, Position, RenderError};
 
-pub(crate) fn render_outline(frame: &mut Frame, dimensions: Dimensions) -> Result<(), RenderError> {
+pub(crate) fn render_outline(frame: &mut Frame, dimensions: Dimensions<usize>) -> Result<(), RenderError> {
     // draws the sides of the container
     for i in 0..frame.dimensions.x {
         frame.write(Position::new(i, 0), ColouredChar::new('─'))?;

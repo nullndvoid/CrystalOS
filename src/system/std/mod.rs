@@ -3,7 +3,7 @@ pub mod random;
 pub mod application;
 pub mod tasks;
 pub mod os;
-pub mod frame;
+pub mod render;
 pub mod time;
 pub mod syscall;
 

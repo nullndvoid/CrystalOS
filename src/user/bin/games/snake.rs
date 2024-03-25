@@ -4,10 +4,10 @@ use async_trait::async_trait;
 use crate::std::io::{Color, Display, KeyStroke, Stdin};
 use crate::std::time;
 use crate::std::application::{Application, Error};
-use crate::std::frame::{ColouredChar, Dimensions, Frame, RenderError, ColorCode};
+use crate::std::render::{ColouredChar, Dimensions, Frame, RenderError, ColorCode};
 use crate::std::random::Random;
-use crate::system::std::frame;
-use super::super::lib::coords::{Position, Direction};
+use crate::system::std::render;
+use super::super::super::lib::coords::{Position, Direction};
 
 #[derive(PartialEq)]
 enum Gamemode {
@@ -164,7 +164,7 @@ impl Game {
 
     fn render(&mut self) -> Result<(), RenderError> {
 
-        let mut frame = Frame::new(frame::Position::new(0, 0), Dimensions::new(80, 25))?;
+        let mut frame = Frame::new(render::Position::new(0, 0), Dimensions::new(80, 25))?;
         let mut curr_colour = ColorCode::new(Color::LightBlue, Color::Black);
 
         for s in self.snakes.clone() {
@@ -205,7 +205,7 @@ impl Game {
     }
 
     fn render_end_screen(&mut self) -> Result<(), RenderError> {
-        let mut frame = Frame::new(frame::Position::new(0, 0), Dimensions::new(80, 25))?;
+        let mut frame = Frame::new(render::Position::new(0, 0), Dimensions::new(80, 25))?;
 
         frame[10] = Game::centre_text(80, String::from("u lost")).chars().map(|c| ColouredChar::coloured(c, ColorCode::new(Color::Red, Color::Black))).collect();
         frame[12] = Game::centre_text(80, String::from(format!("ur score was {}", self.score))).chars().map(|c| ColouredChar::coloured(c, ColorCode::new(Color::LightGreen, Color::Black))).collect();

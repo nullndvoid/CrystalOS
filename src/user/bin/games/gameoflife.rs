@@ -4,7 +4,7 @@ use alloc::vec::Vec;
 use alloc::boxed::Box;
 use crate::std::application::{Application, Error};
 use async_trait::async_trait;
-use crate::std::frame::{ColouredChar, Frame, Position, Dimensions, RenderError};
+use crate::std::render::{ColouredChar, Frame, Position, Dimensions, RenderError};
 use crate::std::io::{KeyStroke, Stdin, Color, ColorCode, Display};
 use crate::std::time::wait;
 

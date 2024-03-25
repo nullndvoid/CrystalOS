@@ -24,6 +24,7 @@ use crate::user::{
         cg_widgets::CgDialog,
     },
     bin::*,
+    bin::games::*,
 };
 
 lazy_static! {
@@ -122,30 +123,30 @@ async fn exec() -> Result<(), Error> {
             let mode = Graphics640x480x16::new();
             mode.set_mode();
             mode.clear_screen(Color16::Black);
-            mode.draw_line((80, 60), (80, 420), Color16::Cyan);
+            mode.draw_line((80, 60), (120, 420), Color16::Cyan);
         }
         "graph" => {
             grapher::Grapher::new().run(args).await?;
         }
-        "snake" => {
+        "games/snake" => {
             snake::Game::new().run(args).await?;
         }
-        "asteroids" => {
+        "games/asteroids" => {
             let mut asteroid_game = asteroids::Game::new();
             asteroid_game.run(args).await?;
         }
-        "pong" => {
+        "games/pong" => {
             pong::Game::new().run(args).await?;
         }
         "serial" => {
             let c = Serial::reply_char('e');
             println!("{}", c);
         }
-        "gameoflife" => {
+        "games/gameoflife" => {
             let mut game = gameoflife::GameOfLife::new();
             game.run(Vec::new()).await?;
         }
-        "tetris" => {
+        "games/tetris" => {
             // let mut game = tetris::TetrisEngine::new();
             // game.run(Vec::new()).await?;
         }

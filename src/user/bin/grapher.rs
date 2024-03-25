@@ -5,7 +5,7 @@ use alloc::boxed::Box;
 use core::any::Any;
 use async_trait::async_trait;
 use crate::std::application::{Application, Error};
-use crate::std::frame::{Frame, Position, Dimensions, ColouredChar, RenderError};
+use crate::std::render::{Frame, Position, Dimensions, ColouredChar, RenderError};
 use crate::std::io::{Display, KeyStroke, Screen, Stdin};
 
 use crate::user::lib::libgui::{

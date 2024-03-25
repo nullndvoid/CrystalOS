@@ -5,7 +5,7 @@ use core::any::Any;
 use async_trait::async_trait;
 use crate::std::application::{Application, Error};
 use crate::std;
-use crate::std::frame::{BUFFER_HEIGHT, BUFFER_WIDTH, ColorCode, ColouredChar, Dimensions, Frame, Position, RenderError};
+use crate::std::render::{BUFFER_HEIGHT, BUFFER_WIDTH, ColorCode, ColouredChar, Dimensions, Frame, Position, RenderError};
 use crate::std::io::{Color, Display, KeyStroke, Stdin};
 use crate::std::time::Timer;
 use crate::user::lib::libgui::cg_core::CgComponent;
@@ -59,7 +59,7 @@ impl Application for Game {
             }
             if update_time.is_done() {
                 updated = true;
-                self.ball.update(&mut self.player1, &mut self.player2);
+                self.update_ball();
                 update_time.reset()
             }
 
@@ -68,9 +68,55 @@ impl Application for Game {
                     frame.write_to_screen().unwrap();
                 }
             }
-            // self.ball.update(&self.player1, &self.player2);
         }
         Ok(())
+    }
+}
+
+impl Game {
+    fn update_ball(&mut self) {
+        let pos_next_f32 = Position::new( // invert x direction on collision with player
+                                          self.ball.pos.x + self.ball.vx,
+                                          self.ball.pos.y + self.ball.vy,
+        );
+
+        if pos_next_f32.y < 0.0 || pos_next_f32.y >= BUFFER_HEIGHT as f32 { // if the move is outside the screen, then invert the direction
+            self.ball.vy = -self.ball.vy;
+        }
+
+        if pos_next_f32.x < 0.0 {
+            self.player2.score += 1;
+            self.ball.pos = Position::new(40.0, 12.0);
+            self.ball.vx = 1.0;
+            self.ball.vy = 0.3;
+        }
+
+        if pos_next_f32.x >= BUFFER_WIDTH as f32 {
+            self.player1.score += 1;
+            self.ball.pos = Position::new(40.0, 12.0);
+            self.ball.vx = -1.0;
+            self.ball.vy = 0.3;
+        }
+
+        let pos_next = Position::new(
+            pos_next_f32.x as usize,
+            pos_next_f32.y as usize,
+        );
+
+        for i in 0..5 {
+            if self.player1.pos.y + i - 2 == pos_next.y && self.player1.pos.x == pos_next.x {
+                self.ball.vx = -self.ball.vx;
+                break;
+            } else if self.player2.pos.y + i - 2 == pos_next.y && self.player2.pos.x == pos_next.x {
+                self.ball.vx = -self.ball.vx;
+                break;
+            }
+        };
+
+        self.ball.pos = Position::new(
+            self.ball.pos.x + self.ball.vx,
+            self.ball.pos.y + self.ball.vy
+        )
     }
 }
 
@@ -82,7 +128,7 @@ impl CgComponent for Game {
             frame.write(Position::new(self.player1.pos.x, self.player1.pos.y + y -2), ColouredChar::coloured('▓', ColorCode::new(Color::Cyan, Color::Black))).unwrap();
             frame.write(Position::new(self.player2.pos.x, self.player2.pos.y + y -2), ColouredChar::coloured('▓', ColorCode::new(Color::Cyan, Color::Black))).unwrap();
         }
-        frame.write(self.ball.pos, ColouredChar::coloured('O', ColorCode::new(Color::Green, Color::Black))).unwrap();
+        frame.write(self.ball.pos.into_usize().unwrap(), ColouredChar::coloured('O', ColorCode::new(Color::Green, Color::Black))).unwrap();
 
         Ok(frame)
     }
@@ -93,7 +139,7 @@ impl CgComponent for Game {
 }
 
 struct Player {
-    pos: Position,
+    pos: Position<usize>,
     score: i32,
 }
 
@@ -115,52 +161,13 @@ impl Player {
 }
 
 struct Ball {
-    pos: Position,
-    vx: i32,
-    vy: i32,
+    pos: Position<f32>,
+    vx: f32,
+    vy: f32,
 }
 
 impl Ball {
     fn new() -> Self {
-        Ball {  pos: Position::new(40, 12), vx: 1, vy: 1 }
-    }
-    
-    fn update(&mut self, player1: &mut Player, player2: &mut Player) {
-        let pos_next = Position::new( // invert x direction on collision with player
-            (self.pos.x as i32 + self.vx) as usize,
-            (self.pos.y as i32 + self.vy) as usize
-        );
-        for i in 0..5 {
-            if player1.pos.y + i - 2 == pos_next.y && player1.pos.x == pos_next.x {
-                self.vx = -self.vx;
-                break;
-            } else if player2.pos.y + i - 2 == pos_next.y && player2.pos.x == pos_next.x {
-                self.vx = -self.vx;
-                break;
-            }
-        };
-
-        if pos_next.y < 0 || pos_next.y >= BUFFER_HEIGHT { // if the move is outside the screen, then invert the direction
-            self.vy = -self.vy;
-        }
-
-        if pos_next.x < 0 {
-            player2.score += 1;
-            self.pos = Position::new(40, 12);
-            self.vx = 1;
-            self.vy = 1;
-        }
-
-        if pos_next.x >= BUFFER_WIDTH {
-            player1.score += 1;
-            self.pos = Position::new(40, 12);
-            self.vx = -1;
-            self.vy = 1;
-        }
-
-        self.pos = Position::new(
-            (self.pos.x as i32 + self.vx) as usize,
-            (self.pos.y as i32 + self.vy) as usize
-        )
+        Ball {  pos: Position::new(40.0, 12.0), vx: 1.0, vy: 0.3 }
     }
 }

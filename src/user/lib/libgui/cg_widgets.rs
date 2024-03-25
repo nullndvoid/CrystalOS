@@ -7,19 +7,19 @@ use hashbrown::HashMap;
 use crate::std::application::Exit;
 use super::cg_core::{CgComponent, CgKeyboardCapture, Widget};
 use super::cg_utils::render_outline;
-use crate::std::frame::{ColouredChar, Dimensions, Position, Frame, RenderError, ColorCode, BUFFER_WIDTH, BUFFER_HEIGHT};
+use crate::std::render::{ColouredChar, Dimensions, Position, Frame, RenderError, ColorCode, BUFFER_WIDTH, BUFFER_HEIGHT};
 use crate::std::io::{Color, KeyStroke, Stdin};
 
 #[derive(Debug, Clone)]
 pub struct CgContainer {
     pub elements: HashMap<&'static str, Widget>,
-    pub position: Position,
-    pub dimensions: Dimensions,
+    pub position: Position<usize>,
+    pub dimensions: Dimensions<usize>,
     pub outlined: bool,
 }
 
 impl CgContainer {
-    pub fn new(position: Position, dimensions: Dimensions, outlined: bool) -> CgContainer {
+    pub fn new(position: Position<usize>, dimensions: Dimensions<usize>, outlined: bool) -> CgContainer {
         CgContainer {
             elements: HashMap::new(),
             position,
@@ -60,14 +60,14 @@ impl CgComponent for CgContainer {
 pub struct CgTextBox {
     title: String,
     pub content: String,
-    pub position: Position,
-    pub dimensions: Dimensions,
+    pub position: Position<usize>,
+    pub dimensions: Dimensions<usize>,
     outlined: bool,
     wrap_words: bool // if false then will not wrap until the end of a word if possible
 }
 
 impl CgTextBox {
-    pub fn new(title: String, content: String, position: Position, dimensions: Dimensions, outlined: bool) -> CgTextBox {
+    pub fn new(title: String, content: String, position: Position<usize>, dimensions: Dimensions<usize>, outlined: bool) -> CgTextBox {
         CgTextBox { title, content, position, dimensions, outlined, wrap_words: true }
     }
 
@@ -143,13 +143,13 @@ impl CgComponent for CgTextBox {
 #[derive(Debug, Clone)]
 pub struct CgLabel {
     content: String,
-    position: Position,
-    dimensions: Dimensions,
+    position: Position<usize>,
+    dimensions: Dimensions<usize>,
     centered: bool,
 }
 
 impl CgLabel {
-    pub fn new(content: String, position: Position, width: usize, centered: bool) -> CgLabel {
+    pub fn new(content: String, position: Position<usize>, width: usize, centered: bool) -> CgLabel {
         CgLabel {
             content,
             position: Position::new(position.x, position.y),
@@ -247,12 +247,12 @@ impl CgComponent for CgIndicatorWidget {
 #[derive(Debug, Clone)]
 pub struct CgIndicatorBar {
     pub fields: Vec<CgIndicatorWidget>,
-    position: Position,
-    dimensions: Dimensions,
+    position: Position<usize>,
+    dimensions: Dimensions<usize>,
 }
 
 impl CgIndicatorBar {
-    pub fn new(position: Position, width: usize) -> CgIndicatorBar {
+    pub fn new(position: Position<usize>, width: usize) -> CgIndicatorBar {
         CgIndicatorBar {
             fields: Vec::new(),
             position: Position::new(position.x, position.y),
@@ -291,8 +291,8 @@ impl CgComponent for CgIndicatorBar {
 
 #[derive(Debug, Clone)]
 pub struct CgStatusBar {
-    position: Position,
-    dimensions: Dimensions,
+    position: Position<usize>,
+    dimensions: Dimensions<usize>,
 
     window_title: CgIndicatorWidget,
     screen_mode: CgIndicatorWidget,
@@ -325,7 +325,7 @@ impl CgComponent for CgStatusBar {
 }
 
 impl CgStatusBar {
-    pub fn new(position: Position, dimensions: Dimensions) -> CgStatusBar {
+    pub fn new(position: Position<usize>, dimensions: Dimensions<usize>) -> CgStatusBar {
         let mut widget = CgStatusBar {
             position,
             dimensions,
