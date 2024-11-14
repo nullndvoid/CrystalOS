@@ -156,6 +156,11 @@ async fn exec() -> Result<(), Error> {
             detector.run(args).await?;
         }
 
+        "editor" => {
+            let mut editor = editor::Editor::new();
+            editor.run(args).await?;
+        }
+
         "wait" => {
             if args.len() != 1 {
                 return Err(Error::CommandFailed("exactly one argument must be provided".to_string()))

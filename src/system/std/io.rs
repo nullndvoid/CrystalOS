@@ -90,6 +90,10 @@ impl Display {
         RENDERER.lock().application_mode();
         Display
     }
+
+    pub fn mv_cursor(&self, x: u8, y: u8) -> Result<(), RenderError> {
+        RENDERER.lock().cursor_position(x, y)
+    }
 }
 
 impl Drop for Display {

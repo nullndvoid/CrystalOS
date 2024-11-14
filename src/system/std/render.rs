@@ -71,6 +71,10 @@ impl<T: Num + ToPrimitive> Position<T> {
     pub fn new(x: T, y: T) -> Position<T> {
         Position { x, y }
     }
+
+    pub fn zero() -> Position<T> {
+        Position { x: T::zero(), y: T::zero() }
+    }
     
     pub fn into_usize(self) -> Result<Position<usize>, ()> { 
         Ok(Position { 

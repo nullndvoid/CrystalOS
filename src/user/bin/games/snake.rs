@@ -7,7 +7,7 @@ use crate::std::application::{Application, Error};
 use crate::std::render::{ColouredChar, Dimensions, Frame, RenderError, ColorCode};
 use crate::std::random::Random;
 use crate::system::std::render;
-use super::super::super::lib::coords::{Position, Direction};
+use super::super::super::lib::geometry::{Position, Direction};
 
 #[derive(PartialEq)]
 enum Gamemode {

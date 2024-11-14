@@ -8,6 +8,7 @@
 #![feature(async_fn_in_trait)]
 #![feature(async_closure)]
 #![feature(inherent_associated_types)]
+#![feature(iter_advance_by)]
 
 
 use bootloader::{entry_point, BootInfo};

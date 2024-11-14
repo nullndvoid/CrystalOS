@@ -51,7 +51,9 @@ pub enum KeyStroke {
 	Up,
 	Down,
 	None,
-	Enter
+	Enter,
+	Escape,
+	Del
 }
 
 impl KeyStroke {
@@ -71,12 +73,37 @@ impl KeyStroke {
 			KeyCode::ArrowUp => KeyStroke::Up,
 			KeyCode::ArrowDown => KeyStroke::Down,
 			KeyCode::Enter => KeyStroke::Enter,
+			KeyCode::Escape => KeyStroke::Escape,
+			KeyCode::Delete => KeyStroke::Del,
 			_ => KeyStroke::None,
 		}
 	}
 }
 
-
+impl core::fmt::Display for KeyStroke {
+	fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+		match self {
+			KeyStroke::Char(c) => write!(f, "{}", c),
+			KeyStroke::Ctrl => write!(f, "CTRL"),
+			KeyStroke::RCtrl => write!(f, "RCtrl"),
+			KeyStroke::Alt => write!(f, "ALT"),
+			KeyStroke::RAlt => write!(f, "RAlt"),
+			KeyStroke::Shift => write!(f, "SHIFT"),
+			KeyStroke::RShift => write!(f, "RShift"),
+			KeyStroke::Meta => write!(f, "META"),
+			KeyStroke::RMeta => write!(f, "RMeta"),
+			KeyStroke::Backspace => write!(f, "BACKSPACE"),
+			KeyStroke::Left => write!(f, "LEFT"),
+			KeyStroke::Right => write!(f, "RIGHT"),
+			KeyStroke::Up => write!(f, "UP"),
+			KeyStroke::Down => write!(f, "DOWN"),
+			KeyStroke::Enter => write!(f, "ENTER"),
+			KeyStroke::Escape => write!(f, "ESCAPE"),
+			KeyStroke::None => write!(f, "NONE"),
+			KeyStroke::Del => write!(f, "DEL"),
+		}
+	}
+}
 
 impl KeyboardHandler {
 	pub fn new() -> KeyboardHandler {
@@ -135,7 +162,6 @@ impl KeyboardHandler {
 							}
 						},
 						DecodedKey::RawKey(key) => {
-							print!("{:?}", key);
 							match KeyStroke::from_keycode(key) {
 								KeyStroke::None => (),
 								key => return Some(key)

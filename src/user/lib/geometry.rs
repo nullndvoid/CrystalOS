@@ -118,6 +118,12 @@ impl Position {
         }
     }
 
+    pub fn zero() -> Position {
+        Position {
+            x: 0,
+            y: 0,
+        }
+    }
 }
 
 impl core::ops::Add for Position {
