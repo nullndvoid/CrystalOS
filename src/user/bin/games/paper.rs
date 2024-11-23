@@ -1,9 +1,9 @@
 use core::any::Any;
 
-use alloc::{boxed::Box, format, string::String, vec::Vec, vec};
+use alloc::{boxed::Box, format, string::String, vec::Vec};
 use async_trait::async_trait;
 
-use crate::{std::{self, application::{Application, Error}, io::{Color, ColorCode, Display, KeyStroke, Stdin}, render::{ColouredChar, Dimensions, Frame, Position, RenderError}, time}, user::{bin::games::asteroids::Game, lib::libgui::cg_core::CgComponent}};
+use crate::{std::{self, application::{Application, Error}, io::{Color, ColorCode, Display, KeyStroke, Stdin}, render::{ColouredChar, Dimensions, Frame, Position, RenderError}, time}, user::lib::libgui::cg_core::CgComponent};
 
 
 #[derive(Copy, Clone)]
@@ -48,7 +48,7 @@ impl Application for GameBoard {
         }
     }
 
-    async fn run(&mut self, args: Vec<String>) -> Result<(), Error> {
+    async fn run(&mut self, _args: Vec<String>) -> Result<(), Error> {
         let _display = Display::borrow();
 
         'outer: loop {

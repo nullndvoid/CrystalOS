@@ -20,7 +20,6 @@ pub mod system;
 pub mod user;
 pub use system::std as std;
 pub use user::bin::*;
-use crate::calc::Calculator;
 
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

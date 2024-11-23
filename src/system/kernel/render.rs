@@ -306,8 +306,8 @@ impl Renderer {
                     self.screen_ref.chars[i][j].write(*col);
                 }
             }
+            self.internal_set_cursor_position(self.col_pos as u8, BUFFER_HEIGHT as u8 - 1);
         }
-        self.internal_set_cursor_position(self.col_pos as u8, BUFFER_HEIGHT as u8 - 1);
     }
 }
 

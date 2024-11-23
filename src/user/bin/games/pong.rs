@@ -4,7 +4,6 @@ use alloc::vec::Vec;
 use core::any::Any;
 use async_trait::async_trait;
 use crate::std::application::{Application, Error};
-use crate::std;
 use crate::std::render::{BUFFER_HEIGHT, BUFFER_WIDTH, ColorCode, ColouredChar, Dimensions, Frame, Position, RenderError};
 use crate::std::io::{Color, Display, KeyStroke, Stdin};
 use crate::std::time::Timer;
@@ -27,7 +26,7 @@ impl Application for Game {
     }
 
     async fn run(&mut self, _: Vec<String>) -> Result<(), Error> {
-        let d = Display::borrow();
+        let _d = Display::borrow();
 
         let mut update_time = Timer::new(0.1);
 
@@ -124,7 +123,7 @@ impl CgComponent for Game {
     fn render(&self) -> Result<Frame, RenderError> {
         let mut frame = Frame::new(Dimensions::new(0, 0), Dimensions::new(80, 25))?;
 
-        for y in (0..5) {
+        for y in 0..5 {
             frame.write(Position::new(self.player1.pos.x, self.player1.pos.y + y -2), ColouredChar::coloured('▓', ColorCode::new(Color::Cyan, Color::Black))).unwrap();
             frame.write(Position::new(self.player2.pos.x, self.player2.pos.y + y -2), ColouredChar::coloured('▓', ColorCode::new(Color::Cyan, Color::Black))).unwrap();
         }

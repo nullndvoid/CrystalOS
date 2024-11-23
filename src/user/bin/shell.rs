@@ -1,30 +1,56 @@
+// External crates
 use lazy_static::lazy_static;
 use spin::Mutex;
+use vga::{
+    writers::{PrimitiveDrawing, GraphicsWriter, Graphics640x480x16},
+    colors::Color16,
+};
 
-use alloc::{boxed::Box, format, string::{String, ToString}, vec, vec::Vec};
-use vga::writers::{PrimitiveDrawing};
+// Standard library
+use alloc::{
+    boxed::Box,
+    format,
+    string::{String, ToString},
+    vec,
+    vec::Vec,
+};
 
+// Internal crates
 use crate::{
     printerr,
     println,
-};
-
-use crate::std::{
-    application::{Application, Error, Exit},
-    time::{timer, wait},
-    io::{
-        Color, write, Screen, Stdin, Serial, KeyStroke
+    std::{
+        application::{Application, Error, Exit},
+        time::{timer, wait},
+        io::{Color, write, Screen, Stdin, Serial, KeyStroke, Display},
     },
-};
-use crate::std::io::Display;
-
-use crate::user::{
-    lib::libgui::{
-        cg_core::{CgComponent, CgKeyboardCapture},
-        cg_widgets::CgDialog,
+    user::{
+        lib::libgui::{
+            cg_core::{CgComponent, CgKeyboardCapture},
+            cg_widgets::CgDialog,
+        },
+        bin::{
+            apps::{
+                calc::Calculator,
+                editor::Editor,
+                grapher::Grapher,
+                tasks::Tasks,
+            },
+            games::{
+                asteroids::Game as AsteroidsGame,
+                gameoflife::GameOfLife,
+                paper::GameBoard,
+                pong::Game as PongGame,
+                snake::Game as SnakeGame,
+                // tetris::TetrisEngine,
+            },
+            utils::{
+                crystalfetch::CrystalFetch,
+                gigachad_detector::GigachadDetector,
+                rickroll::Rickroll,
+            },
+        },
     },
-    bin::*,
-    bin::games::*,
 };
 
 lazy_static! {
@@ -42,7 +68,7 @@ pub async fn command_handler() {
 pub async fn eventloop() {
     println!("running!");
 
-    let mut fetch = crystalfetch::CrystalFetch::new();
+    let mut fetch = CrystalFetch::new();
     let string = String::from(" ");
     let mut vec: Vec<String> = Vec::new();
     vec.push(string);
@@ -99,21 +125,21 @@ async fn exec() -> Result<(), Error> {
 
     match cmd.as_str() {
         "calculate" | "calc" | "solve" => {
-            let mut cmd = calc::Calculator::new();
+            let mut cmd = Calculator::new();
             cmd.run(args).await?;
         }
 
         "rickroll" => {
-            let mut cmd = rickroll::Rickroll::new();
+            let mut cmd = Rickroll::new();
             cmd.run(args).await?;
         }
 
         "crystalfetch" => {
-            let mut cmd = crystalfetch::CrystalFetch::new();
+            let mut cmd = CrystalFetch::new();
             cmd.run(args).await?;
         }
         "tasks" => {
-            let mut cmd = tasks::Tasks::new();
+            let mut cmd = Tasks::new();
             cmd.run(args).await?;
         }
         "VGA" => {
@@ -126,20 +152,20 @@ async fn exec() -> Result<(), Error> {
             mode.draw_line((80, 60), (120, 420), Color16::Cyan);
         }
         "graph" => {
-            grapher::Grapher::new().run(args).await?;
+            Grapher::new().run(args).await?;
         }
         "games/snake" => {
-            snake::Game::new().run(args).await?;
+            SnakeGame::new().run(args).await?;
         }
         "games/asteroids" => {
-            let mut asteroid_game = asteroids::Game::new();
+            let mut asteroid_game = AsteroidsGame::new();
             asteroid_game.run(args).await?;
         }
         "games/pong" => {
-            pong::Game::new().run(args).await?;
+            PongGame::new().run(args).await?;
         }
         "games/paper.rs" => {
-            let mut game = paper_rs::GameBoard::new();
+            let mut game = GameBoard::new();
             game.run(args).await?;
         }
         "serial" => {
@@ -147,32 +173,22 @@ async fn exec() -> Result<(), Error> {
             println!("{}", c);
         }
         "games/gameoflife" => {
-            let mut game = gameoflife::GameOfLife::new();
+            let mut game = GameOfLife::new();
             game.run(Vec::new()).await?;
         }
         "games/tetris" => {
-            // let mut game = tetris::TetrisEngine::new();
+            // let mut game = TetrisEngine::new();
             // game.run(Vec::new()).await?;
         }
 
         "gigachad?" => {
-            let mut detector = gigachad_detector::GigachadDetector::new();
+            let mut detector = GigachadDetector::new();
             detector.run(args).await?;
         }
 
         "editor" => {
-            let mut editor = editor::Editor::new();
+            let mut editor = Editor::new();
             editor.run(args).await?;
-        }
-
-        "wait" => {
-            if args.len() != 1 {
-                return Err(Error::CommandFailed("exactly one argument must be provided".to_string()))
-            }
-            if let Ok(time) = args[0].parse::<u64>() {
-                wait(time as f64);
-                println!("waited for {}s", time);
-            }
         }
 
         // direct OS functions (not applications)
@@ -351,25 +367,3 @@ async fn setup_ui() {
     //     }
     // }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
