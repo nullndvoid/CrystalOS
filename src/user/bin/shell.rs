@@ -138,6 +138,10 @@ async fn exec() -> Result<(), Error> {
         "games/pong" => {
             pong::Game::new().run(args).await?;
         }
+        "games/paper.rs" => {
+            let mut game = paper_rs::GameBoard::new();
+            game.run(args).await?;
+        }
         "serial" => {
             let c = Serial::reply_char('e');
             println!("{}", c);

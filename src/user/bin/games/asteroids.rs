@@ -1,7 +1,7 @@
 use crate::std::application::Error;
 use crate::std::application::Error::ApplicationError;
 use crate::std::render::{ColouredChar, Dimensions, Frame, Position, RenderError};
-use crate::std::io::{Color, ColorCode, Display, KeyStroke, Screen, Stdin};
+use crate::std::io::{Color, ColorCode, Display, KeyStroke, Stdin};
 use crate::std::random::Random;
 use crate::system::std::application::Application;
 use crate::user::lib::libgui::cg_core::{CgComponent, Widget};
@@ -52,8 +52,8 @@ impl Application for Game {
             timer: GameTimer::new(),
         }
     }
-    async fn run(&mut self, args: Vec<String>) -> Result<(), Error> {
-        let d = Display::borrow();
+    async fn run(&mut self, _args: Vec<String>) -> Result<(), Error> {
+        let _d = Display::borrow();
 
         let mut container_data =
             CgContainer::new(Position::new(0, 0), Dimensions::new(80, 25), true);
@@ -147,7 +147,7 @@ impl Game {
         self.timer.advance();
 
         let game_update_delay = 5.0 / self.gamespeed;
-        let enemy_spawn_time = match self.difficulty_idx {
+        let _enemy_spawn_time = match self.difficulty_idx {
             1 => 10,
             2 => 10,
             3 => 10,
