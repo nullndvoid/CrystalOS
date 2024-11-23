@@ -21,9 +21,9 @@ impl Application for GameOfLife {
             frame: Frame::new(Position::new(0, 0), Dimensions::new(80, 25)).unwrap()
         }
     }
-    async fn run(&mut self, args: Vec<String>) -> Result<(), Error> {
+    async fn run(&mut self, _args: Vec<String>) -> Result<(), Error> {
         // setup:
-        let d = Display::borrow();
+        let _d = Display::borrow();
 
         let xoffset = 38;
         let yoffset = 5;
@@ -78,7 +78,7 @@ impl GameOfLife {
 
             let mut frame = Frame::new(Position::new(0, 0), Dimensions::new(80, 25)).unwrap();
 
-            self.frame.frame.iter().enumerate().for_each(|(y, row)| row.iter().enumerate().for_each(|(x, chr)| {
+            self.frame.frame.iter().enumerate().for_each(|(y, row)| row.iter().enumerate().for_each(|(x, _chr)| {
                 frame[y][x] = self.get_new_value(x as u8, y as u8);
             }));
 

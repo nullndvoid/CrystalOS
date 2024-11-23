@@ -2,13 +2,11 @@
 use lazy_static::lazy_static;
 use spin::Mutex;
 use vga::{
-    writers::{PrimitiveDrawing, GraphicsWriter, Graphics640x480x16},
-    colors::Color16,
+    writers::{PrimitiveDrawing, GraphicsWriter},
 };
 
 // Standard library
 use alloc::{
-    boxed::Box,
     format,
     string::{String, ToString},
     vec,
@@ -21,7 +19,7 @@ use crate::{
     println,
     std::{
         application::{Application, Error, Exit},
-        time::{timer, wait},
+        time::{timer},
         io::{Color, write, Screen, Stdin, Serial, KeyStroke, Display},
     },
     user::{
@@ -212,7 +210,7 @@ async fn exec() -> Result<(), Error> {
             timer();
         }
 		"test_features" => {
-            let d = Display::borrow();
+            let _d = Display::borrow();
             setup_ui().await;
 		}
         _ => {

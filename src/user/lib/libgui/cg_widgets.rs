@@ -521,7 +521,7 @@ impl CgComponent for CgDialog {
 
 #[async_trait]
 impl CgKeyboardCapture for CgDialog {
-    async fn keyboard_capture(&mut self, break_condition: fn(KeyStroke) -> (KeyStroke, Exit), app: Option<&Widget>) -> Result<(Exit, usize), RenderError> {
+    async fn keyboard_capture(&mut self, break_condition: fn(KeyStroke) -> (KeyStroke, Exit), _app: Option<&Widget>) -> Result<(Exit, usize), RenderError> {
         loop {
             let k = break_condition(Stdin::keystroke().await);
             match k {

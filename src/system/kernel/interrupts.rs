@@ -38,7 +38,7 @@ extern "x86-interrupt" fn keyboard_interrupt_handler(_stack_frame: InterruptStac
 		};
 	}
 
-	let keyboard = KEYBOARD.lock();
+	let _keyboard = KEYBOARD.lock();
 	let mut port = Port::new(0x60);
 	let scancode: u8 = unsafe { port.read() };
 

@@ -6,7 +6,7 @@ use core::any::Any;
 use async_trait::async_trait;
 use crate::std::application::{Application, Error};
 use crate::std::render::{Frame, Position, Dimensions, ColouredChar, RenderError};
-use crate::std::io::{Display, KeyStroke, Screen, Stdin};
+use crate::std::io::{Display, KeyStroke, Stdin};
 
 use crate::user::lib::libgui::{
     cg_core::{CgComponent},
@@ -22,7 +22,7 @@ const OFFSET_Y: i64 = 10;
 
 use core::f64::consts::E;
 use core::f64::consts::PI;
-use crate::serial_println;
+
 
 #[derive(Clone)]
 pub struct Grapher {
@@ -50,7 +50,7 @@ impl Application for Grapher {
         }
     }
     async fn run(&mut self, args: Vec<String>) -> Result<(), Error> {
-        let d = Display::borrow();
+        let _d = Display::borrow();
 
         self.frame.frame = vec![vec![ColouredChar::new(' '); self.frame.dimensions.x]; self.frame.dimensions.y];
 
@@ -138,10 +138,10 @@ impl Application for Grapher {
                 if let Ok(frame) = container.render() {
 
                     let self_widget = container.elements.get("grapher").unwrap();
-                    let self_clone = self_widget.fetch::<Grapher>().unwrap();
+                    let _self_clone = self_widget.fetch::<Grapher>().unwrap();
 
                     let entry = container.elements.get("entry_box").unwrap();
-                    let entry_clone = entry.fetch::<CgLineEdit>().unwrap();
+                    let _entry_clone = entry.fetch::<CgLineEdit>().unwrap();
 
                     frame.write_to_screen().map_err(|_| Error::ApplicationError(String::from("failed to write to screen")))?;
                 }

@@ -47,7 +47,7 @@ impl Application for Game {
 
     async fn run(&mut self, args: Vec<String>) -> Result<(), Error> {
 
-        let settings = [0, 0, 0]; // ai_count, snake_len, poi_count
+        let _settings = [0, 0, 0]; // ai_count, snake_len, poi_count
 
         if args.len() == 0 {
             self.gamemode = Gamemode::SinglePlayer;
@@ -75,7 +75,7 @@ impl Application for Game {
         self.prepare();
 
         // switch OS to application mode
-        let d = Display::borrow();
+        let _d = Display::borrow();
         // render the initial state of the screen.
         self.render().map_err(|_| Error::ApplicationError(String::from("failed to render game screen")))?;
         // run the game
@@ -99,19 +99,19 @@ impl Game {
     }
 
     fn respawn_snakes(&mut self) {
-        if let Gamemode::WithAI(ai_count, snake_len, _poi) = self.gamemode {
+        if let Gamemode::WithAI(_ai_count, snake_len, _poi) = self.gamemode {
             self.snakes.push(Snake::ai(self.snakes.len() + 1, snake_len));
         }
     }
 
     async fn gameloop(&mut self) -> Result<(), Error> { // main gameloop
-        let mut all_points: Vec<Position>;
+        let mut _all_points: Vec<Position>;
 
         'gameloop: loop {
 
             time::wait(0.1);
 
-            let mut points: Vec<Position>;
+            let mut _points: Vec<Position>;
             let length = self.snakes.len();
 
             for i in 0..length {
@@ -350,7 +350,7 @@ impl PathFinder {
         }
     }
 
-    fn optimal_move(head: &Position, rel_pos: &Position, moves: &Vec<Direction>) -> Direction {
+    fn optimal_move(_head: &Position, rel_pos: &Position, moves: &Vec<Direction>) -> Direction {
         let mut optimal_moves = vec![Direction::None; 4];
 
         let x_offset: usize;

@@ -269,7 +269,7 @@ impl Renderer {
                 if self.col_pos >= BUFFER_WIDTH {
                     self.internal_newline();
                 }
-                let row = BUFFER_HEIGHT - 1;
+                let _row = BUFFER_HEIGHT - 1;
                 let col = self.col_pos;
 
                 let buff_len = self.term_buffer.len();

@@ -5,13 +5,14 @@
 #![reexport_test_harness_main = "test_main"]
 #![feature(abi_x86_interrupt)]
 #![feature(alloc_error_handler)]
-#![feature(async_fn_in_trait)]
 #![feature(async_closure)]
 #![feature(inherent_associated_types)]
 #![feature(iter_advance_by)]
 
+#[cfg(test)]
+use bootloader::entry_point;
 
-use bootloader::{entry_point, BootInfo};
+use bootloader::BootInfo;
 use core::panic::PanicInfo;
 extern crate alloc;
 

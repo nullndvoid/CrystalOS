@@ -1,8 +1,8 @@
-use cmos_rtc::Time;
+
 use crate::println;
 use super::super::kernel::interrupts::GLOBALTIMER;
 use x86_64::instructions::interrupts;
-use crate::system::kernel::interrupts::InterruptIndex;
+
 
 pub fn wait(seconds: f64) {
     let mut start = 0;
