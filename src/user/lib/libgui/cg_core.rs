@@ -53,7 +53,7 @@ static ID_COUNTER: Mutex<usize> = Mutex::new(0);
 
 lazy_static! {
     static ref GUITREE: Mutex<DataStore> = Mutex::new(DataStore::new());
-};
+}
 
 #[derive(PartialEq, Eq, Debug, Clone)]
 pub struct Widget {

@@ -22,14 +22,14 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
 # Second, copy the source code and build the binary again.
 COPY ./src ./src
 
-# Build in release mode, this should maybe be parameterised for debug etc?
+# Build in debug mode, this should maybe be parameterised for debug etc?
 RUN --mount=type=cache,target=/usr/local/cargo/registry --mount=type=cache,target=/root/target \ 
-    cargo build --release \
-    && cargo bootimage --release --target x86_64-CrystalOS.json
+    cargo build \
+    && cargo bootimage --target x86_64-CrystalOS.json
 
 # Here I will define a separate stage for exporting the final image.
 # TODO: Setup a VM and run the binary on it or something cool like that. 
 FROM scratch
 
 # Copy just the binaries we need over here for a nice small final image.
-COPY --from=build /CrystalOS/target/x86_64-CrystalOS/release/CrystalOS /CrystalOS/target/x86_64-CrystalOS/release/bootimage-CrystalOS.bin /
+COPY --from=build /CrystalOS/target/x86_64-CrystalOS/debug/CrystalOS /CrystalOS/target/x86_64-CrystalOS/debug/bootimage-CrystalOS.bin /

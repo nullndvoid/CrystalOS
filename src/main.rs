@@ -31,7 +31,7 @@ entry_point!(main);
 fn main(boot_info: &'static BootInfo) -> ! {
     CrystalOS::start(boot_info);
 
-    print_log!("test");
+    serial_println!("{:?}", boot_info);
 
     #[cfg(test)]
     test_main();

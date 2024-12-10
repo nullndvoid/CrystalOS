@@ -8,7 +8,7 @@ lazy_static! {
         String::from("fantasypvp"),
         String::from("password")
     )]));
-};
+}
 
 pub struct User {
     username: String,
