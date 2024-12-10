@@ -1,25 +1,37 @@
-FROM ubuntu:latest
+# 
+#  Runs the build of CrystalOS in a Docker container. It should work now anyway. Just run docker build . -o <output_folder>.
+#  There was probably a good reason to include this file in the repo but it is somewhat unclear to myself.
+#  I have just updated a couple things to cache dependencies and create a small container to copy the relevant build artifacts tos.
+# 
 
-RUN apt-get update && apt-get install -y curl
-RUN apt-get install build-essential -y
+FROM rustlang/rust:nightly AS build
 
-RUN mkdir /src
-WORKDIR /src
+RUN USER=root cargo new --bin CrystalOS
 
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-ENV PATH="/root/.cargo/bin:${PATH}"
+WORKDIR /CrystalOS
 
-RUN rustup toolchain install nightly
-RUN rustup install nightly-2023-08-18
-RUN rustup override set nightly
-RUN rustup default nightly
-RUN rustup component add llvm-tools-preview --toolchain nightly-x86_64-unknown-linux-gnu
-RUN rustup component add rust-src --toolchain nightly-x86_64-unknown-linux-gnu
-RUN cargo install bootimage
+COPY ./Cargo.lock ./Cargo.lock
+COPY ./Cargo.toml ./Cargo.toml
+COPY .cargo/config.toml .cargo/config.toml
+COPY ./x86_64-CrystalOS.json ./x86_64-CrystalOS.json
 
-COPY . .
+RUN --mount=type=cache,target=/usr/local/cargo/registry \ 
+    rustup component add llvm-tools-preview --toolchain nightly-x86_64-unknown-linux-gnu \
+    && rustup component add rust-src --toolchain nightly-x86_64-unknown-linux-gnu \
+    && rustup update \
+    && cargo install bootimage
 
-RUN cargo update -p proc-macro2
+# Second, copy the source code and build the binary again.
+COPY ./src ./src
 
-CMD ["cargo", "build", "--release"]
-CMD ["cargo", "test"]
+# Build in release mode, this should maybe be parameterised for debug etc?
+RUN --mount=type=cache,target=/usr/local/cargo/registry --mount=type=cache,target=/root/target \ 
+    cargo build --release \
+    && cargo bootimage --release --target x86_64-CrystalOS.json
+
+# Here I will define a separate stage for exporting the final image.
+# TODO: Setup a VM and run the binary on it or something cool like that. 
+FROM scratch
+
+# Copy just the binaries we need over here for a nice small final image.
+COPY --from=build /CrystalOS/target/x86_64-CrystalOS/release/CrystalOS /CrystalOS/target/x86_64-CrystalOS/release/bootimage-CrystalOS.bin /
