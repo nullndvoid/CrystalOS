@@ -36,8 +36,9 @@ use crate::{
             },
             games::{
                 asteroids::Game as AsteroidsGame,
+                connect4::Game as Connect4Game,
                 gameoflife::GameOfLife,
-                paper::GameBoard,
+                paper_rs::GameBoard,
                 pong::Game as PongGame,
                 snake::Game as SnakeGame,
                 // tetris::TetrisEngine,
@@ -124,6 +125,11 @@ async fn exec() -> Result<(), Error> {
     match cmd.as_str() {
         "calculate" | "calc" | "solve" => {
             let mut cmd = Calculator::new();
+            cmd.run(args).await?;
+        }
+
+        "games/connect4" => {
+            let mut cmd = Connect4Game::new();
             cmd.run(args).await?;
         }
 

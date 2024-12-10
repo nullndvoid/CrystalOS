@@ -332,6 +332,7 @@ pub fn special_char(ch: char) -> Option<u8> {
         '░' => 176,
         '▒' => 177,
         '▓' => 178,
+        '█' => 219,
         '«' => 174,
         _ => {
             return None;

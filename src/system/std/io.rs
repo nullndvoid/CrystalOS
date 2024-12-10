@@ -33,6 +33,11 @@ impl Stdin {
         let chr = KEYBOARD.lock().try_keystroke();
         chr
     }
+
+    pub fn last_keystroke() -> Option<KeyStroke> {
+        let chr = KEYBOARD.lock().last_keystroke();
+        chr
+    }
 }
 
 pub struct Serial {}
