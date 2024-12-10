@@ -49,3 +49,17 @@ while I'm waiting for the third edition to release, I guess I'm gonna just have 
 
   - a shell that can enter apps and run commands like 'echo' and 'clear'
     - well actually just those commands lol. Might try making a shell language or something if i get some spare time over christmas
+
+## Building with Docker
+
+To build using Docker, just run this:
+
+```sh
+DOCKER_BUILDKIT=1 docker build . -o ./path/to/output/folder
+```
+
+### TODOs with Docker/CI etc:
+
+* Setup everything including qemu inside of Docker.
+* Running tests inside of Docker.
+* Possible automatic releases when you git tag? (Not too hard using the docker image and uploading to GitHub)

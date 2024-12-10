@@ -1,8 +1,8 @@
 use crate::std::application::Error;
 use crate::std::application::Error::ApplicationError;
-use crate::std::render::{ColouredChar, Dimensions, Frame, Position, RenderError};
 use crate::std::io::{Color, ColorCode, Display, KeyStroke, Stdin};
 use crate::std::random::Random;
+use crate::std::render::{ColouredChar, Dimensions, Frame, Position, RenderError};
 use crate::system::std::application::Application;
 use crate::user::lib::libgui::cg_core::{CgComponent, Widget};
 use crate::user::lib::libgui::cg_widgets::{CgContainer, CgLabel};
@@ -134,15 +134,35 @@ impl Game {
         // triggers roughly every 10ms
 
         match self.score {
-            0..=9 => { self.gamespeed = 1.0;self.difficulty_idx = 1 },
-            10..=24 => { self.gamespeed = 2.0;self.difficulty_idx = 2 },
-            25..=49 => { self.gamespeed = 2.0;self.difficulty_idx = 3 },
-            50..=99 => { self.gamespeed = 3.0;self.difficulty_idx = 4 } ,
-            100..=199 => { self.gamespeed = 3.0;self.difficulty_idx = 5 },
-            200..=500 => { self.gamespeed = 4.0;self.difficulty_idx = 6 },
-            _ => { self.gamespeed = 5.0;self.difficulty_idx = 7 },
+            0..=9 => {
+                self.gamespeed = 1.0;
+                self.difficulty_idx = 1
+            }
+            10..=24 => {
+                self.gamespeed = 2.0;
+                self.difficulty_idx = 2
+            }
+            25..=49 => {
+                self.gamespeed = 2.0;
+                self.difficulty_idx = 3
+            }
+            50..=99 => {
+                self.gamespeed = 3.0;
+                self.difficulty_idx = 4
+            }
+            100..=199 => {
+                self.gamespeed = 3.0;
+                self.difficulty_idx = 5
+            }
+            200..=500 => {
+                self.gamespeed = 4.0;
+                self.difficulty_idx = 6
+            }
+            _ => {
+                self.gamespeed = 5.0;
+                self.difficulty_idx = 7
+            }
         };
-
 
         self.timer.advance();
 
@@ -160,9 +180,9 @@ impl Game {
         self.enemies.retain(|e| {
             if e.position.1 == self.player.position.y as i16
                 && (0..5)
-                .map(|i| e.position.0 + i)
-                .collect::<Vec<_>>()
-                .contains(&(self.player.position.x as i16))
+                    .map(|i| e.position.0 + i)
+                    .collect::<Vec<_>>()
+                    .contains(&(self.player.position.x as i16))
             {
                 self.player.health -= 1;
                 self.hit = true;
@@ -196,8 +216,16 @@ impl Game {
         if let Some(input_key) = Stdin::try_keystroke() {
             match input_key {
                 KeyStroke::Char('`') => return true,
-                KeyStroke::Char('w') => { if self.player.position.y > 0 { self.player.position.y -= 1 }},
-                KeyStroke::Char('s') => { if self.player.position.y < 21 { self.player.position.y += 1 }},
+                KeyStroke::Char('w') => {
+                    if self.player.position.y > 0 {
+                        self.player.position.y -= 1
+                    }
+                }
+                KeyStroke::Char('s') => {
+                    if self.player.position.y < 21 {
+                        self.player.position.y += 1
+                    }
+                }
                 _ => (),
             }
         }
@@ -290,7 +318,7 @@ impl GameTimer {
         self.time_since_spawn += 1;
         self.time_since_move += 1;
     }
-    
+
     pub fn get_move_time(&self) -> u32 {
         self.time_since_move
     }
@@ -298,7 +326,6 @@ impl GameTimer {
         self.time_since_move = 0
     }
 }
-
 
 #[derive(Clone)]
 pub struct Enemy {

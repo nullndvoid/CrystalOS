@@ -8,15 +8,15 @@
 // use crate::std::application::{Application, Error};
 // use crate::std::io::{Display, Screen};
 // use crate::user::lib::coords::{Direction, Position, PositionReal};
-// 
-// 
+//
+//
 // pub(crate) struct TetrisEngine {
 //     score: u32,
 //     next: TetrisPiece,
 //     completed_frame: [[ColouredChar; 80]; 25], // this frame does not contain falling blocks, only static ones
-// 
+//
 // }
-// 
+//
 // #[async_trait]
 // impl Application for TetrisEngine {
 //     fn new() -> Self {
@@ -29,28 +29,28 @@
 //     async fn run(&mut self, args: Vec<String>) -> Result<(), Error> {
 //         // setup:
 //         let d = Display::borrow();
-// 
+//
 //         let piece_type = PieceType::OPiece;
 //         let mut piece = TetrisPiece::new(piece_type);
-// 
+//
 //         serial_println!("{:?}", piece.get_positions());
 //         piece.rotate_right();
 //         serial_println!("{:?}", piece.get_positions());
-//         
+//
 //         Ok(())
 //     }
 // }
-// 
-// 
-// 
-// 
-// 
-// 
-// 
-// 
-// 
-// 
-// 
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 // enum PieceType {
 //     OPiece,
 //     IPiece,
@@ -59,13 +59,13 @@
 //     SPiece,
 //     ZPiece,
 // }
-// 
+//
 // struct TetrisPiece {
 //     type_: PieceType,
 //     pos: Position,
 //     rotation: Direction,
 // }
-// 
+//
 // impl TetrisPiece {
 //     fn new(type_: PieceType) -> Self {
 //         Self {
@@ -83,7 +83,7 @@
 //             Direction::None => panic!("direction should never be none in this application"),
 //         };
 //     }
-// 
+//
 //     /// function that maps the coordinates of the object.
 //     fn get_positions(&self) -> Vec<Position> {
 //         match self.type_ {
@@ -102,15 +102,11 @@
 //         }
 //     }
 // }
-// 
-// 
-// 
-// 
-// 
-// 
-// 
-// 
-
-
-
-
+//
+//
+//
+//
+//
+//
+//
+//

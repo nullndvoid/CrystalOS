@@ -1,17 +1,17 @@
 use crate::system::kernel::{
-    render::{RENDERER, self, RenderError},
-    tasks::keyboard::{KEYBOARD},
-    serial::{serial_reply},
+    render::{self, RenderError, RENDERER},
+    serial::serial_reply,
+    tasks::keyboard::KEYBOARD,
 };
 
 pub use crate::system::kernel::{
-    tasks::keyboard::KeyStroke,
-    serial::{_serial_print},
     render::{Color, ColorCode},
+    serial::_serial_print,
+    tasks::keyboard::KeyStroke,
 };
 
-use alloc::string::String;
 pub use crate::{print, println, serial_print, serial_println};
+use alloc::string::String;
 
 pub struct Stdin {}
 impl Stdin {
@@ -107,9 +107,6 @@ impl Drop for Display {
     }
 }
 
-
-
-
 #[macro_export]
 macro_rules! println_log {
 	() => ($crate::print_log!("/n"));
@@ -155,10 +152,9 @@ macro_rules! serial_println {
 	);
 }
 
-
 #[doc(hidden)]
 pub fn _print(args: core::fmt::Arguments) {
-	render::write(args, (Color::White, Color::Black));
+    render::write(args, (Color::White, Color::Black));
 }
 
 #[doc(hidden)]

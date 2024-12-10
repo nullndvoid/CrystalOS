@@ -7,7 +7,8 @@
 use bootloader::{entry_point, BootInfo};
 use core::panic::PanicInfo;
 use CrystalOS::std::tasks::{Executor, Task};
-use CrystalOS::{printerr,  std::syscall};
+use CrystalOS::{print_log, serial_println};
+use CrystalOS::{printerr, std::syscall};
 extern crate alloc;
 use CrystalOS::user::bin::shell;
 
@@ -25,11 +26,12 @@ fn panic(info: &PanicInfo) -> ! {
     CrystalOS::test_panic_handler(info)
 }
 
-
 entry_point!(main);
 
 fn main(boot_info: &'static BootInfo) -> ! {
     CrystalOS::start(boot_info);
+
+    print_log!("test");
 
     #[cfg(test)]
     test_main();
@@ -41,4 +43,3 @@ fn main(boot_info: &'static BootInfo) -> ! {
         executor.try_run();
     }
 }
-

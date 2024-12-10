@@ -1,4 +1,3 @@
-
 pub trait Item {
     fn name(&self) -> &str;
     fn description(&self) -> &str;
@@ -8,5 +7,5 @@ pub trait Item {
 }
 
 pub mod armour;
-pub mod weapons;
 pub mod potions;
+pub mod weapons;

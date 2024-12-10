@@ -1,14 +1,14 @@
-use lazy_static::lazy_static;
 use alloc::sync::Arc;
+use alloc::{string::String, vec, vec::Vec};
+use lazy_static::lazy_static;
 use spin::Mutex;
-use alloc::{vec, vec::Vec, string::String};
 
-lazy_static!(
+lazy_static! {
     static ref AUTHENTICATOR: Arc<Mutex<Vec<User>>> = Arc::new(Mutex::new(vec![User::new(
         String::from("fantasypvp"),
         String::from("password")
     )]));
-);
+};
 
 pub struct User {
     username: String,
@@ -18,7 +18,10 @@ pub struct User {
 impl User {
     fn new(username: String, password: String) -> User {
         let pass_hash = User::get_pass_hash(&password);
-        User { username, pass_hash }
+        User {
+            username,
+            pass_hash,
+        }
     }
 
     fn get_pass_hash(pass: &String) -> u64 {

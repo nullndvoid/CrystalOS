@@ -1,6 +1,12 @@
 use alloc::{boxed::Box, string::String, vec::Vec};
 
-use super::{effect::Effect, items::{armour::{Boots, Chestplate, Helmet}, Item}};
+use super::{
+    effect::Effect,
+    items::{
+        armour::{Boots, Chestplate, Helmet},
+        Item,
+    },
+};
 
 pub struct Player {
     pub name: String,
@@ -39,5 +45,5 @@ impl Player {
     const BASE_DEFENCE: f64 = 0.0;
     const BASE_AGILITY: f64 = 0.0;
 
-    const BASE_LEVEL : f64 = 1.0;
+    const BASE_LEVEL: f64 = 1.0;
 }

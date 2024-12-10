@@ -1,13 +1,15 @@
+use crate::std::application::{Application, Error};
+use crate::std::io::{Color, Display, KeyStroke, Stdin};
+use crate::std::render::{
+    ColorCode, ColouredChar, Dimensions, Frame, Position, RenderError, BUFFER_HEIGHT, BUFFER_WIDTH,
+};
+use crate::std::time::Timer;
+use crate::user::lib::libgui::cg_core::CgComponent;
 use alloc::boxed::Box;
 use alloc::string::String;
 use alloc::vec::Vec;
-use core::any::Any;
 use async_trait::async_trait;
-use crate::std::application::{Application, Error};
-use crate::std::render::{BUFFER_HEIGHT, BUFFER_WIDTH, ColorCode, ColouredChar, Dimensions, Frame, Position, RenderError};
-use crate::std::io::{Color, Display, KeyStroke, Stdin};
-use crate::std::time::Timer;
-use crate::user::lib::libgui::cg_core::CgComponent;
+use core::any::Any;
 
 pub(crate) struct Game {
     ball: Ball,
@@ -39,19 +41,19 @@ impl Application for Game {
                     KeyStroke::Char('w') => {
                         self.player1.move_player(-1);
                         updated = true;
-                    },
+                    }
                     KeyStroke::Char('s') => {
                         self.player1.move_player(1);
                         updated = true;
-                    },
+                    }
                     KeyStroke::Up => {
                         self.player2.move_player(-1);
                         updated = true;
-                    },
+                    }
                     KeyStroke::Down => {
                         self.player2.move_player(1);
                         updated = true;
-                    },
+                    }
                     KeyStroke::Char('`') => break,
                     _ => {}
                 }
@@ -74,12 +76,14 @@ impl Application for Game {
 
 impl Game {
     fn update_ball(&mut self) {
-        let pos_next_f32 = Position::new( // invert x direction on collision with player
-                                          self.ball.pos.x + self.ball.vx,
-                                          self.ball.pos.y + self.ball.vy,
+        let pos_next_f32 = Position::new(
+            // invert x direction on collision with player
+            self.ball.pos.x + self.ball.vx,
+            self.ball.pos.y + self.ball.vy,
         );
 
-        if pos_next_f32.y < 0.0 || pos_next_f32.y >= BUFFER_HEIGHT as f32 { // if the move is outside the screen, then invert the direction
+        if pos_next_f32.y < 0.0 || pos_next_f32.y >= BUFFER_HEIGHT as f32 {
+            // if the move is outside the screen, then invert the direction
             self.ball.vy = -self.ball.vy;
         }
 
@@ -97,10 +101,7 @@ impl Game {
             self.ball.vy = 0.3;
         }
 
-        let pos_next = Position::new(
-            pos_next_f32.x as usize,
-            pos_next_f32.y as usize,
-        );
+        let pos_next = Position::new(pos_next_f32.x as usize, pos_next_f32.y as usize);
 
         for i in 0..5 {
             if self.player1.pos.y + i - 2 == pos_next.y && self.player1.pos.x == pos_next.x {
@@ -110,11 +111,11 @@ impl Game {
                 self.ball.vx = -self.ball.vx;
                 break;
             }
-        };
+        }
 
         self.ball.pos = Position::new(
             self.ball.pos.x + self.ball.vx,
-            self.ball.pos.y + self.ball.vy
+            self.ball.pos.y + self.ball.vy,
         )
     }
 }
@@ -124,10 +125,25 @@ impl CgComponent for Game {
         let mut frame = Frame::new(Dimensions::new(0, 0), Dimensions::new(80, 25))?;
 
         for y in 0..5 {
-            frame.write(Position::new(self.player1.pos.x, self.player1.pos.y + y -2), ColouredChar::coloured('▓', ColorCode::new(Color::Cyan, Color::Black))).unwrap();
-            frame.write(Position::new(self.player2.pos.x, self.player2.pos.y + y -2), ColouredChar::coloured('▓', ColorCode::new(Color::Cyan, Color::Black))).unwrap();
+            frame
+                .write(
+                    Position::new(self.player1.pos.x, self.player1.pos.y + y - 2),
+                    ColouredChar::coloured('▓', ColorCode::new(Color::Cyan, Color::Black)),
+                )
+                .unwrap();
+            frame
+                .write(
+                    Position::new(self.player2.pos.x, self.player2.pos.y + y - 2),
+                    ColouredChar::coloured('▓', ColorCode::new(Color::Cyan, Color::Black)),
+                )
+                .unwrap();
         }
-        frame.write(self.ball.pos.into_usize().unwrap(), ColouredChar::coloured('O', ColorCode::new(Color::Green, Color::Black))).unwrap();
+        frame
+            .write(
+                self.ball.pos.into_usize().unwrap(),
+                ColouredChar::coloured('O', ColorCode::new(Color::Green, Color::Black)),
+            )
+            .unwrap();
 
         Ok(frame)
     }
@@ -142,10 +158,12 @@ struct Player {
     score: i32,
 }
 
-
 impl Player {
     fn new(x: usize) -> Self {
-        Player { pos: Position::new(x, 12), score: 0 }
+        Player {
+            pos: Position::new(x, 12),
+            score: 0,
+        }
     }
 
     // valid for |y| = 1
@@ -167,6 +185,10 @@ struct Ball {
 
 impl Ball {
     fn new() -> Self {
-        Ball {  pos: Position::new(40.0, 12.0), vx: 1.0, vy: 0.3 }
+        Ball {
+            pos: Position::new(40.0, 12.0),
+            vx: 1.0,
+            vy: 0.3,
+        }
     }
 }

@@ -1,25 +1,25 @@
+use alloc::{boxed::Box, string::String, vec::Vec};
 use async_trait::async_trait;
-use alloc::{string::String, vec::Vec, boxed::Box};
 
 #[async_trait]
 pub trait Application {
-	fn new() -> Self;
+    fn new() -> Self;
 
-	async fn run(&mut self, _: Vec<String>) -> Result<(), Error> {
-		Ok(())
-	}
+    async fn run(&mut self, _: Vec<String>) -> Result<(), Error> {
+        Ok(())
+    }
 }
 
 #[derive(Debug)]
 pub enum Error {
-	UnknownCommand(String),
-	CommandFailed(String),
-	ApplicationError(String),
-	EmptyCommand,
+    UnknownCommand(String),
+    CommandFailed(String),
+    ApplicationError(String),
+    EmptyCommand,
 }
 
 pub enum Exit {
-	None,
-	Exit,
-	ExitWithError(Error),
+    None,
+    Exit,
+    ExitWithError(Error),
 }

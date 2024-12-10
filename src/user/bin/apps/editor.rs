@@ -1,17 +1,17 @@
-use crate::{serial_println, std};
 use crate::std::application::{self, Application};
 use crate::std::io::{Color, ColorCode, Display, KeyStroke};
 use crate::std::render::{ColouredChar, Frame, Position, RenderError};
 use crate::user::lib::libgui::cg_core::CgComponent;
-
-
-
+use crate::{serial_println, std};
 
 use alloc::format;
-use alloc::{string::{String, ToString}, vec::Vec, boxed::Box};
+use alloc::{
+    boxed::Box,
+    string::{String, ToString},
+    vec::Vec,
+};
 
 use async_trait::async_trait;
-
 
 pub struct Editor {
     buffer: Vec<Vec<char>>, // outer vec is the line, inner is col;
@@ -28,7 +28,7 @@ enum Mode {
     Normal,
     Insert,
     Command,
-    Diff // TODO
+    Diff, // TODO
 }
 
 impl core::fmt::Display for Mode {
@@ -44,21 +44,35 @@ impl core::fmt::Display for Mode {
 
 impl Editor {
     fn move_cursor(&mut self, dx: i32, dy: i32) {
-        if dy != 0 
-            && self.cursor_pos.y + dy >= 0 
-            && self.cursor_pos.y + dy <= self.buffer.len() as i32 
+        if dy != 0
+            && self.cursor_pos.y + dy >= 0
+            && self.cursor_pos.y + dy <= self.buffer.len() as i32
         {
             self.cursor_pos.y += dy;
-            let line_width = self.buffer.get(self.cursor_pos.y as usize).unwrap_or(&Vec::<char>::new()).len() as i32;
+            let line_width = self
+                .buffer
+                .get(self.cursor_pos.y as usize)
+                .unwrap_or(&Vec::<char>::new())
+                .len() as i32;
             if self.cursor_pos.x > line_width {
                 self.cursor_pos.x = line_width;
             }
         } else if self.cursor_pos.x + dx < 0 {
             if self.cursor_pos.y - 1 >= 0 {
                 self.cursor_pos.y -= 1;
-                self.cursor_pos.x = self.buffer.get(self.cursor_pos.y as usize).unwrap_or(&Vec::<char>::new()).len() as i32;
+                self.cursor_pos.x = self
+                    .buffer
+                    .get(self.cursor_pos.y as usize)
+                    .unwrap_or(&Vec::<char>::new())
+                    .len() as i32;
             }
-        } else if self.cursor_pos.x + dx > self.buffer.get(self.cursor_pos.y as usize).unwrap_or(&Vec::<char>::new()).len() as i32 {
+        } else if self.cursor_pos.x + dx
+            > self
+                .buffer
+                .get(self.cursor_pos.y as usize)
+                .unwrap_or(&Vec::<char>::new())
+                .len() as i32
+        {
             if self.cursor_pos.y + 1 <= self.buffer.len() as i32 {
                 self.cursor_pos.x = 0;
                 self.cursor_pos.y += 1;
@@ -67,7 +81,13 @@ impl Editor {
             self.cursor_pos.x += dx;
         }
 
-        serial_println!("cursor: {} {} offset: {} {} ", self.cursor_pos.x, self.cursor_pos.y, self.offset_pos.x, self.offset_pos.y);
+        serial_println!(
+            "cursor: {} {} offset: {} {} ",
+            self.cursor_pos.x,
+            self.cursor_pos.y,
+            self.offset_pos.x,
+            self.offset_pos.y
+        );
 
         while self.cursor_pos.x + 3 + (self.lineno_width + 2) > 80 + self.offset_pos.x {
             self.offset_pos.x += 1;
@@ -96,17 +116,24 @@ impl Editor {
         serial_println!("cursor: {}, {}", self.cursor_pos.x, self.cursor_pos.y);
         serial_println!("line width: {}", self.lineno_width + 2);
 
-        self.display.mv_cursor(
-            (self.cursor_pos.x - self.offset_pos.x + self.lineno_width + 2) as u8, 
-            (self.cursor_pos.y - self.offset_pos.y) as u8
-        ).unwrap();
+        self.display
+            .mv_cursor(
+                (self.cursor_pos.x - self.offset_pos.x + self.lineno_width + 2) as u8,
+                (self.cursor_pos.y - self.offset_pos.y) as u8,
+            )
+            .unwrap();
     }
 
     fn delete_char(&mut self) {
         self.unsaved = true;
         // if the cursor is at the end of the line
-        if self.cursor_pos.x == self.buffer.get(self.cursor_pos.y as usize).unwrap_or(&Vec::<char>::new()).len() as i32 {
-            
+        if self.cursor_pos.x
+            == self
+                .buffer
+                .get(self.cursor_pos.y as usize)
+                .unwrap_or(&Vec::<char>::new())
+                .len() as i32
+        {
             if self.cursor_pos.y + 1 == self.buffer.len() as i32 {
                 return;
             }
@@ -119,20 +146,22 @@ impl Editor {
         }
     }
 
-
     fn splitline(&mut self) {
         self.unsaved = true;
 
         if let Some(_) = self.buffer.get(self.cursor_pos.y as usize) {
-            let first_half = self.buffer[self.cursor_pos.y as usize][..self.cursor_pos.x as usize].to_vec();
-            let second_half = self.buffer[self.cursor_pos.y as usize][self.cursor_pos.x as usize..].to_vec();
+            let first_half =
+                self.buffer[self.cursor_pos.y as usize][..self.cursor_pos.x as usize].to_vec();
+            let second_half =
+                self.buffer[self.cursor_pos.y as usize][self.cursor_pos.x as usize..].to_vec();
 
             self.buffer[self.cursor_pos.y as usize] = first_half;
-            self.buffer.insert(self.cursor_pos.y as usize + 1, second_half);
+            self.buffer
+                .insert(self.cursor_pos.y as usize + 1, second_half);
         } else {
             self.buffer.push(Vec::new());
         }
-        
+
         self.move_cursor(1, 0);
     }
 
@@ -143,14 +172,21 @@ impl Editor {
             line.insert(self.cursor_pos.x as usize, c);
         } else {
             self.buffer.push(Vec::new());
-            self.buffer.get_mut(self.cursor_pos.y as usize).unwrap().push(c);
+            self.buffer
+                .get_mut(self.cursor_pos.y as usize)
+                .unwrap()
+                .push(c);
         }
     }
 }
 
 impl ToString for Editor {
     fn to_string(&self) -> String {
-        self.buffer.iter().map(|line| line.iter().collect::<String>()).collect::<Vec<String>>().join("\n")
+        self.buffer
+            .iter()
+            .map(|line| line.iter().collect::<String>())
+            .collect::<Vec<String>>()
+            .join("\n")
     }
 }
 
@@ -165,17 +201,17 @@ impl Application for Editor {
             mode: Mode::Normal,
             unsaved: false,
             display: Display::borrow(),
-            lineno_width: 0
+            lineno_width: 0,
         }
     }
 
     async fn run(&mut self, _args: Vec<String>) -> Result<(), application::Error> {
-
         // if let Some(s) = args.get(0) {
         //     self.buffer = s.lines().map(|l| l.chars().collect()).collect::<Vec<Vec<char>>>()
         // }
 
-        self.buffer = String::from("
+        self.buffer = String::from(
+            "
     /$$ /$$$$$$$$ /$$   /$$  /$$$$$$  /$$$$$$$       /$$ /$$  /$$
    /$$/|_____ $$ | $$  / $$ /$$__  $$| $$____/      /$$/|  $$|  $$
   /$$/      /$$/ |  $$/ $$/| $$  \\ $$| $$          /$$/  \\  $$\\  $$
@@ -185,9 +221,11 @@ impl Application for Editor {
   \\  $$ /$$$$$$$$| $$  \\ $$|  $$$$$$/|  $$$$$$//$$/      /$$/ /$$/
    \\__/|________/|__/  |__/ \\____ $$$ \\______/|__/      |__/ |__/
                                  \\__/
-    ").lines().map(|l| l.chars().collect()).collect::<Vec<Vec<char>>>();
-
-        
+    ",
+        )
+        .lines()
+        .map(|l| l.chars().collect())
+        .collect::<Vec<Vec<char>>>();
 
         loop {
             // start by rendering the screen
@@ -210,12 +248,12 @@ impl Application for Editor {
                         }
                         _ => {}
                     }
-                },
+                }
                 Mode::Insert => {
                     match keystroke {
                         KeyStroke::Enter => {
                             // TODO: newline function
-                        },
+                        }
                         KeyStroke::Char(c) => {
                             match c {
                                 // escape
@@ -226,7 +264,7 @@ impl Application for Editor {
                                 '\x08' => {
                                     self.move_cursor(-1, 0);
                                     self.delete_char();
-                                },
+                                }
                                 // enter
                                 '\n' => self.splitline(),
                                 _ => {
@@ -234,22 +272,22 @@ impl Application for Editor {
                                     self.move_cursor(1, 0);
                                 }
                             }
-                        },
+                        }
                         KeyStroke::Left => {
                             self.move_cursor(-1, 0);
-                        },
+                        }
                         KeyStroke::Right => {
                             self.move_cursor(1, 0);
-                        },
+                        }
                         KeyStroke::Up => {
                             self.move_cursor(0, -1);
-                        },
+                        }
                         KeyStroke::Down => {
                             self.move_cursor(0, 1);
-                        },
+                        }
                         KeyStroke::None => {
                             serial_println!("none");
-                        },
+                        }
                         _ => {
                             serial_println!("other");
                         }
@@ -259,16 +297,16 @@ impl Application for Editor {
                     match keystroke {
                         KeyStroke::Enter => {
                             // TODO: execute command
-                        },
+                        }
                         KeyStroke::Char(c) => {
-                            if c == '\x1B' { 
-                                self.mode = Mode::Normal; 
+                            if c == '\x1B' {
+                                self.mode = Mode::Normal;
                                 self.command.clear();
                                 continue;
                             }
 
                             self.command.push(c);
-                        },
+                        }
                         _ => {}
                     }
                 }
@@ -282,7 +320,7 @@ impl CgComponent for Editor {
     fn render(&self) -> Result<Frame, RenderError> {
         let mut frame = Frame::new(Position::zero(), Position::new(80, 25))?;
         let width = self.lineno_width as usize;
-        let linecolour  = ColorCode::new(Color::Cyan, Color::Black);
+        let linecolour = ColorCode::new(Color::Cyan, Color::Black);
 
         for (i, line) in (self.offset_pos.y..self.offset_pos.y + 24).enumerate() {
             if line >= self.buffer.len() as i32 {
@@ -293,11 +331,16 @@ impl CgComponent for Editor {
             let line_num = format!("{:width$} │", line + 1);
             for (j, c) in line_num.chars().enumerate() {
                 frame.write(Position::new(j, i), ColouredChar::coloured(c, linecolour))?;
-            }   
+            }
 
             let line = self.buffer[line as usize].iter().collect::<String>();
 
-            for (j, c) in line.chars().skip(self.offset_pos.x as usize).take(80 - (width + 2)).enumerate() {
+            for (j, c) in line
+                .chars()
+                .skip(self.offset_pos.x as usize)
+                .take(80 - (width + 2))
+                .enumerate()
+            {
                 frame.write(Position::new(j + width + 2, i), ColouredChar::new(c))?;
             }
         }
@@ -319,12 +362,11 @@ impl CgComponent for Editor {
         for (i, c) in toolbar.chars().enumerate() {
             frame.write(Position::new(i, 24), ColouredChar::new(c))?;
         }
-    
+
         Ok(frame)
     }
-    
+
     fn as_any(&self) -> &dyn core::any::Any {
         self
     }
 }
-

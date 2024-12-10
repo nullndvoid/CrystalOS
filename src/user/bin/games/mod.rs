@@ -1,8 +1,8 @@
 pub mod asteroids;
-pub mod gameoflife;
+pub mod connect4;
 pub mod crystalrpg;
+pub mod gameoflife;
+pub mod paper_rs;
 pub mod pong;
 pub mod snake;
-pub mod paper_rs;
 pub mod tetris;
-pub mod connect4;

@@ -1,9 +1,7 @@
 // External crates
 use lazy_static::lazy_static;
 use spin::Mutex;
-use vga::{
-    writers::{PrimitiveDrawing, GraphicsWriter},
-};
+use vga::writers::{GraphicsWriter, PrimitiveDrawing};
 
 // Standard library
 use alloc::{
@@ -15,25 +13,15 @@ use alloc::{
 
 // Internal crates
 use crate::{
-    printerr,
-    println,
+    printerr, println,
     std::{
         application::{Application, Error, Exit},
-        time::{timer},
-        io::{Color, write, Screen, Stdin, Serial, KeyStroke, Display},
+        io::{write, Color, Display, KeyStroke, Screen, Serial, Stdin},
+        time::timer,
     },
     user::{
-        lib::libgui::{
-            cg_core::{CgComponent, CgKeyboardCapture},
-            cg_widgets::CgDialog,
-        },
         bin::{
-            apps::{
-                calc::Calculator,
-                editor::Editor,
-                grapher::Grapher,
-                tasks::Tasks,
-            },
+            apps::{calc::Calculator, editor::Editor, grapher::Grapher, tasks::Tasks},
             games::{
                 asteroids::Game as AsteroidsGame,
                 connect4::Game as Connect4Game,
@@ -44,10 +32,12 @@ use crate::{
                 // tetris::TetrisEngine,
             },
             utils::{
-                crystalfetch::CrystalFetch,
-                gigachad_detector::GigachadDetector,
-                rickroll::Rickroll,
+                crystalfetch::CrystalFetch, gigachad_detector::GigachadDetector, rickroll::Rickroll,
             },
+        },
+        lib::libgui::{
+            cg_core::{CgComponent, CgKeyboardCapture},
+            cg_widgets::CgDialog,
         },
     },
 };
@@ -94,16 +84,16 @@ fn handle_error(e: Error) {
     match e {
         Error::EmptyCommand => {
             printerr!("empty command");
-        },
+        }
         Error::UnknownCommand(cmd_str) => {
             printerr!("unknown command: '{}'", cmd_str);
-        },
+        }
         Error::ApplicationError(e) => {
             printerr!("application returned error:\n{}", e);
-        },
+        }
         Error::CommandFailed(e) => {
             printerr!("command failed:\n{}", e);
-        },
+        }
     }
 }
 
@@ -148,7 +138,7 @@ async fn exec() -> Result<(), Error> {
         }
         "VGA" => {
             use vga::colors::Color16;
-            use vga::writers::{GraphicsWriter, Graphics640x480x16};
+            use vga::writers::{Graphics640x480x16, GraphicsWriter};
 
             let mode = Graphics640x480x16::new();
             mode.set_mode();
@@ -215,15 +205,11 @@ async fn exec() -> Result<(), Error> {
         "time" => {
             timer();
         }
-		"test_features" => {
+        "test_features" => {
             let _d = Display::borrow();
             setup_ui().await;
-		}
-        _ => {
-            return Err(Error::UnknownCommand(
-                cmd
-            ))
         }
+        _ => return Err(Error::UnknownCommand(cmd)),
     };
 
     Ok(())
@@ -281,12 +267,16 @@ struct CmdHistory {
 }
 
 async fn setup_ui() {
-    let exit = |x: KeyStroke| { match x {
+    let exit = |x: KeyStroke| match x {
         KeyStroke::Char('`') => (KeyStroke::None, Exit::Exit),
         _ => (x, Exit::None),
-    }};
+    };
 
-    let options = vec![String::from("Nerd Detected"), String::from("Ok Boomer"), String::from("Idefksda")];
+    let options = vec![
+        String::from("Nerd Detected"),
+        String::from("Ok Boomer"),
+        String::from("Idefksda"),
+    ];
 
     let mut dialog = CgDialog::new(
         String::from("i'd just like to interject for a moment"),
@@ -311,7 +301,6 @@ async fn setup_ui() {
         frame.write_to_screen().unwrap();
     }
     dialog.keyboard_capture(exit, None).await.unwrap();
-
 
     // let label= Widget::insert(CgLabel::new(
     //     String::from("test label"),

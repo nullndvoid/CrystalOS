@@ -2,18 +2,21 @@ use lazy_static::lazy_static;
 use spin::Mutex;
 use x86_64::instructions::interrupts;
 
+use crate::{println, serial_print, serial_println, system::kernel::serial};
 use conquer_once::spin::OnceCell;
 use crossbeam_queue::ArrayQueue;
-use crate::{println, serial_print, serial_println, system::kernel::serial};
 
-use core::{pin::Pin, task::{Poll, Context}};
-use futures_util::stream::Stream;
-use futures_util::task::AtomicWaker;
-use futures_util::stream::StreamExt;
-use pc_keyboard::{layouts, DecodedKey, HandleControl, Keyboard, ScancodeSet1, KeyCode};
 use crate::print;
 use crate::system::kernel::render::RENDERER;
-use alloc::{string::String};
+use alloc::string::String;
+use core::{
+    pin::Pin,
+    task::{Context, Poll},
+};
+use futures_util::stream::Stream;
+use futures_util::stream::StreamExt;
+use futures_util::task::AtomicWaker;
+use pc_keyboard::{layouts, DecodedKey, HandleControl, KeyCode, Keyboard, ScancodeSet1};
 
 static WAKER: AtomicWaker = AtomicWaker::new();
 static SCANCODE_QUEUE: OnceCell<ArrayQueue<u8>> = OnceCell::uninit();
@@ -51,7 +54,7 @@ pub enum KeyStroke {
     None,
     Enter,
     Escape,
-    Del
+    Del,
 }
 
 impl KeyStroke {
@@ -119,68 +122,73 @@ impl KeyboardHandler {
         }
     }
 
-	pub fn process_keystroke(&mut self, scancode: u8) -> Option<KeyStroke> {
-		if let Ok(Some(key_event)) = self.keyboard.add_byte(scancode) {
-			if let Some(key) = self.keyboard.process_keyevent(key_event) {
-				match key {
-					DecodedKey::Unicode(character) => {
-						if character == b'\x08' as char { // checks if the character is a backspace
-							interrupts::without_interrupts(|| {
-								RENDERER.lock().backspace(); // runs the backspace function of the vga buffer to remove the last character
-							});
-							return Some(KeyStroke::Char(character));
-						} else {
-							return Some(KeyStroke::Char(character));
-						}
-					},
-					DecodedKey::RawKey(key) => {
-						match KeyStroke::from_keycode(key) {
-							KeyStroke::None => (),
-							key => return Some(key)
-						}
-					},
-				}
-			}
-		}
-		None
-	}
+    pub fn process_keystroke(&mut self, scancode: u8) -> Option<KeyStroke> {
+        if let Ok(Some(key_event)) = self.keyboard.add_byte(scancode) {
+            if let Some(key) = self.keyboard.process_keyevent(key_event) {
+                match key {
+                    DecodedKey::Unicode(character) => {
+                        if character == b'\x08' as char {
+                            // checks if the character is a backspace
+                            interrupts::without_interrupts(|| {
+                                RENDERER.lock().backspace(); // runs the backspace function of the vga buffer to remove the last character
+                            });
+                            return Some(KeyStroke::Char(character));
+                        } else {
+                            return Some(KeyStroke::Char(character));
+                        }
+                    }
+                    DecodedKey::RawKey(key) => match KeyStroke::from_keycode(key) {
+                        KeyStroke::None => (),
+                        key => return Some(key),
+                    },
+                }
+            }
+        }
+        None
+    }
 
     pub async fn get_keystroke(&mut self) -> KeyStroke {
-		loop {
-			if let Some(c) = self.scancodes.next().await {
-				if let Some(key) = self.process_keystroke(c) {
-					return key;
-				}
-			}
-		}
+        loop {
+            if let Some(c) = self.scancodes.next().await {
+                if let Some(key) = self.process_keystroke(c) {
+                    return key;
+                }
+            }
+        }
     }
 
     pub fn try_keystroke(&mut self) -> Option<KeyStroke> {
         if let Some(scancode) = self.scancodes.try_next() {
             self.process_keystroke(scancode)
-        } else { None }
+        } else {
+            None
+        }
     }
 
     pub fn last_keystroke(&mut self) -> Option<KeyStroke> {
         let mut last_scancode = None;
-        
+
         // Keep getting scancodes until the queue is empty
         while let Some(scancode) = self.scancodes.try_next() {
             last_scancode = Some(scancode);
         }
 
-		// Process the last scancode
-		if let Some(scancode) = last_scancode {
-			self.process_keystroke(scancode)
-		} else { None }
+        // Process the last scancode
+        if let Some(scancode) = last_scancode {
+            self.process_keystroke(scancode)
+        } else {
+            None
+        }
     }
 
     pub async fn get_string(&mut self) -> String {
         let mut val = String::new();
         loop {
             let character = match self.get_keystroke_inner().await {
-                Some(c) => { c },
-                None => { continue; },
+                Some(c) => c,
+                None => {
+                    continue;
+                }
             };
 
             if let KeyStroke::Char(c) = character {
@@ -189,18 +197,15 @@ impl KeyboardHandler {
                     continue;
                 }
 
-				print!("{}", c);
+                print!("{}", c);
                 val.push(c);
 
-				if c == '\n' {
-					return val;
-				}
+                if c == '\n' {
+                    return val;
+                }
             }
-
         }
-
     }
-
 }
 
 pub(crate) fn add_scancode(scancode: u8) {
@@ -221,7 +226,8 @@ pub struct ScanCodeStream {
 
 impl ScanCodeStream {
     pub fn new() -> Self {
-        SCANCODE_QUEUE.try_init_once(|| ArrayQueue::new(100))
+        SCANCODE_QUEUE
+            .try_init_once(|| ArrayQueue::new(100))
             .expect("ScanCodeStream::new has already been called once");
         ScanCodeStream { _private: () }
     }
@@ -247,12 +253,12 @@ impl Stream for ScanCodeStream {
         }
 
         WAKER.register(&ctx.waker());
-        
+
         match queue.pop() {
             Ok(scancode) => {
                 WAKER.take();
                 Poll::Ready(Some(scancode))
-            },
+            }
             Err(crossbeam_queue::PopError) => Poll::Pending,
         }
     }

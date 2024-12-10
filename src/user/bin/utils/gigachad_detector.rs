@@ -1,12 +1,9 @@
-use async_trait::async_trait;
 use alloc::{boxed::Box, string::String, vec::Vec};
+use async_trait::async_trait;
 
 use crate::{
     println,
-    std::application::{
-        Application,
-        Error,
-    },
+    std::application::{Application, Error},
 };
 
 const GIGACHAD: [&'static str; 3] = ["fantasypvp", "zxq5", "ZXQ5"];
@@ -31,7 +28,8 @@ impl GigachadDetector {
     pub fn detect_gigachad_by_username(&self, username: &str) {
         if GIGACHAD.contains(&username) {
             println!("{} is a gigachad B'YES", username);
-            println!("
+            println!(
+                "
     /$$ /$$$$$$$$ /$$   /$$  /$$$$$$  /$$$$$$$       /$$ /$$  /$$
    /$$/|_____ $$ | $$  / $$ /$$__  $$| $$____/      /$$/|  $$|  $$
   /$$/      /$$/ |  $$/ $$/| $$  \\ $$| $$          /$$/  \\  $$\\  $$
@@ -41,7 +39,8 @@ impl GigachadDetector {
   \\  $$ /$$$$$$$$| $$  \\ $$|  $$$$$$/|  $$$$$$//$$/      /$$/ /$$/
    \\__/|________/|__/  |__/ \\____ $$$ \\______/|__/      |__/ |__/
                                  \\__/
-    ")
+    "
+            )
         } else {
             println!("{} is not a gigachad", username);
         }

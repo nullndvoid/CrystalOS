@@ -1,8 +1,6 @@
-# 
-#  Runs the build of CrystalOS in a Docker container. It should work now anyway. Just run docker build . -o <output_folder>.
-#  There was probably a good reason to include this file in the repo but it is somewhat unclear to myself.
-#  I have just updated a couple things to cache dependencies and create a small container to copy the relevant build artifacts tos.
-# 
+# Runs the build of CrystalOS in a Docker container. It should work now anyway. Just run "DOCKER_BUILDKIT=1 docker build . -o <output_folder>."
+# There was probably a good reason to include this file in the repo but it is somewhat unclear to myself.
+# I have just updated a couple things to cache dependencies and create a small container to copy the relevant build artifacts to.
 
 FROM rustlang/rust:nightly AS build
 

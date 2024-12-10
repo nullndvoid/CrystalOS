@@ -11,27 +11,36 @@ pub fn run_func(func: String, x: f64) -> Result<f64, String> {
         "sin" => sin(x),
         "cos" => cos(x),
         "tan" => tan(x),
-        _ => Err(String::from(format!("unrecognised function name: {}", func))),
+        _ => Err(String::from(format!(
+            "unrecognised function name: {}",
+            func
+        ))),
     }
 }
 
 fn sqrt(x: f64) -> Result<f64, String> {
     if x < 0.0 {
-        return Err(String::from("Cannot take the square root of a negative number"));
+        return Err(String::from(
+            "Cannot take the square root of a negative number",
+        ));
     }
     Ok(libm::sqrt(x))
 }
 
 fn ln(x: f64) -> Result<f64, String> {
     if x < 0.0 {
-        return Err(String::from("Cannot take the natural log of a negative number"));
+        return Err(String::from(
+            "Cannot take the natural log of a negative number",
+        ));
     }
     Ok(libm::log(x))
 }
 
 fn factorial(x: f64) -> Result<f64, String> {
     if x < 0.0 {
-        return Err(String::from("Cannot take the factorial of a negative number"));
+        return Err(String::from(
+            "Cannot take the factorial of a negative number",
+        ));
     }
     let x = x as u64;
     Ok((1..=x).fold(1, |a, b| a * b) as f64)
@@ -39,13 +48,14 @@ fn factorial(x: f64) -> Result<f64, String> {
 
 fn cos(mut x: f64) -> Result<f64, String> {
     while x > PI {
-        x -= 2.0*PI;
+        x -= 2.0 * PI;
     }
     while x < -PI {
-        x += 2.0*PI;
+        x += 2.0 * PI;
     }
-    
-    let res = 1.0 - trig_term(x, 2) + trig_term(x, 4) - trig_term(x, 6) + trig_term(x, 8) - trig_term(x, 10);
+
+    let res = 1.0 - trig_term(x, 2) + trig_term(x, 4) - trig_term(x, 6) + trig_term(x, 8)
+        - trig_term(x, 10);
     if res >= -1.0 && res <= 1.0 {
         Ok(res)
     } else {
@@ -56,16 +66,16 @@ fn cos(mut x: f64) -> Result<f64, String> {
 
 fn sin(mut x: f64) -> Result<f64, String> {
     while x > PI {
-        x -= 2.0*PI;
+        x -= 2.0 * PI;
     }
     while x < -PI {
-        x += 2.0*PI;
+        x += 2.0 * PI;
     }
 
-
-    let res = x - trig_term(x, 3) + trig_term(x, 5) - trig_term(x, 7) + trig_term(x, 9) - trig_term(x, 11);
+    let res = x - trig_term(x, 3) + trig_term(x, 5) - trig_term(x, 7) + trig_term(x, 9)
+        - trig_term(x, 11);
     if res >= -1.0 && res <= 1.0 {
-        Ok(res) 
+        Ok(res)
     } else {
         Ok(res)
         // panic!("something is very wrong with the sin function: {}", res);
@@ -89,7 +99,7 @@ fn trig_term(x: f64, y: usize) -> f64 {
     for _ in 0..y {
         ex *= x;
     }
-    let fact = (1..=y).fold(1, |a, b| a*b);
+    let fact = (1..=y).fold(1, |a, b| a * b);
 
     ex as f64 / fact as f64
 }

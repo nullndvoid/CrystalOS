@@ -1,19 +1,17 @@
-use alloc::string::{String, ToString};
-use alloc::{format, vec};
-use alloc::vec::Vec;
-use alloc::boxed::Box;
-use core::any::Any;
-use async_trait::async_trait;
 use crate::std::application::{Application, Error};
-use crate::std::render::{Frame, Position, Dimensions, ColouredChar, RenderError};
 use crate::std::io::{Display, KeyStroke, Stdin};
+use crate::std::render::{ColouredChar, Dimensions, Frame, Position, RenderError};
+use alloc::boxed::Box;
+use alloc::string::{String, ToString};
+use alloc::vec::Vec;
+use alloc::{format, vec};
+use async_trait::async_trait;
+use core::any::Any;
 
-use crate::user::lib::libgui::{
-    cg_core::{CgComponent},
-    cg_widgets::CgContainer,
-    cg_inputs::CgLineEdit,
-};
 use crate::user::lib::libgui::cg_core::{CgTextEdit, Widget};
+use crate::user::lib::libgui::{
+    cg_core::CgComponent, cg_inputs::CgLineEdit, cg_widgets::CgContainer,
+};
 
 use super::calc;
 
@@ -22,7 +20,6 @@ const OFFSET_Y: i64 = 10;
 
 use core::f64::consts::E;
 use core::f64::consts::PI;
-
 
 #[derive(Clone)]
 pub struct Grapher {
@@ -40,26 +37,28 @@ struct PointI64 {
     y: i64,
 }
 
-
 #[async_trait]
 impl Application for Grapher {
     fn new() -> Self {
         Self {
             points: Vec::new(),
-            frame: Frame::new(Position::new(1, 1), Dimensions::new(78, 22)).unwrap()
+            frame: Frame::new(Position::new(1, 1), Dimensions::new(78, 22)).unwrap(),
         }
     }
     async fn run(&mut self, args: Vec<String>) -> Result<(), Error> {
         let _d = Display::borrow();
 
-        self.frame.frame = vec![vec![ColouredChar::new(' '); self.frame.dimensions.x]; self.frame.dimensions.y];
+        self.frame.frame =
+            vec![vec![ColouredChar::new(' '); self.frame.dimensions.x]; self.frame.dimensions.y];
 
         if args.len() > 0 {
             let equation: String = args.into_iter().collect();
             self.graph_equation(equation, (0, 0));
 
             if let Ok(frame) = self.render() {
-                frame.write_to_screen().map_err(|_| Error::ApplicationError(String::from("failed to write to screen")))?;
+                frame.write_to_screen().map_err(|_| {
+                    Error::ApplicationError(String::from("failed to write to screen"))
+                })?;
             }
 
             loop {
@@ -70,19 +69,18 @@ impl Application for Grapher {
             }
 
             return Ok(());
-        }
-        else {
-            let mut container = CgContainer::new(
-                Position::new(0, 0),
-                Dimensions::new(80, 25),
-                true,
-            );
+        } else {
+            let mut container =
+                CgContainer::new(Position::new(0, 0), Dimensions::new(80, 25), true);
 
-            container.insert("entry_box", Widget::insert(CgLineEdit::new(
-                Position::new(1, 23),
-                78,
-                String::from("function >")
-            )));
+            container.insert(
+                "entry_box",
+                Widget::insert(CgLineEdit::new(
+                    Position::new(1, 23),
+                    78,
+                    String::from("function >"),
+                )),
+            );
             container.insert("grapher", Widget::insert(self.clone()));
 
             let mut commandresult = String::new();
@@ -93,7 +91,6 @@ impl Application for Grapher {
             let mut redraw_graph = true;
 
             while let c = Stdin::keystroke().await {
-
                 let entry_widget = container.elements.get("entry_box").unwrap();
                 let mut entry = entry_widget.fetch::<CgLineEdit>().unwrap();
 
@@ -104,18 +101,18 @@ impl Application for Grapher {
                         entry.clear();
                         offset_x = 0;
                         offset_y = 0;
-                    },
+                    }
                     KeyStroke::Char(Stdin::BACKSPACE) => {
                         redraw_graph = false;
                         entry.backspace()
-                    },
+                    }
                     KeyStroke::Char('`') => {
                         break;
                     }
                     KeyStroke::Char(c) => {
                         redraw_graph = false;
                         entry.write_char(c)
-                    },
+                    }
                     KeyStroke::Left => offset_x -= 1,
                     KeyStroke::Right => offset_x += 1,
                     KeyStroke::Up => offset_y -= 1,
@@ -136,35 +133,36 @@ impl Application for Grapher {
                 entry_widget.update(entry);
 
                 if let Ok(frame) = container.render() {
-
                     let self_widget = container.elements.get("grapher").unwrap();
                     let _self_clone = self_widget.fetch::<Grapher>().unwrap();
 
                     let entry = container.elements.get("entry_box").unwrap();
                     let _entry_clone = entry.fetch::<CgLineEdit>().unwrap();
 
-                    frame.write_to_screen().map_err(|_| Error::ApplicationError(String::from("failed to write to screen")))?;
+                    frame.write_to_screen().map_err(|_| {
+                        Error::ApplicationError(String::from("failed to write to screen"))
+                    })?;
                 }
             }
-
         }
         Ok(())
     }
 }
 
 impl Grapher {
-
     fn graph_equation(&mut self, equation: String, offsets: (i64, i64)) {
-
         let cal = calc::Calculator::new();
-        let ast = cal.get_expr(equation.chars().map(|c| {
-            match c {
-                'e' => format!("({})", E),
-                'π' => format!("({})", PI),
-                _ => c.to_string(),
-            }
-        }).collect::<String>());
-        
+        let ast = cal.get_expr(
+            equation
+                .chars()
+                .map(|c| match c {
+                    'e' => format!("({})", E),
+                    'π' => format!("({})", PI),
+                    _ => c.to_string(),
+                })
+                .collect::<String>(),
+        );
+
         if let Ok(ast) = ast {
             for x in -4000..4000 {
                 let x = x as f64 / 100.0;
@@ -189,10 +187,9 @@ impl Grapher {
                         y: y + offsets.1 as f64,
                     })
                 }
-            };
+            }
         }
     }
-
 
     fn render_point(&mut self, point: PointF64) {
         let point = PointI64 {
@@ -206,11 +203,17 @@ impl Grapher {
 
         let offset_x = point.x + OFFSET_X;
         let offset_y = point.y + OFFSET_Y;
-        self.frame.write(Position::new(offset_x as usize, 21-offset_y as usize), ColouredChar::new('*')).expect("Failed to write to frame - this function is broken.");
+        self.frame
+            .write(
+                Position::new(offset_x as usize, 21 - offset_y as usize),
+                ColouredChar::new('*'),
+            )
+            .expect("Failed to write to frame - this function is broken.");
     }
 
     fn reset_frame(&mut self) {
-        self.frame.frame = vec![vec![ColouredChar::new(' '); self.frame.dimensions.x]; self.frame.dimensions.y];
+        self.frame.frame =
+            vec![vec![ColouredChar::new(' '); self.frame.dimensions.x]; self.frame.dimensions.y];
     }
 }
 
@@ -222,15 +225,3 @@ impl CgComponent for Grapher {
         self
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-

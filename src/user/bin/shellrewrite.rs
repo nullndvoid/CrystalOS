@@ -28,11 +28,8 @@
 // //  - chained execution ( multiple commands linked together) eg: '5 + 5 | echo' which calculates
 // //    the result of 5 + 5 and then sends the result to an echo command which prints it to console
 
-
 // /// starts the shell
 // /// this function should be directly called by main.rs or by an init system
-
-
 
 // fn run_task(task_name: String, args: Vec<String>) -> Result<(), String> {
 //     Ok(())
@@ -154,5 +151,3 @@
 //         Ok((cmd, args))
 //     }
 // }
-
-

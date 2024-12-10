@@ -1,8 +1,8 @@
+use crate::std::io::Color;
+use crate::system::kernel::render::{ScreenChar, RENDERER};
 use alloc::string::String;
 use alloc::vec;
 use alloc::vec::Vec;
-use crate::system::kernel::render::{RENDERER, ScreenChar};
-use crate::std::io::Color;
 use num_traits::{Num, ToPrimitive};
 
 /// TODO: get a working implementation for CLI apps
@@ -12,15 +12,9 @@ use num_traits::{Num, ToPrimitive};
 ///
 /// nothing will appear on the screen until the frame is actually rendered by
 /// the write_to_screen() method on the renderer
-
 pub use crate::system::kernel::render::{
-    special_char,
-    RenderError,
-    ColorCode,
-    BUFFER_WIDTH,
-    BUFFER_HEIGHT
+    special_char, ColorCode, RenderError, BUFFER_HEIGHT, BUFFER_WIDTH,
 };
-
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct ColouredChar {
@@ -58,9 +52,6 @@ impl ColouredChar {
     }
 }
 
-
-
-
 #[derive(Copy, Clone, Debug)]
 pub struct Position<T: Num> {
     pub x: T,
@@ -73,12 +64,15 @@ impl<T: Num + ToPrimitive> Position<T> {
     }
 
     pub fn zero() -> Position<T> {
-        Position { x: T::zero(), y: T::zero() }
+        Position {
+            x: T::zero(),
+            y: T::zero(),
+        }
     }
-    
-    pub fn into_usize(self) -> Result<Position<usize>, ()> { 
-        Ok(Position { 
-            x: self.x.to_usize().ok_or(())?, 
+
+    pub fn into_usize(self) -> Result<Position<usize>, ()> {
+        Ok(Position {
+            x: self.x.to_usize().ok_or(())?,
             y: self.y.to_usize().ok_or(())?,
         })
     }
@@ -99,7 +93,6 @@ impl<T: Num + ToPrimitive> Position<T> {
 
 pub type Dimensions<T> = Position<T>;
 
-
 #[derive(Clone, Debug)]
 pub struct Frame {
     pub position: Position<usize>,
@@ -107,9 +100,11 @@ pub struct Frame {
     pub frame: Vec<Vec<ColouredChar>>,
 }
 
-
 impl Frame {
-    pub fn new(position: Position<usize>, dimensions: Dimensions<usize>) -> Result<Frame, RenderError> {
+    pub fn new(
+        position: Position<usize>,
+        dimensions: Dimensions<usize>,
+    ) -> Result<Frame, RenderError> {
         Ok(Frame {
             position,
             dimensions,
@@ -118,13 +113,17 @@ impl Frame {
     }
 
     pub fn from_str(elemstr: String) -> Self {
-        let mut element = Frame { frame: Vec::<Vec<ColouredChar>>::new(), dimensions: Dimensions::new(0, 0), position: Position::new(0, 0) };
+        let mut element = Frame {
+            frame: Vec::<Vec<ColouredChar>>::new(),
+            dimensions: Dimensions::new(0, 0),
+            position: Position::new(0, 0),
+        };
 
         for line in elemstr.split("\n") {
             element.frame.push(
                 line.chars()
                     .map(|c| ColouredChar::new(c))
-                    .collect::<Vec<ColouredChar>>()
+                    .collect::<Vec<ColouredChar>>(),
             );
         }
 
@@ -142,11 +141,12 @@ impl Frame {
     }
 
     pub fn write_to_screen(&self) -> Result<(), RenderError> {
-        let mut frame: [[ScreenChar; BUFFER_WIDTH]; BUFFER_HEIGHT] = [[ScreenChar::null(); BUFFER_WIDTH]; BUFFER_HEIGHT];
+        let mut frame: [[ScreenChar; BUFFER_WIDTH]; BUFFER_HEIGHT] =
+            [[ScreenChar::null(); BUFFER_WIDTH]; BUFFER_HEIGHT];
         for (i, row) in self.frame.iter().enumerate() {
             for (j, col) in row.iter().enumerate() {
                 frame[i + self.position.y][j + self.position.x] = col.as_screen_char();
-            };
+            }
         }
         RENDERER.lock().render_frame(frame);
         Ok(())
@@ -160,7 +160,11 @@ impl Frame {
     pub fn dimensions(&self) -> Dimensions<usize> {
         self.dimensions
     }
-    pub fn write(&mut self, position: Position<usize>, char: ColouredChar) -> Result<(), RenderError> {
+    pub fn write(
+        &mut self,
+        position: Position<usize>,
+        char: ColouredChar,
+    ) -> Result<(), RenderError> {
         if position.x >= self.dimensions.x || position.y >= self.dimensions.y {
             return Err(RenderError::OutOfBounds(
                 position.x >= self.dimensions.x,
@@ -178,26 +182,33 @@ impl Frame {
         }
     }
 
-    pub fn render_bounds_check(&self, element: &Frame, should_panic: bool) -> Result<(), RenderError> {
-
+    pub fn render_bounds_check(
+        &self,
+        element: &Frame,
+        should_panic: bool,
+    ) -> Result<(), RenderError> {
         let (mut x, mut y) = (false, false);
 
         if element.dimensions().x + element.get_position().x > self.dimensions.x {
-            if should_panic { panic!(
-                "Element is to large to be rendered {} {}",
-                element.dimensions().x + element.get_position().x,
-                self.dimensions.x
-            )} else {
+            if should_panic {
+                panic!(
+                    "Element is to large to be rendered {} {}",
+                    element.dimensions().x + element.get_position().x,
+                    self.dimensions.x
+                )
+            } else {
                 x = true;
             }
         }
 
         if element.dimensions().y + element.get_position().y > self.dimensions.y {
-            if should_panic { panic!(
-                "Element is to large to be rendered {} {}",
-                element.dimensions().y + element.get_position().y,
-                self.dimensions.y
-            )} else {
+            if should_panic {
+                panic!(
+                    "Element is to large to be rendered {} {}",
+                    element.dimensions().y + element.get_position().y,
+                    self.dimensions.y
+                )
+            } else {
                 y = true;
             }
         }
@@ -222,35 +233,3 @@ impl core::ops::IndexMut<usize> for Frame {
         &mut self.frame[index]
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

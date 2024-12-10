@@ -1,6 +1,3 @@
-
-
-
 use super::{map::Map, player::Player};
 
 pub struct Game {

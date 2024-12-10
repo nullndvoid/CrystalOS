@@ -1,10 +1,10 @@
 pub mod allocator;
+pub mod authenticator;
 pub mod gdt;
 pub mod interrupts;
 pub mod memory;
-pub mod serial;
-pub mod tasks;
-pub mod sysinit;
-pub mod authenticator;
-pub mod render;
 pub mod multitasking;
+pub mod render;
+pub mod serial;
+pub mod sysinit;
+pub mod tasks;

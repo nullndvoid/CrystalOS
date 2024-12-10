@@ -1,2 +1,2 @@
-pub mod lib;
 pub mod bin;
+pub mod lib;

@@ -72,12 +72,9 @@ impl ScreenChar {
     }
     pub fn new(mut character: u8, colour: ColorCode) -> ScreenChar {
         if let Some(c) = special_char(character as char) {
-           character = c
+            character = c
         }
-        ScreenChar {
-            character,
-            colour,
-        }
+        ScreenChar { character, colour }
     }
 }
 
@@ -111,8 +108,10 @@ lazy_static! {
 
 impl Renderer {
     // EXTERNAL API : for use by standard library and other parts of the kernel
-    pub fn render_frame(&mut self, frame: [[ScreenChar; BUFFER_WIDTH]; BUFFER_HEIGHT]) { // renders the given frame to the app buffer
-        let mut processed_frame: [[ScreenChar; BUFFER_WIDTH]; BUFFER_HEIGHT] = [[ScreenChar::null(); BUFFER_WIDTH]; BUFFER_HEIGHT];
+    pub fn render_frame(&mut self, frame: [[ScreenChar; BUFFER_WIDTH]; BUFFER_HEIGHT]) {
+        // renders the given frame to the app buffer
+        let mut processed_frame: [[ScreenChar; BUFFER_WIDTH]; BUFFER_HEIGHT] =
+            [[ScreenChar::null(); BUFFER_WIDTH]; BUFFER_HEIGHT];
 
         for (i, row) in frame.iter().enumerate() {
             for (j, col) in row.iter().enumerate() {
@@ -127,8 +126,9 @@ impl Renderer {
         self.internal_render();
     }
 
-    pub fn terminal_mode_force(&mut self) { // THIS SHOULD ONLY BE USED WHEN THE KERNEL PANICS
-                                            // TODO: find a way to make this function kernel only
+    pub fn terminal_mode_force(&mut self) {
+        // THIS SHOULD ONLY BE USED WHEN THE KERNEL PANICS
+        // TODO: find a way to make this function kernel only
         self.application_mode = false;
         self.internal_render();
     }
@@ -147,28 +147,35 @@ impl Renderer {
         self.application_mode
     }
 
-    pub fn write_char(&mut self, ch: u8, col: Option<ColorCode>) { // default colour if no colour is selected for character
-        if self.application_mode { return; };
+    pub fn write_char(&mut self, ch: u8, col: Option<ColorCode>) {
+        // default colour if no colour is selected for character
+        if self.application_mode {
+            return;
+        };
         self.write_byte(ch, col);
         self.internal_render();
     }
 
     pub fn write_string(&mut self, string: &str, col: Option<ColorCode>) {
-        if self.application_mode { return; };
+        if self.application_mode {
+            return;
+        };
         for ch in string.chars() {
             match special_char(ch) {
                 Some(c) => self.write_byte(c, col),
                 None => match ch as u8 {
                     0x20..=0xff | b'\n' => self.write_byte(ch as u8, col),
                     _ => self.write_byte(0xfe, col),
-                }
+                },
             }
         }
         self.internal_render();
     }
 
     pub fn backspace(&mut self) -> Result<(), RenderError> {
-        if self.application_mode { return Ok(()); };
+        if self.application_mode {
+            return Ok(());
+        };
 
         loop {
             if self.internal_backspace()? {
@@ -180,8 +187,11 @@ impl Renderer {
         Ok(())
     }
 
-    pub fn clear(&mut self) { // clears the screen and all scroll-back
-        if self.application_mode { return; };
+    pub fn clear(&mut self) {
+        // clears the screen and all scroll-back
+        if self.application_mode {
+            return;
+        };
 
         self.term_buffer = vec![[ScreenChar::null(); BUFFER_WIDTH]; BUFFER_HEIGHT];
         self.internal_render();
@@ -197,10 +207,7 @@ impl Renderer {
     pub fn cursor_position(&mut self, x: u8, y: u8) -> Result<(), RenderError> {
         // check that x and y are within bounds
         if x >= 80 || y >= 25 {
-            return Err(RenderError::OutOfBounds(
-                x >= 80,
-                y >= 25
-            ))
+            return Err(RenderError::OutOfBounds(x >= 80, y >= 25));
         }
         self.internal_set_cursor_position(x, y);
         Ok(())
@@ -212,7 +219,8 @@ impl Renderer {
         use x86_64::instructions::port::Port;
         let cursor_position: u16 = (y as u16) * 80 + (x as u16);
 
-        unsafe {// Write the high byte of the cursor position to register 14
+        unsafe {
+            // Write the high byte of the cursor position to register 14
             let mut control_port = Port::<u8>::new(0x3D4);
             control_port.write(14);
             // Write the high byte of the cursor position to register 15
@@ -244,8 +252,11 @@ impl Renderer {
         Ok(should_break)
     }
 
-    fn internal_newline(&mut self) { // moves all content one line up the screen and creates new line
-        if self.application_mode { return; }; // only in terminal mode
+    fn internal_newline(&mut self) {
+        // moves all content one line up the screen and creates new line
+        if self.application_mode {
+            return;
+        }; // only in terminal mode
         self.term_buffer.push([ScreenChar::null(); BUFFER_WIDTH]);
         self.col_pos = 0;
         if self.term_buffer.len() > 100 {
@@ -253,16 +264,21 @@ impl Renderer {
         }
     }
 
-    fn internal_lastline(&mut self) { // goes back to previous line and shifts all lines down
-        if self.application_mode { return; };
+    fn internal_lastline(&mut self) {
+        // goes back to previous line and shifts all lines down
+        if self.application_mode {
+            return;
+        };
         if self.term_buffer.len() <= 25 {
-            self.term_buffer.insert(0, [ScreenChar::null(); BUFFER_WIDTH]);
+            self.term_buffer
+                .insert(0, [ScreenChar::null(); BUFFER_WIDTH]);
         }
         self.term_buffer.pop();
         self.col_pos = BUFFER_WIDTH;
     }
 
-    fn write_screen_char(&mut self, ch: ScreenChar) { // TODO: optimise so that screen is not fully re-rendered for every string written.
+    fn write_screen_char(&mut self, ch: ScreenChar) {
+        // TODO: optimise so that screen is not fully re-rendered for every string written.
         match ch.character as u8 {
             b'\n' => self.internal_newline(),
             _ => {
@@ -279,7 +295,8 @@ impl Renderer {
         }
     }
 
-    fn write_byte(&mut self, byte: u8, col: Option<ColorCode>) { // default colour if no colour is selected for character
+    fn write_byte(&mut self, byte: u8, col: Option<ColorCode>) {
+        // default colour if no colour is selected for character
         self.write_screen_char(ScreenChar {
             character: byte,
             colour: match col {
@@ -287,12 +304,13 @@ impl Renderer {
                 None => match self.temp_colour {
                     Some(c) => c,
                     None => ColorCode::new(Color::White, Color::Black),
-                }
+                },
             },
         });
     }
 
-    fn internal_render(&mut self) { // private function that can only be used from within this struct.
+    fn internal_render(&mut self) {
+        // private function that can only be used from within this struct.
         if self.application_mode {
             for (i, row) in self.app_buffer.iter().enumerate() {
                 for (j, col) in row.iter().enumerate() {
@@ -301,7 +319,10 @@ impl Renderer {
             }
         } else {
             let buff_len = self.term_buffer.len();
-            for (i, row) in self.term_buffer[buff_len - BUFFER_HEIGHT..buff_len].iter().enumerate() {
+            for (i, row) in self.term_buffer[buff_len - BUFFER_HEIGHT..buff_len]
+                .iter()
+                .enumerate()
+            {
                 for (j, col) in row.iter().enumerate() {
                     self.screen_ref.chars[i][j].write(*col);
                 }
@@ -340,7 +361,6 @@ pub fn special_char(ch: char) -> Option<u8> {
     };
     Some(res)
 }
-
 
 impl fmt::Write for Renderer {
     fn write_str(&mut self, string: &str) -> fmt::Result {

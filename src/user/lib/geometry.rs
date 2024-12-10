@@ -2,7 +2,6 @@ use alloc::borrow::ToOwned;
 use alloc::vec::Vec;
 use libm::sqrt;
 
-
 #[derive(Clone, Debug, PartialEq)]
 pub enum Line {
     Vertical(i64),
@@ -17,7 +16,6 @@ pub struct Position {
 
 /// a point represented with x and y coordinates.
 impl Position {
-
     /// checks if the point is on a given line
     pub fn touches_line(&self, line: &Line) -> bool {
         match line {
@@ -35,7 +33,7 @@ impl Position {
     pub fn get_offset(&self, other: &Position) -> Position {
         Position {
             x: other.x - self.x,
-            y: other.y - self.y
+            y: other.y - self.y,
         }
     }
 
@@ -52,7 +50,6 @@ impl Position {
     }
 
     pub fn nearest(&self, points: &Vec<Position>) -> Position {
-
         let mut points = points.clone();
         points.sort_by_key(|p| {
             let p = self.get_offset(p);
@@ -61,13 +58,14 @@ impl Position {
         points.first().unwrap().to_owned()
     }
 
-
-    pub fn rotated_aroundte(&self, angle: Direction, p: Position) -> Position { // rotates by an angle around a point
+    pub fn rotated_aroundte(&self, angle: Direction, p: Position) -> Position {
+        // rotates by an angle around a point
 
         // gets coords relative to point to rotate around
         let mut p_offset = self.get_offset(&p);
 
-        p_offset = match angle { // default angle is posy = 0 degrees and negy = 180
+        p_offset = match angle {
+            // default angle is posy = 0 degrees and negy = 180
             Direction::Degrees0 => Position {
                 x: p_offset.x,
                 y: p_offset.y,
@@ -90,8 +88,10 @@ impl Position {
         return p_offset + p;
     }
 
-    pub fn rotate(&self, angle: Direction) -> Position { // rotates by an angle around origin
-        match angle { // default angle is posy = 0 degrees and negy = 180
+    pub fn rotate(&self, angle: Direction) -> Position {
+        // rotates by an angle around origin
+        match angle {
+            // default angle is posy = 0 degrees and negy = 180
             Direction::Degrees0 => Position {
                 x: self.x,
                 y: self.y,
@@ -119,10 +119,7 @@ impl Position {
     }
 
     pub fn zero() -> Position {
-        Position {
-            x: 0,
-            y: 0,
-        }
+        Position { x: 0, y: 0 }
     }
 }
 
@@ -159,7 +156,6 @@ impl Direction {
     }
 }
 
-
 #[derive(Clone, Debug, PartialEq)]
 pub struct PositionReal {
     pub x: f64,
@@ -168,7 +164,6 @@ pub struct PositionReal {
 
 /// a point represented with x and y coordinates.
 impl PositionReal {
-
     /// checks if the point is on a given line
     pub fn touches_line(&self, line: &Line) -> bool {
         match line {
@@ -186,12 +181,15 @@ impl PositionReal {
     pub fn get_offset(&self, other: &PositionReal) -> PositionReal {
         PositionReal {
             x: other.x - self.x,
-            y: other.y - self.y
+            y: other.y - self.y,
         }
     }
 
     pub fn diagonal_distance(&self, other: &PositionReal) -> f64 {
-        sqrt((self.x - other.x)*(self.x - other.x) + (self.y - other.y)* (self.y - other.y) as f64)
+        sqrt(
+            (self.x - other.x) * (self.x - other.x)
+                + (self.y - other.y) * (self.y - other.y) as f64,
+        )
     }
 
     pub fn as_usize(&self) -> (usize, usize) {
@@ -202,11 +200,9 @@ impl PositionReal {
         let absx = if self.x >= 0.0 { self.x } else { -self.x };
         let absy = if self.y >= 0.0 { self.y } else { -self.y };
         (absx + absy) as i64
-
     }
 
     pub fn nearest(&self, points: &Vec<PositionReal>) -> PositionReal {
-
         let mut points = points.clone();
         points.sort_by_key(|p| {
             let p = self.get_offset(p);
@@ -217,13 +213,14 @@ impl PositionReal {
         points.first().unwrap().to_owned()
     }
 
-
-    pub fn rotated_around(&self, angle: Direction, p: PositionReal) -> PositionReal { // rotates by an angle around a point
+    pub fn rotated_around(&self, angle: Direction, p: PositionReal) -> PositionReal {
+        // rotates by an angle around a point
 
         // gets coords relative to point to rotate around
         let mut p_offset = self.get_offset(&p);
 
-        p_offset = match angle { // default angle is posy = 0 degrees and negy = 180
+        p_offset = match angle {
+            // default angle is posy = 0 degrees and negy = 180
             Direction::Degrees0 => PositionReal {
                 x: p_offset.x,
                 y: p_offset.y,
@@ -246,8 +243,10 @@ impl PositionReal {
         return p_offset + p;
     }
 
-    pub fn rotate(&self, angle: Direction) -> PositionReal { // rotates by an angle around origin
-        match angle { // default angle is posy = 0 degrees and negy = 180
+    pub fn rotate(&self, angle: Direction) -> PositionReal {
+        // rotates by an angle around origin
+        match angle {
+            // default angle is posy = 0 degrees and negy = 180
             Direction::Degrees0 => PositionReal {
                 x: self.x,
                 y: self.y,
@@ -273,7 +272,6 @@ impl PositionReal {
             y: self.y as i64,
         }
     }
-
 }
 
 impl core::ops::Add for PositionReal {

@@ -1,7 +1,16 @@
-use alloc::{string::String, vec::Vec, boxed::Box};
+use alloc::{boxed::Box, string::String, vec::Vec};
 use async_trait::async_trait;
 
-use crate::{std::{application::{Application, Error}, io::{Color, Display, KeyStroke, Stdin}, random::Random, render::{ColorCode, ColouredChar, Dimensions, Frame, Position, RenderError}, time}, user::lib::libgui::cg_core::CgComponent};
+use crate::{
+    std::{
+        application::{Application, Error},
+        io::{Color, Display, KeyStroke, Stdin},
+        random::Random,
+        render::{ColorCode, ColouredChar, Dimensions, Frame, Position, RenderError},
+        time,
+    },
+    user::lib::libgui::cg_core::CgComponent,
+};
 
 pub struct Game {
     pub board: [[Cell; 7]; 6],
@@ -33,14 +42,14 @@ impl Application for Game {
 
     async fn run(&mut self, _: Vec<String>) -> Result<(), Error> {
         let _display = Display::borrow();
-        
+
         self.get_next_mode().await;
 
         // Main game loop
         loop {
             if self.game_over {
                 self.render_end_screen().await.unwrap();
-                let c = Stdin::keystroke().await; 
+                let c = Stdin::keystroke().await;
                 match c {
                     KeyStroke::Char('`') => break,
                     _ => {
@@ -49,7 +58,7 @@ impl Application for Game {
                             break;
                         }
                         self.game_over = false;
-                    },
+                    }
                 }
                 continue;
             }
@@ -100,7 +109,7 @@ impl Game {
                 if let Cell::Empty = self.board[row][col] {
                     continue;
                 }
-                
+
                 // Check if cell can fall one space
                 if let Cell::Empty = self.board[row + 1][col] {
                     // Move cell down one space
@@ -118,7 +127,7 @@ impl Game {
         let title = "Connect 4";
         let mode1 = "1. Player vs Player";
         let mode2 = "2. Player vs AI";
-        
+
         // Center coordinates
         let center_y = 10;
         let title_x = 40 - (title.len() / 2) as u16;
@@ -150,7 +159,7 @@ impl Game {
 
         frame.write_to_screen().unwrap();
 
-        loop {        
+        loop {
             let key = Stdin::keystroke().await;
             match key {
                 KeyStroke::Char('1') => {
@@ -200,8 +209,10 @@ impl Game {
         for row in 0..6 {
             for col in 0..4 {
                 let cell = self.board[row][col];
-                if let Cell::Empty = cell { continue; }
-                
+                if let Cell::Empty = cell {
+                    continue;
+                }
+
                 if (0..4).all(|i| self.board[row][col + i] == cell) {
                     // Mark winning cells
                     for i in 0..4 {
@@ -217,8 +228,10 @@ impl Game {
         for row in 0..3 {
             for col in 0..7 {
                 let cell = self.board[row][col];
-                if let Cell::Empty = cell { continue; }
-                
+                if let Cell::Empty = cell {
+                    continue;
+                }
+
                 if (0..4).all(|i| self.board[row + i][col] == cell) {
                     // Mark winning cells
                     for i in 0..4 {
@@ -234,8 +247,10 @@ impl Game {
         for row in 0..3 {
             for col in 0..4 {
                 let cell = self.board[row][col];
-                if let Cell::Empty = cell { continue; }
-                
+                if let Cell::Empty = cell {
+                    continue;
+                }
+
                 if (0..4).all(|i| self.board[row + i][col + i] == cell) {
                     // Mark winning cells
                     for i in 0..4 {
@@ -251,8 +266,10 @@ impl Game {
         for row in 0..3 {
             for col in 3..7 {
                 let cell = self.board[row][col];
-                if let Cell::Empty = cell { continue; }
-                
+                if let Cell::Empty = cell {
+                    continue;
+                }
+
                 if (0..4).all(|i| self.board[row + i][col - i] == cell) {
                     // Mark winning cells
                     for i in 0..4 {
@@ -293,17 +310,23 @@ impl Game {
 
     async fn render_end_screen(&mut self) -> Result<(), RenderError> {
         let mut frame = Frame::new(Position::new(0, 0), Dimensions::new(80, 25))?;
-        
+
         // Game Over message
         let game_over = "Game Over!";
         let winner_text = match self.winner {
             Some(1) => "Player 1 Wins!",
-            Some(2) => if self.vs_ai { "AI Wins!" } else { "Player 2 Wins!" },
+            Some(2) => {
+                if self.vs_ai {
+                    "AI Wins!"
+                } else {
+                    "Player 2 Wins!"
+                }
+            }
             None => "Draw!",
             _ => panic!("this shouldn't be possible"),
         };
         let restart_text = "Press any key to play again";
-        
+
         let center_y = 12;
         let game_over_x = 40 - (game_over.len() / 2) as u16;
         let winner_x = 40 - (winner_text.len() / 2) as u16;
@@ -341,9 +364,9 @@ impl Game {
         let mut frame = Frame::new(Position::new(0, 0), Dimensions::new(80, 25))?;
 
         // Calculate center position to align board
-        let cell_width = 4;  // 3 for cell + 1 for separator
+        let cell_width = 4; // 3 for cell + 1 for separator
         let cell_height = 3; // 2 for cell + 1 for gap
-        let board_width = 7 * cell_width - 1;  // -1 because last separator not needed
+        let board_width = 7 * cell_width - 1; // -1 because last separator not needed
         let board_height = 6 * cell_height - 1; // -1 because last gap not needed
         let start_x = (80 - board_width) / 2;
         let start_y = (25 - board_height) / 2;
@@ -352,9 +375,14 @@ impl Game {
         for col in 0..7 {
             let x = start_x + (col * cell_width);
             // Center the 3-char number display "[X]" in the 3-space cell width
-            frame[start_y - 3][x] = ColouredChar::coloured('[', ColorCode::new(Color::White, Color::Black));
-            frame[start_y - 3][x + 1] = ColouredChar::coloured((1 + col as u8 + b'0') as char, ColorCode::new(Color::White, Color::Black));
-            frame[start_y - 3][x + 2] = ColouredChar::coloured(']', ColorCode::new(Color::White, Color::Black));
+            frame[start_y - 3][x] =
+                ColouredChar::coloured('[', ColorCode::new(Color::White, Color::Black));
+            frame[start_y - 3][x + 1] = ColouredChar::coloured(
+                (1 + col as u8 + b'0') as char,
+                ColorCode::new(Color::White, Color::Black),
+            );
+            frame[start_y - 3][x + 2] =
+                ColouredChar::coloured(']', ColorCode::new(Color::White, Color::Black));
         }
 
         // Draw each cell
@@ -368,7 +396,8 @@ impl Game {
                 if col < 6 {
                     let separator_x = x + 3;
                     for dy in 0..3 {
-                        frame[y -1 + dy][separator_x] = ColouredChar::coloured('│', ColorCode::new(Color::White, Color::Black));
+                        frame[y - 1 + dy][separator_x] =
+                            ColouredChar::coloured('│', ColorCode::new(Color::White, Color::Black));
                     }
                 }
 
@@ -386,21 +415,21 @@ impl Game {
                         frame[y + dy][x + dx] = ColouredChar::coloured('█', color);
                     }
                 }
-
             }
 
             // Draw horizontal gap after each row (except last row)
             if row < 5 {
                 let gap_y = y + 2;
                 for x in start_x..start_x + board_width {
-                    frame[gap_y][x] = ColouredChar::coloured(' ', ColorCode::new(Color::White, Color::Black));
+                    frame[gap_y][x] =
+                        ColouredChar::coloured(' ', ColorCode::new(Color::White, Color::Black));
                 }
             }
         }
 
         Ok(frame)
     }
-    
+
     fn as_any(&self) -> &dyn core::any::Any {
         todo!()
     }

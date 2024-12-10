@@ -1,9 +1,6 @@
 use async_trait::async_trait;
 
-use crate::std::application::{
-	Application,
-	Error,
-};
+use crate::std::application::{Application, Error};
 
 const RICKROLL1: &str = "
   _   _                        _____
@@ -44,20 +41,18 @@ const RICKROLL2: &str = "
                                                                      `--'";
 
 use crate::println;
-use alloc::{string::String, boxed::Box, vec::Vec};
-
+use alloc::{boxed::Box, string::String, vec::Vec};
 
 pub struct Rickroll {}
 
 #[async_trait]
 impl Application for Rickroll {
-	fn new() -> Self {
-		Self {}
-	}
+    fn new() -> Self {
+        Self {}
+    }
 
-	async fn run(&mut self, _args: Vec<String>) -> Result<(), Error> {
-		println!("{}", RICKROLL2);
-		Ok(())
-	}
+    async fn run(&mut self, _args: Vec<String>) -> Result<(), Error> {
+        println!("{}", RICKROLL2);
+        Ok(())
+    }
 }
-
